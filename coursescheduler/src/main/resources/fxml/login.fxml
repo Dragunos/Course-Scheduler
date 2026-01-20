@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="vn.edu.haui.scheduler.ui.controller.LoginController"
+      spacing="10"
+      alignment="CENTER"
+      prefWidth="300">
+
+    <Label text="Đăng nhập" />
+
+    <TextField fx:id="usernameField"
+               promptText="Tên đăng nhập" />
+
+    <PasswordField fx:id="passwordField"
+                   promptText="Mật khẩu" />
+
+    <Button fx:id="loginButton"
+            text="Đăng nhập"
+            onAction="#onLoginClicked" />
+
+    <Label fx:id="messageLabel" />
+
+</VBox>

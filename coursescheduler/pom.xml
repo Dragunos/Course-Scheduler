@@ -92,6 +92,13 @@
 			<artifactId>jbcrypt</artifactId>
 			<version>0.4</version>
 		</dependency>
+		
+		<!-- HikariCP -->
+		<dependency>
+    		<groupId>com.zaxxer</groupId>
+    		<artifactId>HikariCP</artifactId>
+    		<version>5.1.0</version>
+		</dependency>
 
 		<!-- JUnit 5 -->
 		<dependency>
@@ -124,7 +131,7 @@
 				<artifactId>javafx-maven-plugin</artifactId>
 				<version>0.0.8</version>
 				<configuration>
-					<mainClass>vn.edu.haui.MainApp</mainClass>
+					<mainClass>vn.edu.haui.scheduler.ui.fx.AppLauncher</mainClass>
 				</configuration>
 			</plugin>
 
@@ -136,7 +143,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>vn.edu.haui.MainApp</mainClass>
+							<mainClass>vn.edu.haui.scheduler.ui.fx.AppLauncher</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

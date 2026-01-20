@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="vn.edu.haui.scheduler.ui.controller.HomeController">
+
+    <!-- Top bar: auth actions -->
+    <top>
+        <HBox spacing="10"
+              style="-fx-padding: 10; -fx-alignment: CENTER_RIGHT;">
+
+            <Button fx:id="loginButton"
+                    text="Đăng nhập"
+                    onAction="#onLogin"/>
+
+            <Button fx:id="registerButton"
+                    text="Đăng ký"
+                    onAction="#onRegister"/>
+
+            <Button fx:id="logoutButton"
+                    text="Đăng xuất"
+                    visible="false"
+                    managed="false"
+                    onAction="#onLogout"/>
+        </HBox>
+    </top>
+
+    <!-- Center content -->
+    <center>
+        <Label fx:id="welcomeLabel"
+               text="Chào mừng bạn"
+               style="-fx-font-size: 20px;"/>
+    </center>
+</BorderPane>
