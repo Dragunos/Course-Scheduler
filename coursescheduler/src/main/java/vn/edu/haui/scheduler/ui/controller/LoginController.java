@@ -5,7 +5,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import vn.edu.haui.scheduler.application.service.AuthAppService;
+import vn.edu.haui.scheduler.application.port.in.AuthUseCase;
 import vn.edu.haui.scheduler.application.service.AuthSession;
 import vn.edu.haui.scheduler.ui.fx.ScreenManager;
 import vn.edu.haui.scheduler.ui.viewmodel.AuthViewModel;
@@ -25,9 +25,10 @@ public class LoginController
 	private Label messageLabel;
 
 	private AuthViewModel viewModel;
+
 	private ScreenManager screenManager;
 
-	public void init(AuthAppService authService, AuthSession session, ScreenManager screenManager)
+	public void init(AuthUseCase authService, AuthSession session, ScreenManager screenManager)
 	{
 		this.viewModel = new AuthViewModel(authService, session);
 		this.screenManager = screenManager;

@@ -4,7 +4,8 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import vn.edu.haui.scheduler.application.service.AuthAppService;
+import vn.edu.haui.scheduler.application.port.in.AuthUseCase;
+import vn.edu.haui.scheduler.application.exception.*;
 import vn.edu.haui.scheduler.application.service.AuthSession;
 import vn.edu.haui.scheduler.domain.model.NguoiDung;
 
@@ -20,13 +21,13 @@ public class AuthViewModel
 
 	private final BooleanProperty busy = new SimpleBooleanProperty(false);
 
-	private final AuthAppService authService;
+	private final AuthUseCase authService;
 
 	private final AuthSession session;
 
 	private boolean authenticated = false;
 
-	public AuthViewModel(AuthAppService authService, AuthSession session)
+	public AuthViewModel(AuthUseCase authService, AuthSession session)
 	{
 		this.authService = authService;
 		this.session = session;
@@ -35,7 +36,6 @@ public class AuthViewModel
 	public void register()
 	{
 		if(busy.get()) return;
-
 		busy.set(true);
 		try {
 			if(username.get() == null || username.get().trim().isEmpty()) {
@@ -50,17 +50,16 @@ public class AuthViewModel
 				message.set("Mật khẩu xác nhận không khớp");
 				return;
 			}
-
 			long id = authService.register(username.get(), password.get());
 			message.set("Đăng ký thành công (id=" + id + ")");
 		}
-		catch(AuthAppService.UsernameAlreadyExistsException e) {
+		catch(UsernameAlreadyExistsException e) {
 			message.set("Tên đăng nhập đã tồn tại");
 		}
-		catch(AuthAppService.ValidationException e) {
+		catch(ValidationException e) {
 			message.set(e.getMessage());
 		}
-		catch(AuthAppService.PersistenceException e) {
+		catch(PersistenceException e) {
 			message.set("Lỗi hệ thống, vui lòng thử lại sau");
 		}
 		finally {
@@ -71,7 +70,6 @@ public class AuthViewModel
 	public void login()
 	{
 		if(busy.get()) return;
-
 		busy.set(true);
 		try {
 			if(username.get() == null || username.get().trim().isEmpty()) {
@@ -82,22 +80,20 @@ public class AuthViewModel
 				message.set("Mật khẩu không được rỗng");
 				return;
 			}
-
 			NguoiDung user = authService.login(username.get(), password.get());
 			session.login(user);
-
 			authenticated = true;
 			message.set("Đăng nhập thành công");
 		}
-		catch(AuthAppService.AuthenticationException e) {
+		catch(AuthenticationException e) {
 			authenticated = false;
 			message.set("Tên đăng nhập hoặc mật khẩu không đúng");
 		}
-		catch(AuthAppService.ValidationException e) {
+		catch(ValidationException e) {
 			authenticated = false;
 			message.set(e.getMessage());
 		}
-		catch(AuthAppService.PersistenceException e) {
+		catch(PersistenceException e) {
 			authenticated = false;
 			message.set("Lỗi hệ thống, vui lòng thử lại sau");
 		}

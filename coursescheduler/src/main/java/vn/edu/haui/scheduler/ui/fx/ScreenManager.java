@@ -4,7 +4,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import vn.edu.haui.scheduler.application.service.AuthAppService;
+import vn.edu.haui.scheduler.application.port.in.AuthUseCase;
 import vn.edu.haui.scheduler.application.service.AuthSession;
 import vn.edu.haui.scheduler.ui.controller.HomeController;
 import vn.edu.haui.scheduler.ui.controller.LoginController;
@@ -12,18 +12,19 @@ import vn.edu.haui.scheduler.ui.controller.RegisterController;
 
 public class ScreenManager
 {
+
 	private final Stage stage;
 
-	private final AuthAppService authService;
+	private final AuthUseCase authUseCase;
 
 	private final AuthSession session;
 
 	private Scene scene;
 
-	public ScreenManager(Stage stage, AuthAppService authService, AuthSession session)
+	public ScreenManager(Stage stage, AuthUseCase authUseCase, AuthSession session)
 	{
 		this.stage = stage;
-		this.authService = authService;
+		this.authUseCase = authUseCase;
 		this.session = session;
 	}
 
@@ -51,7 +52,7 @@ public class ScreenManager
 			Parent root = loader.load();
 
 			LoginController controller = loader.getController();
-			controller.init(authService, session, this);
+			controller.init(authUseCase, session, this);
 
 			stage.setTitle("Đăng nhập");
 			setRoot(root);
@@ -69,7 +70,7 @@ public class ScreenManager
 			Parent root = loader.load();
 
 			RegisterController controller = loader.getController();
-			controller.init(authService, session, this);
+			controller.init(authUseCase, session, this);
 
 			stage.setTitle("Đăng ký");
 			setRoot(root);
