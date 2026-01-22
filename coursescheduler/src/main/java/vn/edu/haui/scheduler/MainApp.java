@@ -2,9 +2,8 @@ package vn.edu.haui.scheduler;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
-
-import vn.edu.haui.scheduler.application.auth.AuthService;
-import vn.edu.haui.scheduler.application.auth.AuthSession;
+import vn.edu.haui.scheduler.application.service.AuthAppService;
+import vn.edu.haui.scheduler.application.service.AuthSession;
 import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.JdbcNguoiDungRepository;
 import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.JdbcVaiTroRepository;
@@ -19,7 +18,7 @@ public class MainApp extends Application
 	{
 		FxConfig.apply(stage);
 
-		AuthService authService = createAuthService();
+		AuthAppService authService = createAuthService();
 		AuthSession session = new AuthSession();
 
 		ScreenManager screenManager = new ScreenManager(stage, authService, session);
@@ -29,9 +28,9 @@ public class MainApp extends Application
 		stage.show();
 	}
 
-	private AuthService createAuthService()
+	private AuthAppService createAuthService()
 	{
-		return new AuthService(
+		return new AuthAppService(
 				new JdbcNguoiDungRepository(),
 				new JdbcVaiTroRepository(),
 				new PasswordHasher());

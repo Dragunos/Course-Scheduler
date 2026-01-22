@@ -4,9 +4,8 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-
-import vn.edu.haui.scheduler.application.auth.AuthService;
-import vn.edu.haui.scheduler.application.auth.AuthSession;
+import vn.edu.haui.scheduler.application.service.AuthAppService;
+import vn.edu.haui.scheduler.application.service.AuthSession;
 import vn.edu.haui.scheduler.domain.model.NguoiDung;
 
 public class AuthViewModel
@@ -21,13 +20,13 @@ public class AuthViewModel
 
 	private final BooleanProperty busy = new SimpleBooleanProperty(false);
 
-	private final AuthService authService;
+	private final AuthAppService authService;
 
 	private final AuthSession session;
 
 	private boolean authenticated = false;
 
-	public AuthViewModel(AuthService authService, AuthSession session)
+	public AuthViewModel(AuthAppService authService, AuthSession session)
 	{
 		this.authService = authService;
 		this.session = session;
@@ -55,13 +54,13 @@ public class AuthViewModel
 			long id = authService.register(username.get(), password.get());
 			message.set("Đăng ký thành công (id=" + id + ")");
 		}
-		catch(AuthService.UsernameAlreadyExistsException e) {
+		catch(AuthAppService.UsernameAlreadyExistsException e) {
 			message.set("Tên đăng nhập đã tồn tại");
 		}
-		catch(AuthService.ValidationException e) {
+		catch(AuthAppService.ValidationException e) {
 			message.set(e.getMessage());
 		}
-		catch(AuthService.PersistenceException e) {
+		catch(AuthAppService.PersistenceException e) {
 			message.set("Lỗi hệ thống, vui lòng thử lại sau");
 		}
 		finally {
@@ -90,15 +89,15 @@ public class AuthViewModel
 			authenticated = true;
 			message.set("Đăng nhập thành công");
 		}
-		catch(AuthService.AuthenticationException e) {
+		catch(AuthAppService.AuthenticationException e) {
 			authenticated = false;
 			message.set("Tên đăng nhập hoặc mật khẩu không đúng");
 		}
-		catch(AuthService.ValidationException e) {
+		catch(AuthAppService.ValidationException e) {
 			authenticated = false;
 			message.set(e.getMessage());
 		}
-		catch(AuthService.PersistenceException e) {
+		catch(AuthAppService.PersistenceException e) {
 			authenticated = false;
 			message.set("Lỗi hệ thống, vui lòng thử lại sau");
 		}

@@ -1,4 +1,4 @@
-package vn.edu.haui.scheduler.domain.value;
+package vn.edu.haui.scheduler.domain.model;
 
 public class KhoangTiet
 {

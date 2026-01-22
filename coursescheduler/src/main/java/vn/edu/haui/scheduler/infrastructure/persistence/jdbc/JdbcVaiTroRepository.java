@@ -6,7 +6,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Optional;
 
-import vn.edu.haui.scheduler.infrastructure.persistence.VaiTroRepository;
+import vn.edu.haui.scheduler.domain.repository.VaiTroRepository;
 import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 
 public class JdbcVaiTroRepository implements VaiTroRepository

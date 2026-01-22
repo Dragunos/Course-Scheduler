@@ -1,7 +1,7 @@
 package vn.edu.haui.scheduler.infrastructure.persistence.jdbc;
 
 import vn.edu.haui.scheduler.domain.model.NguoiDung;
-import vn.edu.haui.scheduler.infrastructure.persistence.NguoiDungRepository;
+import vn.edu.haui.scheduler.domain.repository.NguoiDungRepository;
 import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 
 import java.sql.Connection;

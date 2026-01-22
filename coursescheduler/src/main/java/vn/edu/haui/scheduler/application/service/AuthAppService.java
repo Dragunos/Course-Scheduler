@@ -1,13 +1,13 @@
-package vn.edu.haui.scheduler.application.auth;
+package vn.edu.haui.scheduler.application.service;
 
 import java.util.Optional;
 
 import vn.edu.haui.scheduler.domain.model.NguoiDung;
-import vn.edu.haui.scheduler.infrastructure.persistence.NguoiDungRepository;
-import vn.edu.haui.scheduler.infrastructure.persistence.VaiTroRepository;
+import vn.edu.haui.scheduler.domain.repository.NguoiDungRepository;
+import vn.edu.haui.scheduler.domain.repository.VaiTroRepository;
 import vn.edu.haui.scheduler.infrastructure.security.PasswordHasher;
 
-public class AuthService
+public class AuthAppService
 {
 	private final NguoiDungRepository nguoiDungRepo;
 
@@ -17,7 +17,7 @@ public class AuthService
 
 	private final String defaultRoleName = "USER";
 
-	public AuthService(NguoiDungRepository nguoiDungRepo, VaiTroRepository vaiTroRepo, PasswordHasher passwordHasher)
+	public AuthAppService(NguoiDungRepository nguoiDungRepo, VaiTroRepository vaiTroRepo, PasswordHasher passwordHasher)
 	{
 		this.nguoiDungRepo = nguoiDungRepo;
 		this.vaiTroRepo = vaiTroRepo;

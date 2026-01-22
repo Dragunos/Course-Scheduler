@@ -1,7 +1,6 @@
 package vn.edu.haui.scheduler.domain.model;
 
 import vn.edu.haui.scheduler.domain.enums.ThuTrongTuan;
-import vn.edu.haui.scheduler.domain.value.KhoangTiet;
 
 public class BuoiHoc
 {

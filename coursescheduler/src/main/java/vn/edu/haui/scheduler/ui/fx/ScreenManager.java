@@ -4,9 +4,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-
-import vn.edu.haui.scheduler.application.auth.AuthService;
-import vn.edu.haui.scheduler.application.auth.AuthSession;
+import vn.edu.haui.scheduler.application.service.AuthAppService;
+import vn.edu.haui.scheduler.application.service.AuthSession;
 import vn.edu.haui.scheduler.ui.controller.HomeController;
 import vn.edu.haui.scheduler.ui.controller.LoginController;
 import vn.edu.haui.scheduler.ui.controller.RegisterController;
@@ -15,13 +14,13 @@ public class ScreenManager
 {
 	private final Stage stage;
 
-	private final AuthService authService;
+	private final AuthAppService authService;
 
 	private final AuthSession session;
 
 	private Scene scene;
 
-	public ScreenManager(Stage stage, AuthService authService, AuthSession session)
+	public ScreenManager(Stage stage, AuthAppService authService, AuthSession session)
 	{
 		this.stage = stage;
 		this.authService = authService;

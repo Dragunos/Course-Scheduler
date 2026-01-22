@@ -14,7 +14,13 @@ public class FxConfig
 		stage.setMinWidth(900);
 		stage.setMinHeight(600);
 
-		Locale.setDefault(new Locale("vi", "VN"));
+		Locale locale = new Locale.Builder()
+				.setLanguage("vi")
+				.setRegion("VN")
+				.build();
+
+		Locale.setDefault(locale);
+
 	}
 
 	public static void apply(Scene scene)

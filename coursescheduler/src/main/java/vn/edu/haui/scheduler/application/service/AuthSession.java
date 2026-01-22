@@ -1,4 +1,4 @@
-package vn.edu.haui.scheduler.application.auth;
+package vn.edu.haui.scheduler.application.service;
 
 import vn.edu.haui.scheduler.domain.model.NguoiDung;
 

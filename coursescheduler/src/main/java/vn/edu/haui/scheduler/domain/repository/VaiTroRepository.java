@@ -1,4 +1,4 @@
-package vn.edu.haui.scheduler.infrastructure.persistence;
+package vn.edu.haui.scheduler.domain.repository;
 
 import java.util.Optional;
 

@@ -3,8 +3,7 @@ package vn.edu.haui.scheduler.ui.controller;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-
-import vn.edu.haui.scheduler.application.auth.AuthSession;
+import vn.edu.haui.scheduler.application.service.AuthSession;
 import vn.edu.haui.scheduler.ui.fx.ScreenManager;
 
 public class HomeController
