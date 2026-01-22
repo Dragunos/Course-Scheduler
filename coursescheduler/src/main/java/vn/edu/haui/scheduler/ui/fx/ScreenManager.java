@@ -28,7 +28,7 @@ public class ScreenManager
 
 	public void init()
 	{
-		showLogin();
+		showHome();
 	}
 
 	public boolean isAuthenticated()
