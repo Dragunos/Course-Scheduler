@@ -6,7 +6,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import vn.edu.haui.scheduler.application.port.in.AuthUseCase;
-import vn.edu.haui.scheduler.application.service.AuthSession;
+import vn.edu.haui.scheduler.domain.model.NguoiDung;
 import vn.edu.haui.scheduler.ui.fx.ScreenManager;
 import vn.edu.haui.scheduler.ui.viewmodel.AuthViewModel;
 
@@ -28,9 +28,9 @@ public class LoginController
 
 	private ScreenManager screenManager;
 
-	public void init(AuthUseCase authService, AuthSession session, ScreenManager screenManager)
+	public void init(AuthUseCase authService, ScreenManager screenManager)
 	{
-		this.viewModel = new AuthViewModel(authService, session);
+		this.viewModel = new AuthViewModel(authService);
 		this.screenManager = screenManager;
 		bindFields();
 	}
@@ -47,13 +47,12 @@ public class LoginController
 	private void onLoginClicked()
 	{
 		try {
-			viewModel.login();
-			if(viewModel.isAuthenticated()) {
-				screenManager.showHome();
-			}
+			NguoiDung user = viewModel.login();
+			screenManager.setCurrentUser(user);
+			screenManager.showHome();
 		}
 		catch(Exception e) {
-			viewModel.setMessage("Đăng nhập thất bại");
+			viewModel.setMessage("Tên đăng nhập hoặc mật khẩu không đúng");
 		}
 	}
 

@@ -6,7 +6,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import vn.edu.haui.scheduler.application.port.in.AuthUseCase;
 import vn.edu.haui.scheduler.application.exception.*;
-import vn.edu.haui.scheduler.application.service.AuthSession;
 import vn.edu.haui.scheduler.domain.model.NguoiDung;
 
 public class AuthViewModel
@@ -23,79 +22,51 @@ public class AuthViewModel
 
 	private final AuthUseCase authService;
 
-	private final AuthSession session;
-
 	private boolean authenticated = false;
 
-	public AuthViewModel(AuthUseCase authService, AuthSession session)
+	public AuthViewModel(AuthUseCase authService)
 	{
 		this.authService = authService;
-		this.session = session;
 	}
 
-	public void register()
+	public long register() throws ValidationException, UsernameAlreadyExistsException, PersistenceException
 	{
-		if(busy.get()) return;
+		if(busy.get()) throw new IllegalStateException("busy");
 		busy.set(true);
 		try {
 			if(username.get() == null || username.get().trim().isEmpty()) {
-				message.set("Tên đăng nhập không được rỗng");
-				return;
+				throw new ValidationException("Tên đăng nhập không được rỗng");
 			}
 			if(password.get() == null || password.get().length() < 6) {
-				message.set("Mật khẩu phải có ít nhất 6 ký tự");
-				return;
+				throw new ValidationException("Mật khẩu phải có ít nhất 6 ký tự");
 			}
 			if(!password.get().equals(confirm.get())) {
-				message.set("Mật khẩu xác nhận không khớp");
-				return;
+				throw new ValidationException("Mật khẩu xác nhận không khớp");
 			}
 			long id = authService.register(username.get(), password.get());
 			message.set("Đăng ký thành công (id=" + id + ")");
-		}
-		catch(UsernameAlreadyExistsException e) {
-			message.set("Tên đăng nhập đã tồn tại");
-		}
-		catch(ValidationException e) {
-			message.set(e.getMessage());
-		}
-		catch(PersistenceException e) {
-			message.set("Lỗi hệ thống, vui lòng thử lại sau");
+			return id;
 		}
 		finally {
 			busy.set(false);
 		}
 	}
 
-	public void login()
+	public NguoiDung login() throws ValidationException, AuthenticationException, PersistenceException
 	{
-		if(busy.get()) return;
+		if(busy.get()) throw new IllegalStateException("busy");
 		busy.set(true);
 		try {
 			if(username.get() == null || username.get().trim().isEmpty()) {
-				message.set("Tên đăng nhập không được rỗng");
-				return;
+				throw new ValidationException("Tên đăng nhập không được rỗng");
 			}
 			if(password.get() == null || password.get().isEmpty()) {
-				message.set("Mật khẩu không được rỗng");
-				return;
+				throw new ValidationException("Mật khẩu không được rỗng");
 			}
 			NguoiDung user = authService.login(username.get(), password.get());
-			session.login(user);
 			authenticated = true;
 			message.set("Đăng nhập thành công");
-		}
-		catch(AuthenticationException e) {
-			authenticated = false;
-			message.set("Tên đăng nhập hoặc mật khẩu không đúng");
-		}
-		catch(ValidationException e) {
-			authenticated = false;
-			message.set(e.getMessage());
-		}
-		catch(PersistenceException e) {
-			authenticated = false;
-			message.set("Lỗi hệ thống, vui lòng thử lại sau");
+			return user;
 		}
 		finally {
 			busy.set(false);

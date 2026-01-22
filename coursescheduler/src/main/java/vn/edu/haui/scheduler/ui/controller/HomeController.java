@@ -3,7 +3,7 @@ package vn.edu.haui.scheduler.ui.controller;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import vn.edu.haui.scheduler.application.service.AuthSession;
+import vn.edu.haui.scheduler.domain.model.NguoiDung;
 import vn.edu.haui.scheduler.ui.fx.ScreenManager;
 
 public class HomeController
@@ -20,28 +20,25 @@ public class HomeController
 	@FXML
 	private Label welcomeLabel;
 
-	private AuthSession session;
-
 	private ScreenManager screenManager;
 
-	public void init(AuthSession session, ScreenManager screenManager)
+	public void init(ScreenManager screenManager)
 	{
-		this.session = session;
 		this.screenManager = screenManager;
 		updateView();
 	}
 
 	private void updateView()
 	{
-		boolean loggedIn = session.isAuthenticated();
+		boolean loggedIn = screenManager.isAuthenticated();
 
 		loginButton.setVisible(!loggedIn);
 		registerButton.setVisible(!loggedIn);
 		logoutButton.setVisible(loggedIn);
 
 		if(loggedIn) {
-			welcomeLabel.setText(
-					"Xin chào, " + session.getCurrentUser().getTenDangNhap());
+			NguoiDung user = screenManager.getCurrentUser();
+			welcomeLabel.setText("Xin chào, " + user.getTenDangNhap());
 		}
 		else {
 			welcomeLabel.setText("Chào mừng bạn");
@@ -63,7 +60,7 @@ public class HomeController
 	@FXML
 	private void onLogout()
 	{
-		session.logout();
+		screenManager.clearCurrentUser();
 		screenManager.showHome();
 	}
 }

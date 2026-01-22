@@ -5,32 +5,50 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import vn.edu.haui.scheduler.application.port.in.AuthUseCase;
-import vn.edu.haui.scheduler.application.service.AuthSession;
+import vn.edu.haui.scheduler.domain.model.NguoiDung;
 import vn.edu.haui.scheduler.ui.controller.HomeController;
 import vn.edu.haui.scheduler.ui.controller.LoginController;
 import vn.edu.haui.scheduler.ui.controller.RegisterController;
 
 public class ScreenManager
 {
-
 	private final Stage stage;
 
 	private final AuthUseCase authUseCase;
 
-	private final AuthSession session;
-
 	private Scene scene;
 
-	public ScreenManager(Stage stage, AuthUseCase authUseCase, AuthSession session)
+	private NguoiDung currentUser;
+
+	public ScreenManager(Stage stage, AuthUseCase authUseCase)
 	{
 		this.stage = stage;
 		this.authUseCase = authUseCase;
-		this.session = session;
 	}
 
 	public void init()
 	{
-		showHome();
+		showLogin();
+	}
+
+	public boolean isAuthenticated()
+	{
+		return currentUser != null;
+	}
+
+	public NguoiDung getCurrentUser()
+	{
+		return currentUser;
+	}
+
+	public void setCurrentUser(NguoiDung user)
+	{
+		this.currentUser = user;
+	}
+
+	public void clearCurrentUser()
+	{
+		this.currentUser = null;
 	}
 
 	private void setRoot(Parent root)
@@ -52,7 +70,7 @@ public class ScreenManager
 			Parent root = loader.load();
 
 			LoginController controller = loader.getController();
-			controller.init(authUseCase, session, this);
+			controller.init(authUseCase, this);
 
 			stage.setTitle("Đăng nhập");
 			setRoot(root);
@@ -70,7 +88,7 @@ public class ScreenManager
 			Parent root = loader.load();
 
 			RegisterController controller = loader.getController();
-			controller.init(authUseCase, session, this);
+			controller.init(authUseCase, this);
 
 			stage.setTitle("Đăng ký");
 			setRoot(root);
@@ -88,7 +106,7 @@ public class ScreenManager
 			Parent root = loader.load();
 
 			HomeController controller = loader.getController();
-			controller.init(session, this);
+			controller.init(this);
 
 			stage.setTitle("Trang chủ");
 			setRoot(root);
