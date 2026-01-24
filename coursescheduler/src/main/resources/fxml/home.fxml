@@ -1,41 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="vn.edu.haui.scheduler.ui.controller.HomeController"
+            stylesheets="@../css/auth.css"
             prefWidth="1200"
             prefHeight="680">
 
-    <!-- Top bar -->
+    <!-- TOP BAR -->
     <top>
-        <HBox spacing="10"
+        <HBox spacing="12"
               alignment="CENTER_RIGHT"
-              style="-fx-padding: 10;">
+              styleClass="top-bar">
+
             <Button fx:id="loginButton"
                     text="Đăng nhập"
-                    onAction="#onLogin"/>
+                    onAction="#onLogin"
+                    styleClass="secondary-button"/>
 
             <Button fx:id="registerButton"
                     text="Đăng ký"
-                    onAction="#onRegister"/>
+                    onAction="#onRegister"
+                    styleClass="primary-button"/>
 
             <Button fx:id="logoutButton"
                     text="Đăng xuất"
                     visible="false"
-                    onAction="#onLogout"/>
+                    onAction="#onLogout"
+                    styleClass="danger-button"/>
         </HBox>
     </top>
 
-    <!-- Center -->
+    <!-- CENTER -->
     <center>
-        <Label fx:id="welcomeLabel"
-               text="Chào mừng bạn"
-               style="-fx-font-size: 20px;"/>
+        <VBox alignment="CENTER"
+              spacing="16">
+
+            <Label fx:id="welcomeLabel"
+                   text="Chào mừng bạn"
+                   styleClass="home-title"/>
+
+            <Label text="Chúc bạn một ngày làm việc hiệu quả"
+                   styleClass="home-subtitle"/>
+
+        </VBox>
     </center>
 
 </BorderPane>

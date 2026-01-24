@@ -1,15 +1,24 @@
 package vn.edu.haui.scheduler.ui.viewmodel;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.property.IntegerProperty;
 import vn.edu.haui.scheduler.application.port.in.AuthUseCase;
 import vn.edu.haui.scheduler.application.exception.*;
 import vn.edu.haui.scheduler.domain.model.NguoiDung;
 
 public class AuthViewModel
 {
+	public enum Status
+	{
+		NONE, SUCCESS, ERROR
+	}
+
 	private final StringProperty username = new SimpleStringProperty("");
 
 	private final StringProperty password = new SimpleStringProperty("");
@@ -18,64 +27,102 @@ public class AuthViewModel
 
 	private final StringProperty message = new SimpleStringProperty("");
 
+	private final ObjectProperty<Status> status = new SimpleObjectProperty<>(Status.NONE);
+
+	private final IntegerProperty errorCount = new SimpleIntegerProperty(0);
+
 	private final BooleanProperty busy = new SimpleBooleanProperty(false);
 
 	private final AuthUseCase authService;
-
-	private boolean authenticated = false;
 
 	public AuthViewModel(AuthUseCase authService)
 	{
 		this.authService = authService;
 	}
 
-	public long register() throws ValidationException, UsernameAlreadyExistsException, PersistenceException
+	public NguoiDung login()
+			throws ValidationException, AuthenticationException, PersistenceException
 	{
-		if(busy.get()) throw new IllegalStateException("busy");
-		busy.set(true);
+		runGuard();
 		try {
-			if(username.get() == null || username.get().trim().isEmpty()) {
-				throw new ValidationException("Tên đăng nhập không được rỗng");
-			}
-			if(password.get() == null || password.get().length() < 6) {
-				throw new ValidationException("Mật khẩu phải có ít nhất 6 ký tự");
-			}
-			if(!password.get().equals(confirm.get())) {
-				throw new ValidationException("Mật khẩu xác nhận không khớp");
-			}
-			long id = authService.register(username.get(), password.get());
-			message.set("Đăng ký thành công (id=" + id + ")");
-			return id;
-		}
-		finally {
-			busy.set(false);
-		}
-	}
-
-	public NguoiDung login() throws ValidationException, AuthenticationException, PersistenceException
-	{
-		if(busy.get()) throw new IllegalStateException("busy");
-		busy.set(true);
-		try {
-			if(username.get() == null || username.get().trim().isEmpty()) {
-				throw new ValidationException("Tên đăng nhập không được rỗng");
-			}
-			if(password.get() == null || password.get().isEmpty()) {
-				throw new ValidationException("Mật khẩu không được rỗng");
-			}
+			validateLogin();
 			NguoiDung user = authService.login(username.get(), password.get());
-			authenticated = true;
-			message.set("Đăng nhập thành công");
+			onSuccess("Đăng nhập thành công");
 			return user;
 		}
+		catch(Exception e) {
+			onError(e.getMessage());
+			throw e;
+		}
 		finally {
 			busy.set(false);
 		}
 	}
 
-	public boolean isAuthenticated()
+	public void register()
+			throws ValidationException, UsernameAlreadyExistsException, PersistenceException
 	{
-		return authenticated;
+		runGuard();
+		try {
+			validateRegister();
+			authService.register(username.get(), password.get());
+			onSuccess("Đăng ký thành công");
+		}
+		catch(Exception e) {
+			onError(e.getMessage());
+			throw e;
+		}
+		finally {
+			busy.set(false);
+		}
+	}
+
+	private void onSuccess(String msg)
+	{
+		message.set(msg);
+		status.set(Status.SUCCESS);
+		errorCount.set(0);
+	}
+
+	private void onError(String msg)
+	{
+		message.set(msg);
+		status.set(Status.ERROR);
+		errorCount.set(errorCount.get() + 1);
+	}
+
+	private void runGuard()
+	{
+		if(busy.get()) throw new IllegalStateException("busy");
+		busy.set(true);
+		status.set(Status.NONE);
+	}
+
+	private void validateLogin() throws ValidationException
+	{
+		if(username.get().isBlank())
+			throw new ValidationException("Tên đăng nhập không được rỗng");
+		if(password.get().isBlank())
+			throw new ValidationException("Mật khẩu không được rỗng");
+	}
+
+	private void validateRegister() throws ValidationException
+	{
+		validateLogin();
+		if(password.get().length() < 6)
+			throw new ValidationException("Mật khẩu phải ≥ 6 ký tự");
+		if(!password.get().equals(confirm.get()))
+			throw new ValidationException("Mật khẩu xác nhận không khớp");
+	}
+
+	public void clear()
+	{
+		username.set("");
+		password.set("");
+		confirm.set("");
+		message.set("");
+		status.set(Status.NONE);
+		errorCount.set(0);
 	}
 
 	public StringProperty usernameProperty()
@@ -103,8 +150,13 @@ public class AuthViewModel
 		return busy;
 	}
 
-	public void setMessage(String msg)
+	public ObjectProperty<Status> statusProperty()
 	{
-		message.set(msg);
+		return status;
+	}
+
+	public IntegerProperty errorCountProperty()
+	{
+		return errorCount;
 	}
 }

@@ -48,13 +48,13 @@ public class HomeController
 	@FXML
 	private void onLogin()
 	{
-		screenManager.showLogin();
+		screenManager.showAuth();
 	}
 
 	@FXML
 	private void onRegister()
 	{
-		screenManager.showRegister();
+		screenManager.showAuth();
 	}
 
 	@FXML

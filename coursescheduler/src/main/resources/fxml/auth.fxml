@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml"
+           fx:controller="vn.edu.haui.scheduler.ui.controller.AuthController"
+           stylesheets="@../css/auth.css">
+
+    <!-- LOGIN -->
+    <VBox fx:id="loginPane"
+          alignment="CENTER"
+          spacing="12"
+          maxWidth="400"
+          styleClass="form-container">
+
+        <Label text="Sign in" styleClass="title"/>
+
+        <TextField fx:id="loginUsernameField" promptText="Email"/>
+        <PasswordField fx:id="loginPasswordField" promptText="Password"/>
+
+        <Label fx:id="loginMessageLabel" styleClass="message"/>
+
+        <Button fx:id="loginButton"
+                text="SIGN IN"
+                onAction="#onLoginClicked"
+                styleClass="primary-button"/>
+
+        <Hyperlink text="Create new account"
+                   onAction="#showRegister"/>
+    </VBox>
+
+    <!-- REGISTER -->
+    <VBox fx:id="registerPane"
+          alignment="CENTER"
+          spacing="12"
+          maxWidth="400"
+          visible="false"
+          opacity="0"
+          styleClass="form-container">
+
+        <Label text="Create Account" styleClass="title"/>
+
+        <TextField fx:id="registerUsernameField" promptText="Email"/>
+        <PasswordField fx:id="registerPasswordField" promptText="Password"/>
+        <PasswordField fx:id="confirmPasswordField" promptText="Confirm password"/>
+
+        <Label fx:id="registerMessageLabel" styleClass="message"/>
+
+        <Button fx:id="registerButton"
+                text="SIGN UP"
+                onAction="#onRegisterClicked"
+                styleClass="primary-button"/>
+
+        <Hyperlink text="Back to login"
+                   onAction="#showLogin"/>
+    </VBox>
+
+</StackPane>

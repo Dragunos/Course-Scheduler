@@ -6,9 +6,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import vn.edu.haui.scheduler.application.port.in.AuthUseCase;
 import vn.edu.haui.scheduler.domain.model.NguoiDung;
-import vn.edu.haui.scheduler.ui.controller.HomeController;
-import vn.edu.haui.scheduler.ui.controller.LoginController;
-import vn.edu.haui.scheduler.ui.controller.RegisterController;
+import vn.edu.haui.scheduler.ui.controller.*;
 
 public class ScreenManager
 {
@@ -62,42 +60,6 @@ public class ScreenManager
 		}
 	}
 
-	public void showLogin()
-	{
-		try {
-			FXMLLoader loader = new FXMLLoader(
-					getClass().getResource("/fxml/login.fxml"));
-			Parent root = loader.load();
-
-			LoginController controller = loader.getController();
-			controller.init(authUseCase, this);
-
-			stage.setTitle("Đăng nhập");
-			setRoot(root);
-		}
-		catch(Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	public void showRegister()
-	{
-		try {
-			FXMLLoader loader = new FXMLLoader(
-					getClass().getResource("/fxml/register.fxml"));
-			Parent root = loader.load();
-
-			RegisterController controller = loader.getController();
-			controller.init(authUseCase, this);
-
-			stage.setTitle("Đăng ký");
-			setRoot(root);
-		}
-		catch(Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
 	public void showHome()
 	{
 		try {
@@ -109,6 +71,24 @@ public class ScreenManager
 			controller.init(this);
 
 			stage.setTitle("Trang chủ");
+			setRoot(root);
+		}
+		catch(Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void showAuth()
+	{
+		try {
+			FXMLLoader loader = new FXMLLoader(
+					getClass().getResource("/fxml/auth.fxml"));
+			Parent root = loader.load();
+
+			AuthController controller = loader.getController();
+			controller.init(authUseCase, this);
+
+			stage.setTitle("Authentication");
 			setRoot(root);
 		}
 		catch(Exception e) {

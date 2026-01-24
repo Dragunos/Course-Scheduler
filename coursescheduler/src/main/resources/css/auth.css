@@ -35,3 +35,49 @@
     -fx-text-fill: red;
     -fx-font-size: 12;
 }
+
+/* ===== HOME ===== */
+
+.top-bar {
+    -fx-padding: 12 24;
+    -fx-background-color: #f8fafc;
+}
+
+.home-title {
+    -fx-font-size: 26;
+    -fx-text-fill: #0f172a;
+}
+
+.home-subtitle {
+    -fx-font-size: 14;
+    -fx-text-fill: #94a3b8;
+}
+
+/* Button variants */
+
+.secondary-button {
+    -fx-background-color: transparent;
+    -fx-border-color: #27b397;
+    -fx-border-radius: 20;
+    -fx-text-fill: #27b397;
+    -fx-padding: 8 24;
+}
+
+.danger-button {
+    -fx-background-color: #ef4444;
+    -fx-text-fill: white;
+    -fx-background-radius: 20;
+    -fx-padding: 8 24;
+}
+
+.message {
+    -fx-font-size: 12;
+}
+
+.message-error {
+    -fx-text-fill: #ef4444;
+}
+
+.message-success {
+    -fx-text-fill: #22c55e;
+}
