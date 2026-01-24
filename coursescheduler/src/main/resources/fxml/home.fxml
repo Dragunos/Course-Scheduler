@@ -5,14 +5,17 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="vn.edu.haui.scheduler.ui.controller.HomeController">
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="vn.edu.haui.scheduler.ui.controller.HomeController"
+            prefWidth="1200"
+            prefHeight="680">
 
-    <!-- Top bar: auth actions -->
+    <!-- Top bar -->
     <top>
         <HBox spacing="10"
-              style="-fx-padding: 10; -fx-alignment: CENTER_RIGHT;">
-
+              alignment="CENTER_RIGHT"
+              style="-fx-padding: 10;">
             <Button fx:id="loginButton"
                     text="Đăng nhập"
                     onAction="#onLogin"/>
@@ -24,15 +27,15 @@
             <Button fx:id="logoutButton"
                     text="Đăng xuất"
                     visible="false"
-                    managed="false"
                     onAction="#onLogout"/>
         </HBox>
     </top>
 
-    <!-- Center content -->
+    <!-- Center -->
     <center>
         <Label fx:id="welcomeLabel"
                text="Chào mừng bạn"
                style="-fx-font-size: 20px;"/>
     </center>
+
 </BorderPane>

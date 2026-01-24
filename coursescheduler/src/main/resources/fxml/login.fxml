@@ -1,27 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.VBox?>
 
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="vn.edu.haui.scheduler.ui.controller.LoginController"
-      spacing="10"
-      alignment="CENTER"
-      prefWidth="300">
+      prefWidth="1200"
+      prefHeight="680"
+      spacing="12"
+      alignment="CENTER">
 
-    <Label text="Đăng nhập" />
+    <Label text="Đăng nhập"
+           style="-fx-font-size: 18px;"/>
 
     <TextField fx:id="usernameField"
-               promptText="Tên đăng nhập" />
+               promptText="Tên đăng nhập"
+               maxWidth="300"/>
 
     <PasswordField fx:id="passwordField"
-                   promptText="Mật khẩu" />
+                   promptText="Mật khẩu"
+                   maxWidth="300"/>
 
     <Button fx:id="loginButton"
             text="Đăng nhập"
-            onAction="#onLoginClicked" />
+            onAction="#onLoginClicked"/>
 
-    <Label fx:id="messageLabel" />
+    <Label fx:id="messageLabel"/>
 
 </VBox>
