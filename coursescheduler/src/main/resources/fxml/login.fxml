@@ -1,31 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.*?>
 
-<VBox xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="vn.edu.haui.scheduler.ui.controller.LoginController"
-      prefWidth="1200"
-      prefHeight="680"
-      spacing="12"
-      alignment="CENTER">
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="vn.edu.haui.scheduler.ui.controller.LoginController"
+            stylesheets="@../css/auth.css">
 
-    <Label text="Đăng nhập"
-           style="-fx-font-size: 18px;"/>
+    <center>
+        <VBox spacing="12"
+              maxWidth="400"
+              alignment="CENTER"
+              styleClass="form-container">
 
-    <TextField fx:id="usernameField"
-               promptText="Tên đăng nhập"
-               maxWidth="300"/>
+            <Label text="Sign in" styleClass="title"/>
 
-    <PasswordField fx:id="passwordField"
-                   promptText="Mật khẩu"
-                   maxWidth="300"/>
+            <TextField fx:id="usernameField"
+                       promptText="Username"/>
 
-    <Button fx:id="loginButton"
-            text="Đăng nhập"
-            onAction="#onLoginClicked"/>
+            <PasswordField fx:id="passwordField"
+                           promptText="Password"/>
 
-    <Label fx:id="messageLabel"/>
+            <Label fx:id="messageLabel"
+                   styleClass="message"/>
 
-</VBox>
+            <Button fx:id="loginButton"
+        			text="SIGN IN"
+        			onAction="#onLoginClicked"
+        			styleClass="primary-button"/>
+
+
+            <Hyperlink text="Create new account"
+                       onAction="#onGoRegister"/>
+
+        </VBox>
+    </center>
+</BorderPane>

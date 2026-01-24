@@ -1,0 +1,37 @@
+.root {
+    -fx-font-family: "Poppins";
+    -fx-background-color: white;
+}
+
+.form-container {
+    -fx-padding: 40;
+}
+
+.title {
+    -fx-font-size: 28;
+    -fx-text-fill: #27b397;
+}
+
+.text-field,
+.password-field {
+    -fx-background-color: #f8fafc;
+    -fx-border-color: transparent transparent #27b397 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-font-size: 14;
+}
+
+.primary-button {
+    -fx-background-color: #27b397;
+    -fx-text-fill: white;
+    -fx-background-radius: 20;
+    -fx-padding: 10 40;
+}
+
+.primary-button:disabled {
+    -fx-opacity: 0.6;
+}
+
+.message {
+    -fx-text-fill: red;
+    -fx-font-size: 12;
+}

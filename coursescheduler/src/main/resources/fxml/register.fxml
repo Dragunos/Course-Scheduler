@@ -4,42 +4,38 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="vn.edu.haui.scheduler.ui.controller.RegisterController"
-      prefWidth="1200"
-      prefHeight="680"
-      spacing="15"
-      alignment="CENTER">
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="vn.edu.haui.scheduler.ui.controller.RegisterController"
+            stylesheets="@../css/auth.css">
 
-    <padding>
-        <Insets top="20" right="20" bottom="20" left="20"/>
-    </padding>
+    <center>
+        <VBox spacing="12"
+              maxWidth="400"
+              alignment="CENTER"
+              styleClass="form-container">
 
-    <Label text="Đăng ký tài khoản"
-           style="-fx-font-size: 18px;"/>
+            <Label text="Create Account" styleClass="title"/>
 
-    <GridPane hgap="10" vgap="10">
-        <columnConstraints>
-            <ColumnConstraints halignment="RIGHT" minWidth="120"/>
-            <ColumnConstraints halignment="LEFT" minWidth="250"/>
-        </columnConstraints>
+            <TextField fx:id="usernameField"
+                       promptText="Username"/>
 
-        <Label text="Tên đăng nhập:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-        <TextField fx:id="usernameField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+            <PasswordField fx:id="passwordField"
+                           promptText="Password"/>
 
-        <Label text="Mật khẩu:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-        <PasswordField fx:id="passwordField" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+            <PasswordField fx:id="confirmField"
+                           promptText="Confirm password"/>
 
-        <Label text="Xác nhận mật khẩu:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-        <PasswordField fx:id="confirmField" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-    </GridPane>
+            <Label fx:id="messageLabel"
+                   styleClass="message"/>
 
-    <HBox spacing="10" alignment="CENTER_RIGHT" maxWidth="370">
-        <Label fx:id="messageLabel"/>
-        <Button fx:id="registerButton"
-                text="Đăng ký"
-                onAction="#onRegisterClicked"/>
-    </HBox>
+            <Button fx:id="registerButton"
+        			text="SIGN UP"
+        			onAction="#onRegisterClicked"
+        			styleClass="primary-button"/>
 
-</VBox>
+            <Hyperlink text="Back to login"
+                       onAction="#onGoLogin"/>
+
+        </VBox>
+    </center>
+</BorderPane>
