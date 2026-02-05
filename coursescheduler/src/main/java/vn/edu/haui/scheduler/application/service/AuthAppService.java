@@ -6,6 +6,7 @@ import vn.edu.haui.scheduler.domain.model.NguoiDung;
 import vn.edu.haui.scheduler.application.port.out.NguoiDungRepositoryPort;
 import vn.edu.haui.scheduler.application.port.out.VaiTroRepositoryPort;
 import vn.edu.haui.scheduler.application.port.in.AuthUseCase;
+import vn.edu.haui.scheduler.application.dto.*;
 import vn.edu.haui.scheduler.application.exception.*;
 import vn.edu.haui.scheduler.infrastructure.security.PasswordHasher;
 
@@ -28,25 +29,37 @@ public class AuthAppService implements AuthUseCase
 	}
 
 	@Override
-	public long register(String username, String password)
+	public long register(DangKyRequestDto request)
 			throws ValidationException, UsernameAlreadyExistsException, PersistenceException
 	{
+		if(request == null) {
+			throw new ValidationException("request_null");
+		}
+
+		String username = request.getTenDangNhap();
+		String password = request.getMatKhau();
+
 		if(username == null || username.trim().isEmpty()) {
 			throw new ValidationException("username_empty");
 		}
 		if(password == null || password.length() < 6) {
 			throw new ValidationException("password_too_short");
 		}
+
 		String normalized = username.trim();
+
 		try {
 			Optional<NguoiDung> existing = nguoiDungRepo.findByUsername(normalized);
 			if(existing.isPresent()) {
 				throw new UsernameAlreadyExistsException();
 			}
+
 			String hash = passwordHasher.hash(password);
 			long roleId = ensureDefaultRoleExists();
+
 			NguoiDung user = new NguoiDung(normalized, hash, (int) roleId);
 			long generatedId = nguoiDungRepo.save(user);
+
 			return generatedId;
 		}
 		catch(UsernameAlreadyExistsException e) {
@@ -61,27 +74,46 @@ public class AuthAppService implements AuthUseCase
 	}
 
 	@Override
-	public NguoiDung login(String username, String password)
+	public NguoiDungDto login(DangNhapRequestDto request)
 			throws ValidationException, AuthenticationException, PersistenceException
 	{
+		if(request == null) {
+			throw new ValidationException("request_null");
+		}
+
+		String username = request.getTenDangNhap();
+		String password = request.getMatKhau();
+
 		if(username == null || username.trim().isEmpty()) {
 			throw new ValidationException("username_empty");
 		}
 		if(password == null || password.isEmpty()) {
 			throw new ValidationException("password_empty");
 		}
+
 		String normalized = username.trim();
+
 		try {
 			Optional<NguoiDung> userOpt = nguoiDungRepo.findByUsername(normalized);
 			if(userOpt.isEmpty()) {
 				throw new AuthenticationException();
 			}
+
 			NguoiDung user = userOpt.get();
+
 			boolean matched = passwordHasher.verify(password, user.getMatKhauHash());
 			if(!matched) {
 				throw new AuthenticationException();
 			}
-			return user;
+
+			String roleName = vaiTroRepo.findNameById(user.getVaiTroId())
+					.orElse("UNKNOWN");
+
+			return new NguoiDungDto(
+					user.getId(),
+					user.getTenDangNhap(),
+					roleName,
+					user.getNgayTao());
 		}
 		catch(AuthenticationException e) {
 			throw e;

@@ -2,19 +2,25 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="vn.edu.haui.scheduler.ui.controller.HomeController"
-            stylesheets="@../css/auth.css"
+            stylesheets="@../css/home.css"
             prefWidth="1200"
-            prefHeight="680">
+            prefHeight="680"
+            styleClass="root">
 
-    <!-- TOP BAR -->
+    <!-- ===== TOP BAR ===== -->
     <top>
-        <HBox spacing="12"
-              alignment="CENTER_RIGHT"
+        <HBox alignment="CENTER_RIGHT"
+              spacing="12"
               styleClass="top-bar">
+
+            <padding>
+                <Insets top="12" right="24" bottom="12" left="24"/>
+            </padding>
 
             <Button fx:id="loginButton"
                     text="Đăng nhập"
@@ -34,18 +40,65 @@
         </HBox>
     </top>
 
-    <!-- CENTER -->
+    <!-- ===== LEFT MENU ===== -->
+    <left>
+        <VBox spacing="10"
+              prefWidth="240"
+              styleClass="side-menu">
+
+            <padding>
+                <Insets top="24" right="16" bottom="24" left="16"/>
+            </padding>
+
+            <Label text="CHỨC NĂNG"
+                   styleClass="menu-title"/>
+
+            <Button text="Danh sách lớp học phần"
+                    maxWidth="Infinity"
+                    styleClass="menu-button"/>
+
+            <Button text="Nhập danh sách lớp"
+                    maxWidth="Infinity"
+                    styleClass="menu-button"/>
+
+            <Separator/>
+
+            <Button text="Sinh thời khóa biểu"
+                    maxWidth="Infinity"
+                    styleClass="menu-button"/>
+
+            <Button text="Thời khóa biểu của tôi"
+                    maxWidth="Infinity"
+                    styleClass="menu-button"/>
+
+            <Separator/>
+
+            <Label fx:id="adminLabel"
+                   text="QUẢN TRỊ"
+                   visible="false"
+                   styleClass="menu-title"/>
+
+            <Button fx:id="adminListButton"
+                    text="Danh sách lớp hệ thống"
+                    visible="false"
+                    maxWidth="Infinity"
+                    styleClass="menu-button"/>
+        </VBox>
+    </left>
+
+    <!-- ===== CENTER ===== -->
     <center>
         <VBox alignment="CENTER"
-              spacing="16">
+              spacing="16"
+              styleClass="home-center">
 
             <Label fx:id="welcomeLabel"
                    text="Chào mừng bạn"
                    styleClass="home-title"/>
 
-            <Label text="Chúc bạn một ngày làm việc hiệu quả"
+            <Label fx:id="subTitleLabel"
+                   text="Hệ thống hỗ trợ xếp thời khóa biểu"
                    styleClass="home-subtitle"/>
-
         </VBox>
     </center>
 

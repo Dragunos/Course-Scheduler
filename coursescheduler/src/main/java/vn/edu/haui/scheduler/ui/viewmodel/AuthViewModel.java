@@ -1,16 +1,9 @@
 package vn.edu.haui.scheduler.ui.viewmodel;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.StringProperty;
-import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.*;
+import vn.edu.haui.scheduler.application.dto.*;
 import vn.edu.haui.scheduler.application.port.in.AuthUseCase;
 import vn.edu.haui.scheduler.application.exception.*;
-import vn.edu.haui.scheduler.domain.model.NguoiDung;
 
 public class AuthViewModel
 {
@@ -40,13 +33,17 @@ public class AuthViewModel
 		this.authService = authService;
 	}
 
-	public NguoiDung login()
+	public NguoiDungDto login()
 			throws ValidationException, AuthenticationException, PersistenceException
 	{
 		runGuard();
 		try {
 			validateLogin();
-			NguoiDung user = authService.login(username.get(), password.get());
+
+			DangNhapRequestDto request = new DangNhapRequestDto(username.get(), password.get());
+
+			NguoiDungDto user = authService.login(request);
+
 			onSuccess("Đăng nhập thành công");
 			return user;
 		}
@@ -65,7 +62,11 @@ public class AuthViewModel
 		runGuard();
 		try {
 			validateRegister();
-			authService.register(username.get(), password.get());
+
+			DangKyRequestDto request = new DangKyRequestDto(username.get(), password.get());
+
+			authService.register(request);
+
 			onSuccess("Đăng ký thành công");
 		}
 		catch(Exception e) {
@@ -93,7 +94,9 @@ public class AuthViewModel
 
 	private void runGuard()
 	{
-		if(busy.get()) throw new IllegalStateException("busy");
+		if(busy.get())
+			throw new IllegalStateException("busy");
+
 		busy.set(true);
 		status.set(Status.NONE);
 	}
@@ -109,6 +112,7 @@ public class AuthViewModel
 	private void validateRegister() throws ValidationException
 	{
 		validateLogin();
+
 		if(password.get().length() < 6)
 			throw new ValidationException("Mật khẩu phải ≥ 6 ký tự");
 		if(!password.get().equals(confirm.get()))

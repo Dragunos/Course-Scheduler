@@ -1,0 +1,76 @@
+.root {
+    -fx-font-family: "Poppins";
+    -fx-background-color: white;
+}
+
+/* ===== TOP BAR ===== */
+
+.top-bar {
+    -fx-background-color: #f8fafc;
+}
+
+/* ===== SIDE MENU ===== */
+
+.side-menu {
+    -fx-background-color: #f8fafc;
+}
+
+.menu-title {
+    -fx-font-size: 12;
+    -fx-text-fill: #94a3b8;
+    -fx-padding: 8 0;
+}
+
+/* Menu buttons behave like flat buttons */
+
+.menu-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #0f172a;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 10 16;
+    -fx-background-radius: 12;
+}
+
+.menu-button:hover {
+    -fx-background-color: #e6f7f3;
+}
+
+/* ===== CENTER ===== */
+
+.home-center {
+    -fx-padding: 40;
+}
+
+.home-title {
+    -fx-font-size: 28;
+    -fx-text-fill: #27b397;
+}
+
+.home-subtitle {
+    -fx-font-size: 14;
+    -fx-text-fill: #94a3b8;
+}
+
+/* ===== BUTTONS (reuse auth styles) ===== */
+
+.primary-button {
+    -fx-background-color: #27b397;
+    -fx-text-fill: white;
+    -fx-background-radius: 20;
+    -fx-padding: 8 24;
+}
+
+.secondary-button {
+    -fx-background-color: transparent;
+    -fx-border-color: #27b397;
+    -fx-border-radius: 20;
+    -fx-text-fill: #27b397;
+    -fx-padding: 8 24;
+}
+
+.danger-button {
+    -fx-background-color: #ef4444;
+    -fx-text-fill: white;
+    -fx-background-radius: 20;
+    -fx-padding: 8 24;
+}

@@ -4,7 +4,9 @@ import java.util.Optional;
 
 public interface VaiTroRepositoryPort
 {
-	Optional<Integer> findIdByName(String name) throws Exception;
+	Optional<Integer> findIdByName(String roleName) throws Exception;
 
-	long save(String name) throws Exception;
+	Optional<String> findNameById(int id) throws Exception;
+
+	long save(String roleName) throws Exception;
 }

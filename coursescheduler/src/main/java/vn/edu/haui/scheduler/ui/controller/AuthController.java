@@ -11,8 +11,8 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
+import vn.edu.haui.scheduler.application.dto.NguoiDungDto;
 import vn.edu.haui.scheduler.application.port.in.AuthUseCase;
-import vn.edu.haui.scheduler.domain.model.NguoiDung;
 import vn.edu.haui.scheduler.ui.fx.ScreenManager;
 import vn.edu.haui.scheduler.ui.viewmodel.AuthViewModel;
 
@@ -113,7 +113,7 @@ public class AuthController
 	private void onLoginClicked()
 	{
 		try {
-			NguoiDung user = viewModel.login();
+			NguoiDungDto user = viewModel.login();
 			screenManager.setCurrentUser(user);
 			screenManager.showHome();
 		}
@@ -146,6 +146,16 @@ public class AuthController
 		if(!canAnimate()) return;
 		viewModel.clear();
 		switchPane(registerPane, loginPane, false);
+	}
+	
+	@FXML
+	private void onBackToHome()
+	{
+		if(viewModel.busyProperty().get()) {
+			return;
+		}
+		viewModel.clear();
+		screenManager.showHome();
 	}
 
 	private boolean canAnimate()

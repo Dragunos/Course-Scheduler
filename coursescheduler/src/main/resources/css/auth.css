@@ -81,3 +81,19 @@
 .message-success {
     -fx-text-fill: #22c55e;
 }
+
+.auth-top-bar {
+    -fx-padding: 16;
+}
+
+.back-button {
+    -fx-background-color: transparent;
+    -fx-font-size: 18;
+    -fx-text-fill: #27b397;
+    -fx-cursor: hand;
+}
+
+.back-button:hover {
+    -fx-text-fill: #1e9e86;
+}
+

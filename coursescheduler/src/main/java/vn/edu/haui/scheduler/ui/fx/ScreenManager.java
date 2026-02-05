@@ -5,7 +5,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import vn.edu.haui.scheduler.application.port.in.AuthUseCase;
-import vn.edu.haui.scheduler.domain.model.NguoiDung;
+import vn.edu.haui.scheduler.application.dto.NguoiDungDto;
 import vn.edu.haui.scheduler.ui.controller.*;
 
 public class ScreenManager
@@ -16,7 +16,7 @@ public class ScreenManager
 
 	private Scene scene;
 
-	private NguoiDung currentUser;
+	private NguoiDungDto currentUser;
 
 	public ScreenManager(Stage stage, AuthUseCase authUseCase)
 	{
@@ -34,12 +34,12 @@ public class ScreenManager
 		return currentUser != null;
 	}
 
-	public NguoiDung getCurrentUser()
+	public NguoiDungDto getCurrentUser()
 	{
 		return currentUser;
 	}
 
-	public void setCurrentUser(NguoiDung user)
+	public void setCurrentUser(NguoiDungDto user)
 	{
 		this.currentUser = user;
 	}
@@ -80,6 +80,11 @@ public class ScreenManager
 
 	public void showAuth()
 	{
+		if(isAuthenticated()) {
+			showHome();
+			return;
+		}
+
 		try {
 			FXMLLoader loader = new FXMLLoader(
 					getClass().getResource("/fxml/auth.fxml"));
@@ -95,4 +100,5 @@ public class ScreenManager
 			throw new RuntimeException(e);
 		}
 	}
+
 }

@@ -1,13 +1,13 @@
 package vn.edu.haui.scheduler.application.port.in;
 
-import vn.edu.haui.scheduler.domain.model.NguoiDung;
+import vn.edu.haui.scheduler.application.dto.*;
 import vn.edu.haui.scheduler.application.exception.*;
 
 public interface AuthUseCase
 {
-	long register(String username, String password)
+	long register(DangKyRequestDto request)
 			throws ValidationException, UsernameAlreadyExistsException, PersistenceException;
 
-	NguoiDung login(String username, String password)
+	NguoiDungDto login(DangNhapRequestDto request)
 			throws ValidationException, AuthenticationException, PersistenceException;
 }

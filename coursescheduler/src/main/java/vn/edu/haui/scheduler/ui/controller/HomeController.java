@@ -3,7 +3,7 @@ package vn.edu.haui.scheduler.ui.controller;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import vn.edu.haui.scheduler.domain.model.NguoiDung;
+import vn.edu.haui.scheduler.application.dto.NguoiDungDto;
 import vn.edu.haui.scheduler.ui.fx.ScreenManager;
 
 public class HomeController
@@ -37,7 +37,7 @@ public class HomeController
 		logoutButton.setVisible(loggedIn);
 
 		if(loggedIn) {
-			NguoiDung user = screenManager.getCurrentUser();
+			NguoiDungDto user = screenManager.getCurrentUser();
 			welcomeLabel.setText("Xin chào, " + user.getTenDangNhap());
 		}
 		else {
