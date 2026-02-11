@@ -12,8 +12,7 @@ import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvide
 
 import java.io.File;
 import java.sql.Connection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class ImportDanhSachLopAppService implements ImportDanhSachLopUseCase
 {
@@ -54,21 +53,29 @@ public class ImportDanhSachLopAppService implements ImportDanhSachLopUseCase
 	{
 		File f = new File(request.getFilePath());
 		if(!f.exists()) throw new IllegalArgumentException("File not found: " + request.getFilePath());
+
 		List<ImportedLopRow> rows = importer.importFrom(f);
 
+		Map<String, ImportedLopAggregate> map = new LinkedHashMap<>();
+		for(ImportedLopRow r : rows) {
+			ImportedLopAggregate agg = map.computeIfAbsent(r.maLop, k -> new ImportedLopAggregate(r));
+			agg.merge(r);
+		}
+
 		try (Connection conn = DataSourceProvider.getDataSource().getConnection()) {
-			boolean previousAuto = conn.getAutoCommit();
+			boolean prevAuto = conn.getAutoCommit();
 			conn.setAutoCommit(false);
 			try {
 				int tepId = tepRepo.saveMetadata(conn, request.getNguoiTaoId(), f, "application/vnd.ms-excel");
 				int danhSachId = danhSachRepo.save(conn, request.getTenDanhSach(), request.getNguoiTaoId(),
 						request.isLaCongKhai(), request.getHocKyId());
 
-				for(ImportedLopRow row : rows) {
-					int hocPhanId = resolveHocPhan(conn, row);
-					int giangVienId = resolveGiangVien(conn, row);
-					int lopId = resolveLopHocPhan(conn, row, hocPhanId, giangVienId);
-					lichRepo.saveAll(conn, lopId, row.buoiList);
+				for(ImportedLopAggregate agg : map.values()) {
+					int hocPhanId = resolveHocPhan(conn, agg);
+					int giangVienId = resolveGiangVien(conn, agg);
+					int lopId = resolveLopHocPhan(conn, agg, hocPhanId, giangVienId);
+					List<ImportedLopRow.Buoi> dedupBuoi = dedupeBuoi(agg.getBuoiList());
+					lichRepo.saveAll(conn, lopId, dedupBuoi);
 					danhSachRepo.addChiTiet(conn, danhSachId, lopId);
 				}
 
@@ -79,45 +86,110 @@ public class ImportDanhSachLopAppService implements ImportDanhSachLopUseCase
 				throw new PersistenceException("Import failed: " + ex.getMessage(), ex);
 			}
 			finally {
-				conn.setAutoCommit(previousAuto);
+				conn.setAutoCommit(prevAuto);
 			}
 		}
 	}
 
-	private int resolveHocPhan(Connection conn, ImportedLopRow row) throws Exception
+	private int resolveHocPhan(Connection conn, ImportedLopAggregate agg) throws Exception
 	{
-		if(row.maHocPhan != null) {
-			Optional<Integer> idOpt = hocPhanRepo.findIdByMaHocPhan(conn, row.maHocPhan);
+		if(agg.maHocPhan != null) {
+			Optional<Integer> idOpt = hocPhanRepo.findIdByMaHocPhan(conn, agg.maHocPhan);
 			if(idOpt.isPresent()) return idOpt.get();
 		}
 		HocPhan hp = new HocPhan();
-		hp.setMaHocPhan(row.maHocPhan);
-		hp.setTenHocPhan(row.tenHocPhan != null ? row.tenHocPhan : "");
-		hp.setSoTinChi(row.soTinChi);
+		hp.setMaHocPhan(agg.maHocPhan);
+		hp.setTenHocPhan(agg.tenHocPhan != null ? agg.tenHocPhan : "");
+		hp.setSoTinChi(agg.soTinChi);
 		return hocPhanRepo.save(conn, hp);
 	}
 
-	private int resolveGiangVien(Connection conn, ImportedLopRow row) throws Exception
+	private int resolveGiangVien(Connection conn, ImportedLopAggregate agg) throws Exception
 	{
-		if(row.tenGiangVien != null && !row.tenGiangVien.isEmpty()) {
-			Optional<Integer> idOpt = giangVienRepo.findIdByTen(conn, row.tenGiangVien);
+		if(agg.tenGiangVien != null && !agg.tenGiangVien.isEmpty()) {
+			Optional<Integer> idOpt = giangVienRepo.findIdByTen(conn, agg.tenGiangVien);
 			if(idOpt.isPresent()) return idOpt.get();
-			return giangVienRepo.save(conn, row.tenGiangVien);
+			return giangVienRepo.save(conn, agg.tenGiangVien);
 		}
 		return -1;
 	}
 
-	private int resolveLopHocPhan(Connection conn, ImportedLopRow row, int hocPhanId, int giangVienId) throws Exception
+	private int resolveLopHocPhan(Connection conn, ImportedLopAggregate agg, int hocPhanId, int giangVienId)
+			throws Exception
 	{
-		Optional<Integer> idOpt = lopRepo.findIdByMaAndHocPhanId(conn, row.maLop, hocPhanId);
+		Optional<Integer> idOpt = lopRepo.findIdByMaAndHocPhanId(conn, agg.maLop, hocPhanId);
 		if(idOpt.isPresent()) return idOpt.get();
 		LopHocPhan lop = new LopHocPhan();
-		lop.setMaLop(row.maLop);
+		lop.setMaLop(agg.maLop);
 		lop.setHocPhanId(hocPhanId);
 		if(giangVienId > 0) lop.setGiangVienId(giangVienId);
 		else lop.setGiangVienId(null);
-		lop.setHinhThucDay(row.hinhThucDay);
-		lop.setDiaDiem(row.diaDiem);
+		lop.setHinhThucDay(agg.hinhThucDay);
+		lop.setDiaDiem(agg.diaDiem);
 		return lopRepo.save(conn, lop);
+	}
+
+	private static List<ImportedLopRow.Buoi> dedupeBuoi(List<ImportedLopRow.Buoi> src)
+	{
+		Set<String> seen = new HashSet<>();
+		List<ImportedLopRow.Buoi> out = new ArrayList<>();
+		for(ImportedLopRow.Buoi b : src) {
+			String key = b.thu + "-" + b.tietBatDau + "-" + b.tietKetThuc;
+			if(!seen.contains(key)) {
+				seen.add(key);
+				out.add(b);
+			}
+		}
+		return out;
+	}
+
+	private static class ImportedLopAggregate
+	{
+		public final String maLop;
+
+		public String maHocPhan;
+
+		public String tenHocPhan;
+
+		public Integer soTinChi;
+
+		public String tenGiangVien;
+
+		public String hinhThucDay;
+
+		public String diaDiem;
+
+		private final List<ImportedLopRow.Buoi> buoiList = new ArrayList<>();
+
+		public ImportedLopAggregate(ImportedLopRow r)
+		{
+			this.maLop = r.maLop;
+			this.maHocPhan = r.maHocPhan;
+			this.tenHocPhan = r.tenHocPhan;
+			this.soTinChi = r.soTinChi;
+			this.tenGiangVien = r.tenGiangVien;
+			this.hinhThucDay = r.hinhThucDay;
+			this.diaDiem = r.diaDiem;
+			if(r.buoiList != null) this.buoiList.addAll(r.buoiList);
+		}
+
+		public void merge(ImportedLopRow r)
+		{
+			if(this.maHocPhan == null && r.maHocPhan != null) this.maHocPhan = r.maHocPhan;
+			if((this.tenHocPhan == null || this.tenHocPhan.isEmpty()) && r.tenHocPhan != null)
+				this.tenHocPhan = r.tenHocPhan;
+			if(this.soTinChi == null && r.soTinChi != null) this.soTinChi = r.soTinChi;
+			if((this.tenGiangVien == null || this.tenGiangVien.isEmpty()) && r.tenGiangVien != null)
+				this.tenGiangVien = r.tenGiangVien;
+			if((this.hinhThucDay == null || this.hinhThucDay.isEmpty()) && r.hinhThucDay != null)
+				this.hinhThucDay = r.hinhThucDay;
+			if((this.diaDiem == null || this.diaDiem.isEmpty()) && r.diaDiem != null) this.diaDiem = r.diaDiem;
+			if(r.buoiList != null) this.buoiList.addAll(r.buoiList);
+		}
+
+		public List<ImportedLopRow.Buoi> getBuoiList()
+		{
+			return buoiList;
+		}
 	}
 }
