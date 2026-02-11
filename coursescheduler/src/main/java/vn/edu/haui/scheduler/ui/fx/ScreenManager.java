@@ -5,6 +5,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import vn.edu.haui.scheduler.application.port.in.AuthUseCase;
+import vn.edu.haui.scheduler.application.port.in.ImportDanhSachLopUseCase;
 import vn.edu.haui.scheduler.application.dto.NguoiDungDto;
 import vn.edu.haui.scheduler.ui.controller.*;
 
@@ -13,6 +14,9 @@ public class ScreenManager
 	private final Stage stage;
 
 	private final AuthUseCase authUseCase;
+
+	// thêm field cho import use case
+	private ImportDanhSachLopUseCase importDanhSachLopUseCase;
 
 	private Scene scene;
 
@@ -23,6 +27,20 @@ public class ScreenManager
 		this.stage = stage;
 		this.authUseCase = authUseCase;
 	}
+
+	// setter để MainApp gọi khi khởi tạo use case
+	public void setImportDanhSachLopUseCase(ImportDanhSachLopUseCase uc)
+	{
+		this.importDanhSachLopUseCase = uc;
+	}
+
+	// getter được HomeController gọi
+	public ImportDanhSachLopUseCase getImportDanhSachLopUseCase()
+	{
+		return importDanhSachLopUseCase;
+	}
+
+	/* ... phần còn lại giữ nguyên ... */
 
 	public void init()
 	{

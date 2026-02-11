@@ -57,8 +57,10 @@
                     maxWidth="Infinity"
                     styleClass="menu-button"/>
 
-            <Button text="Nhập danh sách lớp"
+            <Button fx:id="importMenuButton"
+                    text="Nhập danh sách lớp"
                     maxWidth="Infinity"
+                    onAction="#onShowImportPane"
                     styleClass="menu-button"/>
 
             <Separator/>
@@ -88,7 +90,8 @@
 
     <!-- ===== CENTER ===== -->
     <center>
-        <VBox alignment="CENTER"
+        <VBox fx:id="centerContainer"
+              alignment="CENTER"
               spacing="16"
               styleClass="home-center">
 
