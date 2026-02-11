@@ -2,23 +2,21 @@ package vn.edu.haui.scheduler.domain.model;
 
 import java.util.List;
 
-import vn.edu.haui.scheduler.domain.enums.HinhThucDay;
-
 public class LopHocPhan
 {
 	private Long id;
 
 	private String maLop;
 
-	private HocPhan hocPhan;
+	private Integer hocPhanId;
 
-	private GiangVien giangVien;
+	private Integer giangVienId;
 
-	private HinhThucDay hinhThucDay;
+	private String hinhThucDay;
 
 	private String diaDiem;
 
-	private List<BuoiHoc> danhSachBuoiHoc;
+	private List<Object> danhSachBuoiHoc;
 
 	public LopHocPhan()
 	{
@@ -44,32 +42,32 @@ public class LopHocPhan
 		this.maLop = maLop;
 	}
 
-	public HocPhan getHocPhan()
+	public Integer getHocPhanId()
 	{
-		return hocPhan;
+		return hocPhanId;
 	}
 
-	public void setHocPhan(HocPhan hocPhan)
+	public void setHocPhanId(Integer hocPhanId)
 	{
-		this.hocPhan = hocPhan;
+		this.hocPhanId = hocPhanId;
 	}
 
-	public GiangVien getGiangVien()
+	public Integer getGiangVienId()
 	{
-		return giangVien;
+		return giangVienId;
 	}
 
-	public void setGiangVien(GiangVien giangVien)
+	public void setGiangVienId(Integer giangVienId)
 	{
-		this.giangVien = giangVien;
+		this.giangVienId = giangVienId;
 	}
 
-	public HinhThucDay getHinhThucDay()
+	public String getHinhThucDay()
 	{
 		return hinhThucDay;
 	}
 
-	public void setHinhThucDay(HinhThucDay hinhThucDay)
+	public void setHinhThucDay(String hinhThucDay)
 	{
 		this.hinhThucDay = hinhThucDay;
 	}
@@ -84,12 +82,12 @@ public class LopHocPhan
 		this.diaDiem = diaDiem;
 	}
 
-	public List<BuoiHoc> getDanhSachBuoiHoc()
+	public List<Object> getDanhSachBuoiHoc()
 	{
 		return danhSachBuoiHoc;
 	}
 
-	public void setDanhSachBuoiHoc(List<BuoiHoc> danhSachBuoiHoc)
+	public void setDanhSachBuoiHoc(List<Object> danhSachBuoiHoc)
 	{
 		this.danhSachBuoiHoc = danhSachBuoiHoc;
 	}
