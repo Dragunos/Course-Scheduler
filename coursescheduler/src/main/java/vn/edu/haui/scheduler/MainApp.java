@@ -6,6 +6,8 @@ import vn.edu.haui.scheduler.application.port.in.AuthUseCase;
 import vn.edu.haui.scheduler.application.service.AuthAppService;
 import vn.edu.haui.scheduler.application.port.in.ImportDanhSachLopUseCase;
 import vn.edu.haui.scheduler.application.service.ImportDanhSachLopAppService;
+import vn.edu.haui.scheduler.application.port.in.QuanLyDanhSachLopUseCase;
+import vn.edu.haui.scheduler.application.service.QuanLyDanhSachLopAppService;
 import vn.edu.haui.scheduler.infrastructure.io.imports.ExcelCourseImporter;
 import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.*;
 import vn.edu.haui.scheduler.application.port.out.*;
@@ -37,6 +39,10 @@ public class MainApp extends Application
 				importer, hocPhanRepo, giangVienRepo, lopRepo, lichRepo, danhSachRepo, tepRepo);
 
 		screenManager.setImportDanhSachLopUseCase(importUc);
+
+		QuanLyDanhSachLopUseCase quanLyUc = new QuanLyDanhSachLopAppService(danhSachRepo);
+
+		screenManager.setQuanLyDanhSachLopUseCase(quanLyUc);
 
 		screenManager.init();
 		stage.show();

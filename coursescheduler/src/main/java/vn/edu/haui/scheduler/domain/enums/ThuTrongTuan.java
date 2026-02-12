@@ -29,6 +29,6 @@ public enum ThuTrongTuan
 				return thu;
 			}
 		}
-		throw new IllegalArgumentException();
+		throw new IllegalArgumentException("Không có giá trị ThuTrongTuan tương ứng: " + giaTri);
 	}
 }

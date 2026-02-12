@@ -1,24 +1,52 @@
-package vn.edu.haui.scheduler.application.dto;
+package vn.edu.haui.scheduler.domain.model;
 
 import vn.edu.haui.scheduler.domain.enums.ThuTrongTuan;
 
-public class LichHocDto
+import java.util.Objects;
+
+public class LichHoc
 {
+	private Long id;
+
+	private Long lopHocPhanId;
+
 	private ThuTrongTuan thu;
 
 	private Integer tietBatDau;
 
 	private Integer tietKetThuc;
 
-	public LichHocDto()
+	public LichHoc()
 	{
 	}
 
-	public LichHocDto(ThuTrongTuan thu, Integer tietBatDau, Integer tietKetThuc)
+	public LichHoc(Long id, Long lopHocPhanId, ThuTrongTuan thu, Integer tietBatDau, Integer tietKetThuc)
 	{
+		this.id = id;
+		this.lopHocPhanId = lopHocPhanId;
 		this.thu = thu;
 		setTietBatDau(tietBatDau);
 		setTietKetThuc(tietKetThuc);
+	}
+
+	public Long getId()
+	{
+		return id;
+	}
+
+	public void setId(Long id)
+	{
+		this.id = id;
+	}
+
+	public Long getLopHocPhanId()
+	{
+		return lopHocPhanId;
+	}
+
+	public void setLopHocPhanId(Long lopHocPhanId)
+	{
+		this.lopHocPhanId = lopHocPhanId;
 	}
 
 	public ThuTrongTuan getThu()
@@ -58,10 +86,27 @@ public class LichHocDto
 	}
 
 	@Override
+	public boolean equals(Object o)
+	{
+		if(this == o) return true;
+		if(o == null || getClass() != o.getClass()) return false;
+		LichHoc lichHoc = (LichHoc) o;
+		return Objects.equals(id, lichHoc.id);
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return Objects.hash(id);
+	}
+
+	@Override
 	public String toString()
 	{
-		return "LichHocDto{" +
-				"thu=" + thu +
+		return "LichHoc{" +
+				"id=" + id +
+				", lopHocPhanId=" + lopHocPhanId +
+				", thu=" + thu +
 				", tietBatDau=" + tietBatDau +
 				", tietKetThuc=" + tietKetThuc +
 				'}';

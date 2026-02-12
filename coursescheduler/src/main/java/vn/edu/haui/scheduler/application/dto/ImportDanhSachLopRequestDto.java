@@ -6,13 +6,16 @@ public class ImportDanhSachLopRequestDto
 
 	private final String tenDanhSach;
 
-	private final Integer nguoiTaoId;
+	private final Long nguoiTaoId;
 
-	private final Integer hocKyId;
+	private final Long hocKyId;
 
 	private final boolean laCongKhai;
 
-	public ImportDanhSachLopRequestDto(String filePath, String tenDanhSach, Integer nguoiTaoId, Integer hocKyId,
+	public ImportDanhSachLopRequestDto(String filePath,
+			String tenDanhSach,
+			Long nguoiTaoId,
+			Long hocKyId,
 			boolean laCongKhai)
 	{
 		this.filePath = filePath;
@@ -32,12 +35,12 @@ public class ImportDanhSachLopRequestDto
 		return tenDanhSach;
 	}
 
-	public Integer getNguoiTaoId()
+	public Long getNguoiTaoId()
 	{
 		return nguoiTaoId;
 	}
 
-	public Integer getHocKyId()
+	public Long getHocKyId()
 	{
 		return hocKyId;
 	}

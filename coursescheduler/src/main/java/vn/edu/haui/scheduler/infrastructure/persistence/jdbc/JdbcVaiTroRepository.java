@@ -11,9 +11,8 @@ import java.util.Optional;
 
 public class JdbcVaiTroRepository implements VaiTroRepositoryPort
 {
-
 	@Override
-	public Optional<Integer> findIdByName(String roleName) throws Exception
+	public Optional<Long> findIdByName(String roleName) throws Exception
 	{
 		String sql = "SELECT id FROM vai_tro WHERE ten_vai_tro = ?";
 
@@ -24,7 +23,7 @@ public class JdbcVaiTroRepository implements VaiTroRepositoryPort
 
 			try (ResultSet rs = ps.executeQuery()) {
 				if(rs.next()) {
-					return Optional.of(rs.getInt("id"));
+					return Optional.of(rs.getLong("id"));
 				}
 			}
 			return Optional.empty();
@@ -32,14 +31,14 @@ public class JdbcVaiTroRepository implements VaiTroRepositoryPort
 	}
 
 	@Override
-	public Optional<String> findNameById(int id) throws Exception
+	public Optional<String> findNameById(Long id) throws Exception
 	{
 		String sql = "SELECT ten_vai_tro FROM vai_tro WHERE id = ?";
 
 		try (Connection connection = DataSourceProvider.getDataSource().getConnection();
 				PreparedStatement ps = connection.prepareStatement(sql)) {
 
-			ps.setInt(1, id);
+			ps.setLong(1, id);
 
 			try (ResultSet rs = ps.executeQuery()) {
 				if(rs.next()) {

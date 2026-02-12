@@ -9,7 +9,7 @@ import java.util.Optional;
 public class JdbcGiangVienRepository implements GiangVienRepositoryPort
 {
 	@Override
-	public Optional<Integer> findIdByTen(String tenGiangVien) throws SQLException
+	public Optional<Long> findIdByTen(String tenGiangVien) throws SQLException
 	{
 		if(tenGiangVien == null || tenGiangVien.isEmpty()) return Optional.empty();
 		String sql = "SELECT id FROM giang_vien WHERE ten_giang_vien = ?";
@@ -17,14 +17,14 @@ public class JdbcGiangVienRepository implements GiangVienRepositoryPort
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setString(1, tenGiangVien);
 			try (ResultSet rs = ps.executeQuery()) {
-				if(rs.next()) return Optional.of(rs.getInt(1));
+				if(rs.next()) return Optional.of(rs.getLong(1));
 			}
 		}
 		return Optional.empty();
 	}
 
 	@Override
-	public int save(String tenGiangVien) throws SQLException
+	public Long save(String tenGiangVien) throws SQLException
 	{
 		String insert = "INSERT INTO giang_vien (ten_giang_vien) VALUES (?)";
 		try (Connection conn = DataSourceProvider.getDataSource().getConnection();
@@ -32,7 +32,7 @@ public class JdbcGiangVienRepository implements GiangVienRepositoryPort
 			ps.setString(1, tenGiangVien);
 			ps.executeUpdate();
 			try (ResultSet rs = ps.getGeneratedKeys()) {
-				if(rs.next()) return rs.getInt(1);
+				if(rs.next()) return rs.getLong(1);
 			}
 		}
 		throw new SQLException("Cannot create giang_vien");

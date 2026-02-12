@@ -55,9 +55,9 @@ public class AuthAppService implements AuthUseCase
 			}
 
 			String hash = passwordHasher.hash(password);
-			long roleId = ensureDefaultRoleExists();
+			Long roleId = ensureDefaultRoleExists();
 
-			NguoiDung user = new NguoiDung(normalized, hash, (int) roleId);
+			NguoiDung user = new NguoiDung(normalized, hash, roleId);
 			long generatedId = nguoiDungRepo.save(user);
 
 			return generatedId;
@@ -126,14 +126,14 @@ public class AuthAppService implements AuthUseCase
 		}
 	}
 
-	private long ensureDefaultRoleExists() throws PersistenceException
+	private Long ensureDefaultRoleExists() throws PersistenceException
 	{
 		try {
-			Optional<Integer> roleIdOpt = vaiTroRepo.findIdByName(defaultRoleName);
+			Optional<Long> roleIdOpt = vaiTroRepo.findIdByName(defaultRoleName);
 			if(roleIdOpt.isPresent()) {
 				return roleIdOpt.get();
 			}
-			long created = vaiTroRepo.save(defaultRoleName);
+			Long created = vaiTroRepo.save(defaultRoleName);
 			return created;
 		}
 		catch(Exception e) {

@@ -7,21 +7,21 @@ import vn.edu.haui.scheduler.application.dto.DanhSachLopDto;
 
 public interface DanhSachLopRepositoryPort
 {
-	int save(String tenDanhSach, int nguoiTaoId, boolean laCongKhai, Integer hocKyId) throws Exception;
+	Long save(String tenDanhSach, Long nguoiTaoId, boolean laCongKhai, Long hocKyId) throws Exception;
 
-	void addChiTiet(int danhSachId, int lopHocPhanId) throws Exception;
+	void addChiTiet(Long danhSachId, Long lopHocPhanId) throws Exception;
 
-	List<DanhSachLopDto> findByNguoiTaoOrShared(int nguoiDungId) throws Exception;
+	List<DanhSachLopDto> findByNguoiTaoOrShared(Long nguoiDungId) throws Exception;
 
-	Optional<DanhSachLopDto> findByIdWithDetails(int danhSachId) throws Exception;
+	Optional<DanhSachLopDto> findByIdWithDetails(Long danhSachId) throws Exception;
 
-	boolean isCreator(int danhSachId, int nguoiDungId) throws Exception;
+	boolean isCreator(Long danhSachId, Long nguoiDungId) throws Exception;
 
-	boolean isShared(int danhSachId, int nguoiDungId) throws Exception;
+	boolean isShared(Long danhSachId, Long nguoiDungId) throws Exception;
 
-	void updateHeader(int danhSachId, String tenDanhSach, Integer hocKyId) throws Exception;
+	void updateHeader(Long danhSachId, String tenDanhSach, Long hocKyId) throws Exception;
 
-	void deleteAllChiTiet(int danhSachId) throws Exception;
+	void deleteAllChiTiet(Long danhSachId) throws Exception;
 
-	void deleteDanhSach(int danhSachId) throws Exception;
+	void deleteDanhSach(Long danhSachId) throws Exception;
 }

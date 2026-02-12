@@ -12,7 +12,6 @@ import java.util.Optional;
 
 public class JdbcNguoiDungRepository implements NguoiDungRepositoryPort
 {
-
 	@Override
 	public Optional<NguoiDung> findByUsername(String username) throws Exception
 	{
@@ -30,10 +29,10 @@ public class JdbcNguoiDungRepository implements NguoiDungRepositoryPort
 			try (ResultSet rs = ps.executeQuery()) {
 				if(rs.next()) {
 					return Optional.of(new NguoiDung(
-							rs.getInt("id"),
+							rs.getLong("id"),
 							rs.getString("ten_dang_nhap"),
 							rs.getString("mat_khau_hash"),
-							rs.getInt("role_id"),
+							rs.getLong("role_id"),
 							rs.getTimestamp("ngay_tao").toLocalDateTime()));
 				}
 			}
@@ -54,7 +53,7 @@ public class JdbcNguoiDungRepository implements NguoiDungRepositoryPort
 
 			ps.setString(1, user.getTenDangNhap());
 			ps.setString(2, user.getMatKhauHash());
-			ps.setInt(3, user.getVaiTroId());
+			ps.setLong(3, user.getVaiTroId());
 
 			int affected = ps.executeUpdate();
 			if(affected == 0) {

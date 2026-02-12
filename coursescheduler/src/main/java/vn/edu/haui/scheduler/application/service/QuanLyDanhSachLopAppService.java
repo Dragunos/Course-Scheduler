@@ -27,7 +27,7 @@ public class QuanLyDanhSachLopAppService implements QuanLyDanhSachLopUseCase
 			throw new ValidationException("User id required");
 		}
 		try {
-			return danhSachRepo.findByNguoiTaoOrShared(nguoiDungId.intValue());
+			return danhSachRepo.findByNguoiTaoOrShared(nguoiDungId);
 		}
 		catch(Exception ex) {
 			throw new PersistenceException("Cannot load lists", ex);
@@ -41,12 +41,12 @@ public class QuanLyDanhSachLopAppService implements QuanLyDanhSachLopUseCase
 			throw new ValidationException("Missing ids");
 		}
 		try {
-			boolean allowed = danhSachRepo.isCreator(danhSachId.intValue(), nguoiDungId.intValue())
-					|| danhSachRepo.isShared(danhSachId.intValue(), nguoiDungId.intValue());
+			boolean allowed = danhSachRepo.isCreator(danhSachId, nguoiDungId)
+					|| danhSachRepo.isShared(danhSachId, nguoiDungId);
 			if(!allowed) {
 				throw new ValidationException("Access denied");
 			}
-			Optional<DanhSachLopDto> opt = danhSachRepo.findByIdWithDetails(danhSachId.intValue());
+			Optional<DanhSachLopDto> opt = danhSachRepo.findByIdWithDetails(danhSachId);
 			return opt.orElseThrow(() -> new ValidationException("Danh sach not found"));
 		}
 		catch(ValidationException ve) {
@@ -60,30 +60,40 @@ public class QuanLyDanhSachLopAppService implements QuanLyDanhSachLopUseCase
 	@Override
 	public DanhSachLopDto updateDanhSach(Long nguoiDungId, UpdateDanhSachLopRequestDto request)
 	{
-		if(nguoiDungId == null || request == null || request.id == null) {
+		if(nguoiDungId == null || request == null || request.getId() == null) {
 			throw new ValidationException("Invalid request");
 		}
+
 		try {
-			boolean isCreator = danhSachRepo.isCreator(request.id.intValue(), nguoiDungId.intValue());
+			boolean isCreator = danhSachRepo.isCreator(request.getId(), nguoiDungId);
 			if(!isCreator) {
 				throw new ValidationException("Only creator can edit the list");
 			}
-			if(request.tenDanhSach == null || request.tenDanhSach.trim().isEmpty()) {
+
+			String ten = request.getTenDanhSach();
+			if(ten == null || ten.trim().isEmpty()) {
 				throw new ValidationException("Ten danh sach required");
 			}
-			Integer hocKyInt = request.hocKyId != null ? request.hocKyId.intValue() : null;
-			danhSachRepo.updateHeader(request.id.intValue(), request.tenDanhSach.trim(), hocKyInt);
 
-			if(request.lopHocPhanIds != null) {
-				danhSachRepo.deleteAllChiTiet(request.id.intValue());
-				for(Long lopIdLong : request.lopHocPhanIds) {
-					if(lopIdLong != null) {
-						danhSachRepo.addChiTiet(request.id.intValue(), lopIdLong.intValue());
+			danhSachRepo.updateHeader(
+					request.getId(),
+					ten.trim(),
+					request.getHocKyId());
+
+			if(request.getLopHocPhanIds() != null) {
+				danhSachRepo.deleteAllChiTiet(request.getId());
+
+				for(Long lopId : request.getLopHocPhanIds()) {
+					if(lopId != null) {
+						danhSachRepo.addChiTiet(request.getId(), lopId);
 					}
 				}
 			}
-			Optional<DanhSachLopDto> updated = danhSachRepo.findByIdWithDetails(request.id.intValue());
-			return updated.orElseThrow(() -> new PersistenceException("Updated but cannot fetch"));
+
+			Optional<DanhSachLopDto> updated = danhSachRepo.findByIdWithDetails(request.getId());
+
+			return updated.orElseThrow(
+					() -> new PersistenceException("Updated but cannot fetch"));
 		}
 		catch(ValidationException ve) {
 			throw ve;
@@ -100,11 +110,11 @@ public class QuanLyDanhSachLopAppService implements QuanLyDanhSachLopUseCase
 			throw new ValidationException("Invalid ids");
 		}
 		try {
-			boolean isCreator = danhSachRepo.isCreator(danhSachId.intValue(), nguoiDungId.intValue());
+			boolean isCreator = danhSachRepo.isCreator(danhSachId, nguoiDungId);
 			if(!isCreator) {
 				throw new ValidationException("Only creator can delete the list");
 			}
-			danhSachRepo.deleteDanhSach(danhSachId.intValue());
+			danhSachRepo.deleteDanhSach(danhSachId);
 		}
 		catch(ValidationException ve) {
 			throw ve;

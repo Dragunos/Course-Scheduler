@@ -4,5 +4,5 @@ import java.io.File;
 
 public interface TepTaiLenRepositoryPort
 {
-	int saveMetadata(int nguoiTaoId, File file, String loaiTep) throws Exception;
+	Long saveMetadata(Long nguoiTaoId, File file, String loaiTep) throws Exception;
 }

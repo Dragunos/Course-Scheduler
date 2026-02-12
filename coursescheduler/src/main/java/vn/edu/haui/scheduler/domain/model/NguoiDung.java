@@ -4,24 +4,24 @@ import java.time.LocalDateTime;
 
 public class NguoiDung
 {
-	private Integer id;
+	private Long id;
 
 	private String tenDangNhap;
 
 	private String matKhauHash;
 
-	private Integer vaiTroId;
+	private Long vaiTroId;
 
 	private LocalDateTime ngayTao;
 
-	public NguoiDung(String tenDangNhap, String matKhauHash, Integer vaiTroId)
+	public NguoiDung(String tenDangNhap, String matKhauHash, Long vaiTroId)
 	{
 		this.tenDangNhap = tenDangNhap;
 		this.matKhauHash = matKhauHash;
 		this.vaiTroId = vaiTroId;
 	}
 
-	public NguoiDung(Integer id, String tenDangNhap, String matKhauHash, Integer vaiTroId, LocalDateTime ngayTao)
+	public NguoiDung(Long id, String tenDangNhap, String matKhauHash, Long vaiTroId, LocalDateTime ngayTao)
 	{
 		this.id = id;
 		this.tenDangNhap = tenDangNhap;
@@ -30,7 +30,7 @@ public class NguoiDung
 		this.ngayTao = ngayTao;
 	}
 
-	public Integer getId()
+	public Long getId()
 	{
 		return id;
 	}
@@ -45,7 +45,7 @@ public class NguoiDung
 		return matKhauHash;
 	}
 
-	public Integer getVaiTroId()
+	public Long getVaiTroId()
 	{
 		return vaiTroId;
 	}

@@ -53,9 +53,12 @@
             <Label text="CHỨC NĂNG"
                    styleClass="menu-title"/>
 
-            <Button text="Danh sách lớp học phần"
-                    maxWidth="Infinity"
-                    styleClass="menu-button"/>
+            <Button fx:id="danhSachMenuButton"
+        			text="Danh sách lớp học phần"
+        			maxWidth="Infinity"
+        			onAction="#onShowDanhSachLopPane"
+        			styleClass="menu-button"/>
+
 
             <Button fx:id="importMenuButton"
                     text="Nhập danh sách lớp"

@@ -14,17 +14,11 @@ import java.util.*;
 public class ImportDanhSachLopAppService implements ImportDanhSachLopUseCase
 {
 	private final ExcelCourseImporter importer;
-
 	private final HocPhanRepositoryPort hocPhanRepo;
-
 	private final GiangVienRepositoryPort giangVienRepo;
-
 	private final LopHocPhanRepositoryPort lopRepo;
-
 	private final LichHocRepositoryPort lichRepo;
-
 	private final DanhSachLopRepositoryPort danhSachRepo;
-
 	private final TepTaiLenRepositoryPort tepRepo;
 
 	public ImportDanhSachLopAppService(
@@ -60,29 +54,28 @@ public class ImportDanhSachLopAppService implements ImportDanhSachLopUseCase
 		}
 
 		try {
-			int tepId = tepRepo.saveMetadata(request.getNguoiTaoId(), f, "application/vnd.ms-excel");
-			int danhSachId = danhSachRepo.save(request.getTenDanhSach(), request.getNguoiTaoId(),
+			Long tepId = tepRepo.saveMetadata(request.getNguoiTaoId(), f, "application/vnd.ms-excel");
+			Long danhSachId = danhSachRepo.save(request.getTenDanhSach(), request.getNguoiTaoId(),
 					request.isLaCongKhai(), request.getHocKyId());
 
 			for(ImportedLopAggregate agg : map.values()) {
-				int hocPhanId = resolveHocPhan(agg);
-				int giangVienId = resolveGiangVien(agg);
-				int lopId = resolveLopHocPhan(agg, hocPhanId, giangVienId);
+				Long hocPhanId = resolveHocPhan(agg);
+				Long giangVienId = resolveGiangVien(agg);
+				Long lopId = resolveLopHocPhan(agg, hocPhanId, giangVienId);
 				List<ImportedLopRow.Buoi> dedupBuoi = dedupeBuoi(agg.getBuoiList());
 				lichRepo.saveAll(lopId, dedupBuoi);
 				danhSachRepo.addChiTiet(danhSachId, lopId);
 			}
 		}
 		catch(Exception ex) {
-			// Không thể rollback toàn bộ vì mỗi repository tự quản lý connection.
 			throw new PersistenceException("Import failed: " + ex.getMessage(), ex);
 		}
 	}
 
-	private int resolveHocPhan(ImportedLopAggregate agg) throws Exception
+	private Long resolveHocPhan(ImportedLopAggregate agg) throws Exception
 	{
 		if(agg.maHocPhan != null) {
-			Optional<Integer> idOpt = hocPhanRepo.findIdByMaHocPhan(agg.maHocPhan);
+			Optional<Long> idOpt = hocPhanRepo.findIdByMaHocPhan(agg.maHocPhan);
 			if(idOpt.isPresent()) return idOpt.get();
 		}
 		HocPhan hp = new HocPhan();
@@ -92,26 +85,25 @@ public class ImportDanhSachLopAppService implements ImportDanhSachLopUseCase
 		return hocPhanRepo.save(hp);
 	}
 
-	private int resolveGiangVien(ImportedLopAggregate agg) throws Exception
+	private Long resolveGiangVien(ImportedLopAggregate agg) throws Exception
 	{
 		if(agg.tenGiangVien != null && !agg.tenGiangVien.isEmpty()) {
-			Optional<Integer> idOpt = giangVienRepo.findIdByTen(agg.tenGiangVien);
+			Optional<Long> idOpt = giangVienRepo.findIdByTen(agg.tenGiangVien);
 			if(idOpt.isPresent()) return idOpt.get();
 			return giangVienRepo.save(agg.tenGiangVien);
 		}
-		return -1;
+		return null;
 	}
 
-	private int resolveLopHocPhan(ImportedLopAggregate agg, int hocPhanId, int giangVienId)
+	private Long resolveLopHocPhan(ImportedLopAggregate agg, Long hocPhanId, Long giangVienId)
 			throws Exception
 	{
-		Optional<Integer> idOpt = lopRepo.findIdByMaAndHocPhanId(agg.maLop, hocPhanId);
+		Optional<Long> idOpt = lopRepo.findIdByMaAndHocPhanId(agg.maLop, hocPhanId);
 		if(idOpt.isPresent()) return idOpt.get();
 		LopHocPhan lop = new LopHocPhan();
 		lop.setMaLop(agg.maLop);
-		lop.setHocPhanId(hocPhanId);
-		if(giangVienId > 0) lop.setGiangVienId(giangVienId);
-		else lop.setGiangVienId(null);
+		lop.setHocPhanId(hocPhanId != null ? hocPhanId.intValue() : null); // domain LopHocPhan may keep Integer hocPhanId
+		lop.setGiangVienId(giangVienId != null ? giangVienId.intValue() : null);
 		lop.setHinhThucDay(agg.hinhThucDay);
 		lop.setDiaDiem(agg.diaDiem);
 		return lopRepo.save(lop);
@@ -134,19 +126,12 @@ public class ImportDanhSachLopAppService implements ImportDanhSachLopUseCase
 	private static class ImportedLopAggregate
 	{
 		public final String maLop;
-
 		public String maHocPhan;
-
 		public String tenHocPhan;
-
 		public Integer soTinChi;
-
 		public String tenGiangVien;
-
 		public String hinhThucDay;
-
 		public String diaDiem;
-
 		private final List<ImportedLopRow.Buoi> buoiList = new ArrayList<>();
 
 		public ImportedLopAggregate(ImportedLopRow r)

@@ -2,17 +2,17 @@ package vn.edu.haui.scheduler.domain.model;
 
 public class VaiTro
 {
-	private Integer id;
+	private Long id;
 
 	private String tenVaiTro;
 
-	public VaiTro(Integer id, String tenVaiTro)
+	public VaiTro(Long id, String tenVaiTro)
 	{
 		this.id = id;
 		this.tenVaiTro = tenVaiTro;
 	}
 
-	public Integer getId()
+	public Long getId()
 	{
 		return id;
 	}

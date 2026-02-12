@@ -4,7 +4,7 @@ import java.util.Optional;
 
 public interface GiangVienRepositoryPort
 {
-	Optional<Integer> findIdByTen(String tenGiangVien) throws Exception;
+	Optional<Long> findIdByTen(String tenGiangVien) throws Exception;
 
-	int save(String tenGiangVien) throws Exception;
+	Long save(String tenGiangVien) throws Exception;
 }

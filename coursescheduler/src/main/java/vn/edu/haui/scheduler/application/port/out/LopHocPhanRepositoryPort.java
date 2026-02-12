@@ -5,7 +5,7 @@ import vn.edu.haui.scheduler.domain.model.LopHocPhan;
 
 public interface LopHocPhanRepositoryPort
 {
-	Optional<Integer> findIdByMaAndHocPhanId(String maLop, int hocPhanId) throws Exception;
+	Optional<Long> findIdByMaAndHocPhanId(String maLop, Long hocPhanId) throws Exception;
 
-	int save(LopHocPhan lop) throws Exception;
+	Long save(LopHocPhan lop) throws Exception;
 }

@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 public class NguoiDungDto
 {
-	private final Integer id;
+	private final Long id;
 
 	private final String tenDangNhap;
 
@@ -12,7 +12,7 @@ public class NguoiDungDto
 
 	private final LocalDateTime ngayTao;
 
-	public NguoiDungDto(Integer id, String tenDangNhap, String vaiTro, LocalDateTime ngayTao)
+	public NguoiDungDto(Long id, String tenDangNhap, String vaiTro, LocalDateTime ngayTao)
 	{
 		this.id = id;
 		this.tenDangNhap = tenDangNhap;
@@ -20,7 +20,7 @@ public class NguoiDungDto
 		this.ngayTao = ngayTao;
 	}
 
-	public Integer getId()
+	public Long getId()
 	{
 		return id;
 	}
