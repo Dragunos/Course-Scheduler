@@ -12,5 +12,5 @@ public interface QuanLyDanhSachLopUseCase
 
 	DanhSachLopDto updateDanhSach(Long nguoiDungId, UpdateDanhSachLopRequestDto request);
 
-	void deleteDanhSach(Long nguoiDungId, Long danhSachId);
+	void deleteDanhSach(Long nguoiDungId, Long danhSachId); 
 }

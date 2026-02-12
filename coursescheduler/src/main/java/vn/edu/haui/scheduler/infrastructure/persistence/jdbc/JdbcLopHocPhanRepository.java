@@ -2,6 +2,7 @@ package vn.edu.haui.scheduler.infrastructure.persistence.jdbc;
 
 import vn.edu.haui.scheduler.application.port.out.LopHocPhanRepositoryPort;
 import vn.edu.haui.scheduler.domain.model.LopHocPhan;
+import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 
 import java.sql.*;
 import java.util.Optional;
@@ -9,10 +10,11 @@ import java.util.Optional;
 public class JdbcLopHocPhanRepository implements LopHocPhanRepositoryPort
 {
 	@Override
-	public Optional<Integer> findIdByMaAndHocPhanId(Connection conn, String maLop, int hocPhanId) throws SQLException
+	public Optional<Integer> findIdByMaAndHocPhanId(String maLop, int hocPhanId) throws SQLException
 	{
 		String sql = "SELECT id FROM lop_hoc_phan WHERE ma_lop = ? AND hoc_phan_id = ?";
-		try (PreparedStatement ps = conn.prepareStatement(sql)) {
+		try (Connection conn = DataSourceProvider.getDataSource().getConnection();
+				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setString(1, maLop);
 			ps.setInt(2, hocPhanId);
 			try (ResultSet rs = ps.executeQuery()) {
@@ -23,10 +25,11 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepositoryPort
 	}
 
 	@Override
-	public int save(Connection conn, LopHocPhan lop) throws SQLException
+	public int save(LopHocPhan lop) throws SQLException
 	{
 		String insert = "INSERT INTO lop_hoc_phan (ma_lop, hoc_phan_id, giang_vien_id, hinh_thuc_day, dia_diem) VALUES (?,?,?,?,?)";
-		try (PreparedStatement ps = conn.prepareStatement(insert, Statement.RETURN_GENERATED_KEYS)) {
+		try (Connection conn = DataSourceProvider.getDataSource().getConnection();
+				PreparedStatement ps = conn.prepareStatement(insert, Statement.RETURN_GENERATED_KEYS)) {
 			ps.setString(1, lop.getMaLop());
 			ps.setInt(2, lop.getHocPhanId());
 			if(lop.getGiangVienId() != null) ps.setInt(3, lop.getGiangVienId());

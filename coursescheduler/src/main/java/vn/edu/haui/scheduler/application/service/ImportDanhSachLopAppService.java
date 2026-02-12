@@ -8,10 +8,7 @@ import vn.edu.haui.scheduler.domain.model.LopHocPhan;
 import vn.edu.haui.scheduler.infrastructure.io.imports.ExcelCourseImporter;
 import vn.edu.haui.scheduler.infrastructure.io.imports.ImportedLopRow;
 import vn.edu.haui.scheduler.application.port.out.*;
-import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
-
 import java.io.File;
-import java.sql.Connection;
 import java.util.*;
 
 public class ImportDanhSachLopAppService implements ImportDanhSachLopUseCase
@@ -62,62 +59,53 @@ public class ImportDanhSachLopAppService implements ImportDanhSachLopUseCase
 			agg.merge(r);
 		}
 
-		try (Connection conn = DataSourceProvider.getDataSource().getConnection()) {
-			boolean prevAuto = conn.getAutoCommit();
-			conn.setAutoCommit(false);
-			try {
-				int tepId = tepRepo.saveMetadata(conn, request.getNguoiTaoId(), f, "application/vnd.ms-excel");
-				int danhSachId = danhSachRepo.save(conn, request.getTenDanhSach(), request.getNguoiTaoId(),
-						request.isLaCongKhai(), request.getHocKyId());
+		try {
+			int tepId = tepRepo.saveMetadata(request.getNguoiTaoId(), f, "application/vnd.ms-excel");
+			int danhSachId = danhSachRepo.save(request.getTenDanhSach(), request.getNguoiTaoId(),
+					request.isLaCongKhai(), request.getHocKyId());
 
-				for(ImportedLopAggregate agg : map.values()) {
-					int hocPhanId = resolveHocPhan(conn, agg);
-					int giangVienId = resolveGiangVien(conn, agg);
-					int lopId = resolveLopHocPhan(conn, agg, hocPhanId, giangVienId);
-					List<ImportedLopRow.Buoi> dedupBuoi = dedupeBuoi(agg.getBuoiList());
-					lichRepo.saveAll(conn, lopId, dedupBuoi);
-					danhSachRepo.addChiTiet(conn, danhSachId, lopId);
-				}
-
-				conn.commit();
+			for(ImportedLopAggregate agg : map.values()) {
+				int hocPhanId = resolveHocPhan(agg);
+				int giangVienId = resolveGiangVien(agg);
+				int lopId = resolveLopHocPhan(agg, hocPhanId, giangVienId);
+				List<ImportedLopRow.Buoi> dedupBuoi = dedupeBuoi(agg.getBuoiList());
+				lichRepo.saveAll(lopId, dedupBuoi);
+				danhSachRepo.addChiTiet(danhSachId, lopId);
 			}
-			catch(Exception ex) {
-				conn.rollback();
-				throw new PersistenceException("Import failed: " + ex.getMessage(), ex);
-			}
-			finally {
-				conn.setAutoCommit(prevAuto);
-			}
+		}
+		catch(Exception ex) {
+			// Không thể rollback toàn bộ vì mỗi repository tự quản lý connection.
+			throw new PersistenceException("Import failed: " + ex.getMessage(), ex);
 		}
 	}
 
-	private int resolveHocPhan(Connection conn, ImportedLopAggregate agg) throws Exception
+	private int resolveHocPhan(ImportedLopAggregate agg) throws Exception
 	{
 		if(agg.maHocPhan != null) {
-			Optional<Integer> idOpt = hocPhanRepo.findIdByMaHocPhan(conn, agg.maHocPhan);
+			Optional<Integer> idOpt = hocPhanRepo.findIdByMaHocPhan(agg.maHocPhan);
 			if(idOpt.isPresent()) return idOpt.get();
 		}
 		HocPhan hp = new HocPhan();
 		hp.setMaHocPhan(agg.maHocPhan);
 		hp.setTenHocPhan(agg.tenHocPhan != null ? agg.tenHocPhan : "");
 		hp.setSoTinChi(agg.soTinChi);
-		return hocPhanRepo.save(conn, hp);
+		return hocPhanRepo.save(hp);
 	}
 
-	private int resolveGiangVien(Connection conn, ImportedLopAggregate agg) throws Exception
+	private int resolveGiangVien(ImportedLopAggregate agg) throws Exception
 	{
 		if(agg.tenGiangVien != null && !agg.tenGiangVien.isEmpty()) {
-			Optional<Integer> idOpt = giangVienRepo.findIdByTen(conn, agg.tenGiangVien);
+			Optional<Integer> idOpt = giangVienRepo.findIdByTen(agg.tenGiangVien);
 			if(idOpt.isPresent()) return idOpt.get();
-			return giangVienRepo.save(conn, agg.tenGiangVien);
+			return giangVienRepo.save(agg.tenGiangVien);
 		}
 		return -1;
 	}
 
-	private int resolveLopHocPhan(Connection conn, ImportedLopAggregate agg, int hocPhanId, int giangVienId)
+	private int resolveLopHocPhan(ImportedLopAggregate agg, int hocPhanId, int giangVienId)
 			throws Exception
 	{
-		Optional<Integer> idOpt = lopRepo.findIdByMaAndHocPhanId(conn, agg.maLop, hocPhanId);
+		Optional<Integer> idOpt = lopRepo.findIdByMaAndHocPhanId(agg.maLop, hocPhanId);
 		if(idOpt.isPresent()) return idOpt.get();
 		LopHocPhan lop = new LopHocPhan();
 		lop.setMaLop(agg.maLop);
@@ -126,7 +114,7 @@ public class ImportDanhSachLopAppService implements ImportDanhSachLopUseCase
 		else lop.setGiangVienId(null);
 		lop.setHinhThucDay(agg.hinhThucDay);
 		lop.setDiaDiem(agg.diaDiem);
-		return lopRepo.save(conn, lop);
+		return lopRepo.save(lop);
 	}
 
 	private static List<ImportedLopRow.Buoi> dedupeBuoi(List<ImportedLopRow.Buoi> src)
