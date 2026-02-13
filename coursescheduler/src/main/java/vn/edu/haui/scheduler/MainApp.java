@@ -8,6 +8,10 @@ import vn.edu.haui.scheduler.application.port.in.ImportDanhSachLopUseCase;
 import vn.edu.haui.scheduler.application.service.ImportDanhSachLopAppService;
 import vn.edu.haui.scheduler.application.port.in.QuanLyDanhSachLopUseCase;
 import vn.edu.haui.scheduler.application.service.QuanLyDanhSachLopAppService;
+import vn.edu.haui.scheduler.application.port.in.XuatDanhSachLopUseCase;
+import vn.edu.haui.scheduler.application.service.XuatDanhSachLopAppService;
+import vn.edu.haui.scheduler.infrastructure.io.exports.CsvExporter;
+import vn.edu.haui.scheduler.infrastructure.io.exports.ExcelExporter;
 import vn.edu.haui.scheduler.infrastructure.io.imports.ExcelCourseImporter;
 import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.*;
 import vn.edu.haui.scheduler.application.port.out.*;
@@ -35,6 +39,9 @@ public class MainApp extends Application
 		DanhSachLopRepositoryPort danhSachRepo = new JdbcDanhSachLopRepository();
 		TepTaiLenRepositoryPort tepRepo = new JdbcTepTaiLenRepository();
 
+		CsvExporter csvExporter = new CsvExporter();
+		ExcelExporter excelExporter = new ExcelExporter();
+
 		ImportDanhSachLopUseCase importUc = new ImportDanhSachLopAppService(
 				importer, hocPhanRepo, giangVienRepo, lopRepo, lichRepo, danhSachRepo, tepRepo);
 
@@ -43,6 +50,10 @@ public class MainApp extends Application
 		QuanLyDanhSachLopUseCase quanLyUc = new QuanLyDanhSachLopAppService(danhSachRepo);
 
 		screenManager.setQuanLyDanhSachLopUseCase(quanLyUc);
+
+		XuatDanhSachLopUseCase xuatUc = new XuatDanhSachLopAppService(danhSachRepo, csvExporter, excelExporter);
+
+		screenManager.setXuatDanhSachLopUseCase(xuatUc);
 
 		screenManager.init();
 		stage.show();

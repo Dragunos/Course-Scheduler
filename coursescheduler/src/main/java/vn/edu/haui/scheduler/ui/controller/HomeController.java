@@ -11,6 +11,7 @@ import vn.edu.haui.scheduler.application.exception.PersistenceException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
 import vn.edu.haui.scheduler.application.port.in.ImportDanhSachLopUseCase;
 import vn.edu.haui.scheduler.application.port.in.QuanLyDanhSachLopUseCase;
+import vn.edu.haui.scheduler.application.port.in.XuatDanhSachLopUseCase;
 import vn.edu.haui.scheduler.ui.fx.ScreenManager;
 
 import java.io.File;
@@ -149,12 +150,14 @@ public class HomeController
 		Button viewBtn = new Button("Xem chi tiết");
 		Button editBtn = new Button("Chỉnh sửa");
 		Button deleteBtn = new Button("Xóa");
+		Button exportBtn = new Button("Xuất danh sách");
 
 		viewBtn.setOnAction(e -> onViewChiTiet(dto));
 		editBtn.setOnAction(e -> onEditDanhSach(dto));
 		deleteBtn.setOnAction(e -> onDeleteDanhSach(dto));
+		exportBtn.setOnAction(e -> onExportDanhSach(dto));
 
-		HBox actions = new HBox(10, viewBtn, editBtn, deleteBtn);
+		HBox actions = new HBox(10, viewBtn, editBtn, deleteBtn, exportBtn);
 
 		VBox card = new VBox(5, tenLabel, hocKyLabel, actions);
 		card.setStyle("-fx-padding:10; -fx-border-color:#ccc;");
@@ -354,6 +357,91 @@ public class HomeController
 		});
 
 		centerContainer.getChildren().addAll(title, tenDanhSachField, filePathField, chooseButton, importButton);
+	}
+
+	private void onExportDanhSach(DanhSachLopDto dto)
+	{
+		if(dto == null) return;
+		if(screenManager == null || !screenManager.isAuthenticated()) {
+			showAlert("Chưa đăng nhập", "Bạn cần đăng nhập.", Alert.AlertType.WARNING);
+			return;
+		}
+
+		centerContainer.getChildren().clear();
+
+		Label title = new Label("Xuất danh sách: " + (dto.getTenDanhSach() != null ? dto.getTenDanhSach() : ""));
+		title.getStyleClass().add("home-title");
+
+		Label formatLabel = new Label("Chọn định dạng:");
+		RadioButton csvRb = new RadioButton("CSV");
+		RadioButton excelRb = new RadioButton("Excel");
+		ToggleGroup tg = new ToggleGroup();
+		csvRb.setToggleGroup(tg);
+		excelRb.setToggleGroup(tg);
+		csvRb.setSelected(true);
+
+		TextField savePathField = new TextField();
+		savePathField.setEditable(false);
+
+		Button choosePathBtn = new Button("Chọn nơi lưu");
+		choosePathBtn.setOnAction(e -> {
+			Window w = centerContainer.getScene().getWindow();
+			FileChooser chooser = new FileChooser();
+			if(csvRb.isSelected()) {
+				chooser.getExtensionFilters().clear();
+				chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV files", "*.csv"));
+			}
+			else {
+				chooser.getExtensionFilters().clear();
+				chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel files", "*.xlsx"));
+			}
+			File chosen = chooser.showSaveDialog(w);
+			if(chosen != null) {
+				savePathField.setText(chosen.getAbsolutePath());
+			}
+		});
+
+		Button saveBtn = new Button("Lưu");
+		Button cancelBtn = new Button("Hủy");
+
+		saveBtn.setOnAction(e -> {
+			try {
+				NguoiDungDto user = screenManager.getCurrentUser();
+				if(user == null) {
+					showAlert("Chưa đăng nhập", "Bạn cần đăng nhập.", Alert.AlertType.WARNING);
+					return;
+				}
+				Long userId = user.getId();
+				String path = savePathField.getText();
+				String format = csvRb.isSelected() ? "CSV" : "EXCEL";
+
+				XuatDanhSachLopUseCase xuatUc = screenManager.getXuatDanhSachLopUseCase();
+				if(xuatUc == null) {
+					showAlert("Lỗi cấu hình", "Tính năng xuất chưa được cấu hình.", Alert.AlertType.ERROR);
+					return;
+				}
+
+				xuatUc.xuatDanhSach(userId, dto.getId(), path, format);
+
+				showAlert("Thành công", "Xuất danh sách thành công.", Alert.AlertType.INFORMATION);
+				onShowDanhSachLopPane();
+			}
+			catch(ValidationException ve) {
+				showAlert("Không hợp lệ", ve.getMessage(), Alert.AlertType.WARNING);
+			}
+			catch(PersistenceException pe) {
+				showAlert("Lỗi hệ thống", pe.getMessage(), Alert.AlertType.ERROR);
+			}
+			catch(Exception ex) {
+				showAlert("Lỗi", ex.getMessage(), Alert.AlertType.ERROR);
+			}
+		});
+
+		cancelBtn.setOnAction(e -> onViewChiTiet(dto));
+
+		VBox form = new VBox(8, title, formatLabel, csvRb, excelRb, savePathField, choosePathBtn,
+				new HBox(10, saveBtn, cancelBtn));
+		centerContainer.getChildren().add(form);
 	}
 
 	private void showAlert(String title, String message, Alert.AlertType type)

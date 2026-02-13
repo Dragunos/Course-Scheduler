@@ -14,10 +14,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-/**
- * Service thực hiện xuất danh sách lớp học phần. Sử dụng DanhSachLopRepositoryPort#findByIdWithDetails để lấy
- * DanhSachLopDto (với chi tiết).
- */
 public class XuatDanhSachLopAppService implements XuatDanhSachLopUseCase
 {
 
@@ -27,7 +23,8 @@ public class XuatDanhSachLopAppService implements XuatDanhSachLopUseCase
 
 	private final ExcelExporter excelExporter;
 
-	public XuatDanhSachLopAppService(DanhSachLopRepositoryPort danhSachRepo,
+	public XuatDanhSachLopAppService(
+			DanhSachLopRepositoryPort danhSachRepo,
 			CsvExporter csvExporter,
 			ExcelExporter excelExporter)
 	{
@@ -37,29 +34,39 @@ public class XuatDanhSachLopAppService implements XuatDanhSachLopUseCase
 	}
 
 	@Override
-	public void xuat(Long danhSachLopId, String dinhDang, String duongDanDuoiTen)
+	public void xuatDanhSach(
+			Long nguoiDungId,
+			Long danhSachId,
+			String duongDanFile,
+			String dinhDang)
 			throws ValidationException, PersistenceException
 	{
-		if(danhSachLopId == null) {
+		if(nguoiDungId == null) {
+			throw new ValidationException("Người dùng không hợp lệ (null id).");
+		}
+
+		if(danhSachId == null) {
 			throw new ValidationException("Danh sách lớp không hợp lệ (null id).");
 		}
-		if(duongDanDuoiTen == null || duongDanDuoiTen.trim().isEmpty()) {
+
+		if(duongDanFile == null || duongDanFile.trim().isEmpty()) {
 			throw new ValidationException("Đường dẫn file xuất không được để trống.");
 		}
 
 		try {
-			Optional<DanhSachLopDto> opt = danhSachRepo.findByIdWithDetails(danhSachLopId);
+			Optional<DanhSachLopDto> opt = danhSachRepo.findByIdWithDetails(danhSachId);
+
 			if(!opt.isPresent()) {
-				throw new ValidationException("Không tìm thấy danh sách lớp với id = " + danhSachLopId);
+				throw new ValidationException(
+						"Không tìm thấy danh sách lớp với id = " + danhSachId);
 			}
 
 			DanhSachLopDto ds = opt.get();
 
-			// Header cố định
 			List<String> headers = Arrays.asList(
 					"ten_danh_sach",
 					"ma_lop",
-					"ma_hoc_phan", // DTO hiện tại không cung cấp ma_hoc_phan -> giữ cột nhưng để trống
+					"ma_hoc_phan",
 					"ten_hoc_phan",
 					"so_tin_chi",
 					"ten_giang_vien",
@@ -73,13 +80,15 @@ public class XuatDanhSachLopAppService implements XuatDanhSachLopUseCase
 			List<Map<String, String>> rows = new ArrayList<>();
 
 			List<DanhSachLopChiTietDto> chiTiets = ds.getChiTiet();
-			if(chiTiets == null) chiTiets = Collections.emptyList();
+			if(chiTiets == null) {
+				chiTiets = Collections.emptyList();
+			}
 
 			for(DanhSachLopChiTietDto ct : chiTiets) {
+
 				int batBuoc = (ct.getBatBuoc() == null) ? 0 : ct.getBatBuoc();
 
 				String maLop = safe(ct.getMaLop());
-				// DTO không có maHocPhan, giữ rỗng
 				String maHocPhan = "";
 				String tenHocPhan = safe(ct.getTenHocPhan());
 				String soTinChi = ct.getSoTinChi() == null ? "" : String.valueOf(ct.getSoTinChi());
@@ -88,8 +97,11 @@ public class XuatDanhSachLopAppService implements XuatDanhSachLopUseCase
 				String diaDiem = safe(ct.getDiaDiem());
 
 				List<LichHocDto> lichs = ct.getLichHoc();
+
 				if(lichs == null || lichs.isEmpty()) {
+
 					Map<String, String> r = new LinkedHashMap<>();
+
 					r.put("ten_danh_sach", safe(ds.getTenDanhSach()));
 					r.put("ma_lop", maLop);
 					r.put("ma_hoc_phan", maHocPhan);
@@ -102,11 +114,15 @@ public class XuatDanhSachLopAppService implements XuatDanhSachLopUseCase
 					r.put("tiet_bat_dau", "");
 					r.put("tiet_ket_thuc", "");
 					r.put("bat_buoc", String.valueOf(batBuoc));
+
 					rows.add(r);
 				}
 				else {
+
 					for(LichHocDto l : lichs) {
+
 						Map<String, String> r = new LinkedHashMap<>();
+
 						r.put("ten_danh_sach", safe(ds.getTenDanhSach()));
 						r.put("ma_lop", maLop);
 						r.put("ma_hoc_phan", maHocPhan);
@@ -115,21 +131,30 @@ public class XuatDanhSachLopAppService implements XuatDanhSachLopUseCase
 						r.put("ten_giang_vien", tenGiangVien);
 						r.put("hinh_thuc_day", hinhThucDay);
 						r.put("dia_diem", diaDiem);
-						r.put("thu", l == null || l.getThu() == null ? "" : String.valueOf(l.getThu()));
+
+						r.put("thu",
+								l == null || l.getThu() == null ? "" : String.valueOf(l.getThu()));
+
 						r.put("tiet_bat_dau",
 								l == null || l.getTietBatDau() == null ? "" : String.valueOf(l.getTietBatDau()));
+
 						r.put("tiet_ket_thuc",
 								l == null || l.getTietKetThuc() == null ? "" : String.valueOf(l.getTietKetThuc()));
+
 						r.put("bat_buoc", String.valueOf(batBuoc));
+
 						rows.add(r);
 					}
 				}
 			}
 
-			Path output = Paths.get(duongDanDuoiTen);
-			String fmt = (dinhDang == null) ? "CSV" : dinhDang.trim().toUpperCase();
+			Path output = Paths.get(duongDanFile);
 
-			if("EXCEL".equals(fmt) || duongDanDuoiTen.toLowerCase().endsWith(".xlsx")) {
+			String fmt = (dinhDang == null)
+					? "CSV"
+					: dinhDang.trim().toUpperCase();
+
+			if("EXCEL".equals(fmt) || duongDanFile.toLowerCase().endsWith(".xlsx")) {
 				excelExporter.export(output, headers, rows);
 			}
 			else {
@@ -140,13 +165,16 @@ public class XuatDanhSachLopAppService implements XuatDanhSachLopUseCase
 			throw v;
 		}
 		catch(RuntimeException re) {
-			throw new PersistenceException("Lỗi khi truy vấn dữ liệu: " + re.getMessage(), re);
+			throw new PersistenceException(
+					"Lỗi khi truy vấn dữ liệu: " + re.getMessage(), re);
 		}
 		catch(Exception e) {
-			throw new PersistenceException("Lỗi khi xuất dữ liệu: " + e.getMessage(), e);
+			throw new PersistenceException(
+					"Lỗi khi xuất dữ liệu: " + e.getMessage(), e);
 		}
 		catch(Error er) {
-			throw new PersistenceException("Lỗi hệ thống khi xuất dữ liệu: " + er.getMessage(), er);
+			throw new PersistenceException(
+					"Lỗi hệ thống khi xuất dữ liệu: " + er.getMessage(), er);
 		}
 	}
 

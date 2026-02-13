@@ -7,6 +7,7 @@ import javafx.stage.Stage;
 import vn.edu.haui.scheduler.application.port.in.AuthUseCase;
 import vn.edu.haui.scheduler.application.port.in.ImportDanhSachLopUseCase;
 import vn.edu.haui.scheduler.application.port.in.QuanLyDanhSachLopUseCase;
+import vn.edu.haui.scheduler.application.port.in.XuatDanhSachLopUseCase;
 import vn.edu.haui.scheduler.application.dto.NguoiDungDto;
 import vn.edu.haui.scheduler.ui.controller.*;
 
@@ -19,6 +20,8 @@ public class ScreenManager
 	private ImportDanhSachLopUseCase importDanhSachLopUseCase;
 
 	private QuanLyDanhSachLopUseCase quanLyDanhSachLopUseCase;
+
+	private XuatDanhSachLopUseCase xuatDanhSachLopUseCase;
 
 	private Scene scene;
 
@@ -48,6 +51,16 @@ public class ScreenManager
 	public QuanLyDanhSachLopUseCase getQuanLyDanhSachLopUseCase()
 	{
 		return quanLyDanhSachLopUseCase;
+	}
+
+	public void setXuatDanhSachLopUseCase(XuatDanhSachLopUseCase uc)
+	{
+		this.xuatDanhSachLopUseCase = uc;
+	}
+
+	public XuatDanhSachLopUseCase getXuatDanhSachLopUseCase()
+	{
+		return xuatDanhSachLopUseCase;
 	}
 
 	public void init()
