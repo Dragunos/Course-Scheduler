@@ -1,17 +1,18 @@
-package vn.edu.haui.scheduler.domain.model;
+package vn.edu.haui.scheduler.application.dto;
 
-public class GiangVien
+import vn.edu.haui.scheduler.domain.model.GiangVien;
+
+public class GiangVienDto
 {
 	private Long id;
 
 	private String tenGiangVien;
 
-	public GiangVien()
+	public GiangVienDto()
 	{
 	}
 
-	// Constructor thuận tiện
-	public GiangVien(Long id, String tenGiangVien)
+	public GiangVienDto(Long id, String tenGiangVien)
 	{
 		this.id = id;
 		this.tenGiangVien = tenGiangVien;
@@ -37,12 +38,9 @@ public class GiangVien
 		this.tenGiangVien = tenGiangVien;
 	}
 
-	@Override
-	public String toString()
+	public static GiangVienDto fromDomain(GiangVien gv)
 	{
-		return "GiangVien{" +
-				"id=" + id +
-				", tenGiangVien='" + tenGiangVien + '\'' +
-				'}';
+		if(gv == null) return null;
+		return new GiangVienDto(gv.getId(), gv.getTenGiangVien());
 	}
 }

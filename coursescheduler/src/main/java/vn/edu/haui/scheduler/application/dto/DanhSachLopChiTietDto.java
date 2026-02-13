@@ -20,6 +20,8 @@ public class DanhSachLopChiTietDto
 
 	private final List<LichHocDto> lichHoc;
 
+	private final Integer batBuoc; // 0/1
+
 	public DanhSachLopChiTietDto(Long lopHocPhanId,
 			String maLop,
 			String tenHocPhan,
@@ -27,7 +29,8 @@ public class DanhSachLopChiTietDto
 			String tenGiangVien,
 			String hinhThucDay,
 			String diaDiem,
-			List<LichHocDto> lichHoc)
+			List<LichHocDto> lichHoc,
+			Integer batBuoc)
 	{
 		this.lopHocPhanId = lopHocPhanId;
 		this.maLop = maLop;
@@ -37,6 +40,7 @@ public class DanhSachLopChiTietDto
 		this.hinhThucDay = hinhThucDay;
 		this.diaDiem = diaDiem;
 		this.lichHoc = lichHoc;
+		this.batBuoc = (batBuoc == null) ? 0 : batBuoc;
 	}
 
 	public Long getLopHocPhanId()
@@ -77,5 +81,10 @@ public class DanhSachLopChiTietDto
 	public List<LichHocDto> getLichHoc()
 	{
 		return lichHoc;
+	}
+
+	public Integer getBatBuoc()
+	{
+		return batBuoc;
 	}
 }

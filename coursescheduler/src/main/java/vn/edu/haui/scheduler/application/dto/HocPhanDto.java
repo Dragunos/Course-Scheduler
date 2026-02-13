@@ -1,6 +1,8 @@
-package vn.edu.haui.scheduler.domain.model;
+package vn.edu.haui.scheduler.application.dto;
 
-public class HocPhan
+import vn.edu.haui.scheduler.domain.model.HocPhan;
+
+public class HocPhanDto
 {
 	private Long id;
 
@@ -10,12 +12,11 @@ public class HocPhan
 
 	private Integer soTinChi;
 
-	public HocPhan()
+	public HocPhanDto()
 	{
 	}
 
-	// Constructor thuận tiện
-	public HocPhan(Long id, String maHocPhan, String tenHocPhan, Integer soTinChi)
+	public HocPhanDto(Long id, String maHocPhan, String tenHocPhan, Integer soTinChi)
 	{
 		this.id = id;
 		this.maHocPhan = maHocPhan;
@@ -63,14 +64,9 @@ public class HocPhan
 		this.soTinChi = soTinChi;
 	}
 
-	@Override
-	public String toString()
+	public static HocPhanDto fromDomain(HocPhan hp)
 	{
-		return "HocPhan{" +
-				"id=" + id +
-				", maHocPhan='" + maHocPhan + '\'' +
-				", tenHocPhan='" + tenHocPhan + '\'' +
-				", soTinChi=" + soTinChi +
-				'}';
+		if(hp == null) return null;
+		return new HocPhanDto(hp.getId(), hp.getMaHocPhan(), hp.getTenHocPhan(), hp.getSoTinChi());
 	}
 }

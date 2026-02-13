@@ -90,6 +90,7 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 		String headerSql = "SELECT * FROM danh_sach_lop WHERE id=?";
 		String detailSql = "SELECT lhp.id AS lhp_id, lhp.ma_lop, hp.ten_hoc_phan, hp.so_tin_chi, " +
 				"gv.ten_giang_vien, lhp.hinh_thuc_day, lhp.dia_diem, " +
+				"dct.bat_buoc, " +
 				"lh.thu, lh.tiet_bat_dau, lh.tiet_ket_thuc " +
 				"FROM danh_sach_lop_chi_tiet dct " +
 				"JOIN lop_hoc_phan lhp ON lhp.id=dct.lop_hoc_phan_id " +
@@ -133,8 +134,19 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 								String tenGiangVien = rd.getString("ten_giang_vien");
 								String hinhThucDay = rd.getString("hinh_thuc_day");
 								String diaDiem = rd.getString("dia_diem");
-								item = new DanhSachLopChiTietDto(lhpId, maLop, tenHocPhan, soTinChi, tenGiangVien,
-										hinhThucDay, diaDiem, new ArrayList<>());
+								Integer batBuoc = rd.getObject("bat_buoc") != null ? rd.getInt("bat_buoc") : 0;
+
+								item = new DanhSachLopChiTietDto(
+										lhpId,
+										maLop,
+										tenHocPhan,
+										soTinChi,
+										tenGiangVien,
+										hinhThucDay,
+										diaDiem,
+										new ArrayList<>(),
+										batBuoc);
+
 								map.put(lhpId, item);
 							}
 
