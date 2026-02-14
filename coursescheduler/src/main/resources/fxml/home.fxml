@@ -68,9 +68,11 @@
 
             <Separator/>
 
-            <Button text="Sinh thời khóa biểu"
-                    maxWidth="Infinity"
-                    styleClass="menu-button"/>
+            <Button fx:id="optimizeMenuButton"
+       				text="Sinh thời khóa biểu"
+        			maxWidth="Infinity"
+        			styleClass="menu-button"
+        			onAction="#onShowOptimizerPane"/>
 
             <Button text="Thời khóa biểu của tôi"
                     maxWidth="Infinity"

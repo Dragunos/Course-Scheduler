@@ -34,6 +34,8 @@ public class HomeController
 
 	private ExportPaneHandler exportHandler;
 
+	private SinhThoiKhoaBieuPaneHandler sinhTKBHandler;
+
 	public void init(ScreenManager screenManager)
 	{
 		this.screenManager = screenManager;
@@ -48,6 +50,8 @@ public class HomeController
 		danhSachHandler = new DanhSachLopPaneHandler(screenManager, centerContainer);
 		importHandler = new ImportPaneHandler(screenManager, centerContainer);
 		exportHandler = new ExportPaneHandler(screenManager, centerContainer);
+
+		sinhTKBHandler = new SinhThoiKhoaBieuPaneHandler(screenManager, centerContainer);
 
 		authHandler.updateView();
 	}
@@ -80,5 +84,11 @@ public class HomeController
 	private void onShowImportPane()
 	{
 		importHandler.showImportPane();
+	}
+
+	@FXML
+	private void onShowOptimizerPane()
+	{
+		sinhTKBHandler.showOptimizerPane();
 	}
 }

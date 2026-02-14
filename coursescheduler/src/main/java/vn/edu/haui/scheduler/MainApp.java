@@ -10,6 +10,8 @@ import vn.edu.haui.scheduler.application.port.in.QuanLyDanhSachLopUseCase;
 import vn.edu.haui.scheduler.application.service.QuanLyDanhSachLopAppService;
 import vn.edu.haui.scheduler.application.port.in.XuatDanhSachLopUseCase;
 import vn.edu.haui.scheduler.application.service.XuatDanhSachLopAppService;
+import vn.edu.haui.scheduler.application.port.in.SinhThoiKhoaBieuUseCase;
+import vn.edu.haui.scheduler.application.service.SinhThoiKhoaBieuAppService;
 import vn.edu.haui.scheduler.infrastructure.io.exports.CsvExporter;
 import vn.edu.haui.scheduler.infrastructure.io.exports.ExcelExporter;
 import vn.edu.haui.scheduler.infrastructure.io.imports.ExcelCourseImporter;
@@ -38,12 +40,13 @@ public class MainApp extends Application
 		LichHocRepositoryPort lichRepo = new JdbcLichHocRepository();
 		DanhSachLopRepositoryPort danhSachRepo = new JdbcDanhSachLopRepository();
 		TepTaiLenRepositoryPort tepRepo = new JdbcTepTaiLenRepository();
+		ThoiKhoaBieuRepositoryPort tkbRepo = new JdbcThoiKhoaBieuRepository();
 
 		CsvExporter csvExporter = new CsvExporter();
 		ExcelExporter excelExporter = new ExcelExporter();
 
-		ImportDanhSachLopUseCase importUc = new ImportDanhSachLopAppService(
-				importer, hocPhanRepo, giangVienRepo, lopRepo, lichRepo, danhSachRepo, tepRepo);
+		ImportDanhSachLopUseCase importUc = new ImportDanhSachLopAppService(importer, hocPhanRepo, giangVienRepo,
+				lopRepo, lichRepo, danhSachRepo, tepRepo);
 
 		screenManager.setImportDanhSachLopUseCase(importUc);
 
@@ -54,6 +57,10 @@ public class MainApp extends Application
 		XuatDanhSachLopUseCase xuatUc = new XuatDanhSachLopAppService(danhSachRepo, csvExporter, excelExporter);
 
 		screenManager.setXuatDanhSachLopUseCase(xuatUc);
+
+		SinhThoiKhoaBieuUseCase sinhUc = new SinhThoiKhoaBieuAppService(tkbRepo);
+
+		screenManager.setSinhThoiKhoaBieuUseCase(sinhUc);
 
 		screenManager.init();
 		stage.show();

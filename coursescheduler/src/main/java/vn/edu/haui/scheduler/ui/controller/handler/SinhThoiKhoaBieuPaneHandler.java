@@ -1,0 +1,262 @@
+package vn.edu.haui.scheduler.ui.controller.handler;
+
+import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import vn.edu.haui.scheduler.application.dto.DanhSachLopDto;
+import vn.edu.haui.scheduler.application.dto.PhuongAnThoiKhoaBieuDto;
+import vn.edu.haui.scheduler.application.exception.PersistenceException;
+import vn.edu.haui.scheduler.application.exception.ValidationException;
+import vn.edu.haui.scheduler.application.port.in.QuanLyDanhSachLopUseCase;
+import vn.edu.haui.scheduler.application.port.in.SinhThoiKhoaBieuUseCase;
+import vn.edu.haui.scheduler.ui.fx.ScreenManager;
+import vn.edu.haui.scheduler.ui.util.UiUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+public class SinhThoiKhoaBieuPaneHandler
+{
+	private final ScreenManager screenManager;
+
+	private final VBox centerContainer;
+
+	public SinhThoiKhoaBieuPaneHandler(ScreenManager screenManager, VBox centerContainer)
+	{
+		this.screenManager = screenManager;
+		this.centerContainer = centerContainer;
+	}
+
+	public void showOptimizerPane()
+	{
+		if(screenManager == null || !screenManager.isAuthenticated()) {
+			UiUtils.showAlert("Chưa đăng nhập", "Bạn cần đăng nhập.", Alert.AlertType.WARNING);
+			return;
+		}
+
+		SinhThoiKhoaBieuUseCase useCase = screenManager.getSinhThoiKhoaBieuUseCase();
+		if(useCase == null) {
+			UiUtils.showAlert("Lỗi cấu hình", "Tính năng sinh thời khóa biểu chưa được cấu hình.",
+					Alert.AlertType.ERROR);
+			return;
+		}
+
+		QuanLyDanhSachLopUseCase dsUseCase = screenManager.getQuanLyDanhSachLopUseCase();
+		if(dsUseCase == null) {
+			UiUtils.showAlert("Lỗi cấu hình", "Tính năng danh sách lớp chưa được cấu hình.", Alert.AlertType.ERROR);
+			return;
+		}
+
+		centerContainer.getChildren().clear();
+
+		Label title = new Label("Sinh thời khóa biểu tối ưu");
+		title.getStyleClass().add("home-title");
+
+		VBox content = new VBox(10);
+		content.setPadding(new Insets(10));
+
+		// load danh sách của người dùng
+		List<DanhSachLopDto> dsList;
+		try {
+			Long userId = screenManager.getCurrentUser().getId();
+			dsList = dsUseCase.listDanhSachChoNguoiDung(userId);
+		}
+		catch(Exception ex) {
+			UiUtils.showAlert("Lỗi hệ thống", ex.getMessage(), Alert.AlertType.ERROR);
+			return;
+		}
+
+		if(dsList == null || dsList.isEmpty()) {
+			content.getChildren()
+					.add(new Label("Bạn không có danh sách nào. Vui lòng import hoặc tạo danh sách trước."));
+			centerContainer.getChildren().addAll(title, content);
+			return;
+		}
+
+		ChoiceBox<DanhSachLopDto> choice = new ChoiceBox<>();
+		choice.getItems().addAll(dsList);
+		choice.setPrefWidth(600);
+
+		// hiển thị ten danh sach trong ChoiceBox (simple)
+		choice.setConverter(new javafx.util.StringConverter<>()
+		{
+			@Override
+			public String toString(DanhSachLopDto object)
+			{
+				return object == null ? ""
+						: (object.getTenDanhSach() != null ? object.getTenDanhSach() : ("#" + object.getId()));
+			}
+
+			@Override
+			public DanhSachLopDto fromString(String string)
+			{
+				return null;
+			}
+		});
+
+		TextField topKField = new TextField("5");
+		topKField.setPromptText("top-K (ví dụ 5)");
+
+		TextField timeLimitField = new TextField("5000");
+		timeLimitField.setPromptText("time limit (ms)");
+
+		Button runBtn = new Button("Chạy tối ưu");
+
+		HBox controls = new HBox(10, new Label("Chọn danh sách:"), choice, new Label("Top-K:"), topKField,
+				new Label("Time(ms):"), timeLimitField, runBtn);
+		controls.setPadding(new Insets(6));
+
+		VBox resultBox = new VBox(8);
+
+		runBtn.setOnAction(e -> {
+			DanhSachLopDto selected = choice.getValue();
+			if(selected == null) {
+				UiUtils.showAlert("Không hợp lệ", "Chưa chọn danh sách lớp.", Alert.AlertType.WARNING);
+				return;
+			}
+
+			int topK;
+			long timeLimit;
+			try {
+				topK = Integer.parseInt(topKField.getText().trim());
+				timeLimit = Long.parseLong(timeLimitField.getText().trim());
+			}
+			catch(NumberFormatException nfe) {
+				UiUtils.showAlert("Không hợp lệ", "Top-K và Time phải là số.", Alert.AlertType.WARNING);
+				return;
+			}
+
+			try {
+				Long userId = screenManager.getCurrentUser().getId();
+
+				// tạo yêu cầu (tên tạm)
+				long yeuCauId = useCase.taoYeuCau(userId, selected.getId(),
+						"Yêu cầu từ UI " + System.currentTimeMillis());
+
+				// chạy optimizer
+				List<PhuongAnThoiKhoaBieuDto> solutions = useCase.chayToiUu(yeuCauId, topK, timeLimit);
+
+				resultBox.getChildren().clear();
+
+				if(solutions == null || solutions.isEmpty()) {
+					resultBox.getChildren().add(new Label("Không tìm được phương án hợp lệ."));
+				}
+				else {
+					int idx = 1;
+					for(PhuongAnThoiKhoaBieuDto pa : solutions) {
+						VBox card = new VBox(6);
+						card.setStyle("-fx-padding:8; -fx-border-color:#ddd; -fx-background-color:#fafafa;");
+
+						Label header = new Label("Phương án " + (idx++) + " - Điểm: " + pa.getDiemDanhGia());
+						header.getStyleClass().add("home-subtitle");
+
+						StringBuilder sb = new StringBuilder();
+						if(pa.getLopHocPhanIds() != null && !pa.getLopHocPhanIds().isEmpty()) {
+							for(Long lopId : pa.getLopHocPhanIds()) {
+								sb.append(lopId).append(", ");
+							}
+							if(sb.length() > 2) sb.setLength(sb.length() - 2);
+						}
+						else sb.append("<rỗng>");
+
+						Label body = new Label(sb.toString());
+
+						Button saveBtn = new Button("Lưu phương án");
+						Button optimizeAgainBtn = new Button("Tối ưu lại phương án");
+
+						HBox actions = new HBox(8, saveBtn, optimizeAgainBtn);
+
+						saveBtn.setOnAction(ev -> {
+							try {
+								String tenPA = "PA " + System.currentTimeMillis();
+								long savedId = useCase.luuPhuongAn(screenManager.getCurrentUser().getId(),
+										selected.getId(),
+										tenPA,
+										pa.getDiemDanhGia(),
+										pa.getLopHocPhanIds());
+
+								UiUtils.showAlert("Thành công", "Đã lưu phương án (id=" + savedId + ")",
+										Alert.AlertType.INFORMATION);
+							}
+							catch(Exception ex) {
+								UiUtils.showAlert("Lỗi khi lưu", ex.getMessage(), Alert.AlertType.ERROR);
+							}
+						});
+
+						optimizeAgainBtn.setOnAction(ev -> {
+							try {
+								// nếu phương án đã lưu trước đó, có id -> sử dụng toiUuLai; nếu chưa, cố gắng dùng
+								// yeuCauId
+								// đơn giản: gọi toiUuLai với yeuCauId (nếu use case triển khai) — ở backend bạn có thể
+								// map thoi_khoa_bieu -> danh_sach_lop
+								List<PhuongAnThoiKhoaBieuDto> again = useCase.chayToiUu(yeuCauId, topK, timeLimit);
+								// hiển thị thay thế
+								resultBox.getChildren().clear();
+								for(PhuongAnThoiKhoaBieuDto pa2 : again) {
+									resultBox.getChildren().add(renderSolutionNode(pa2, useCase, selected));
+								}
+							}
+							catch(Exception ex) {
+								UiUtils.showAlert("Lỗi", ex.getMessage(), Alert.AlertType.ERROR);
+							}
+						});
+
+						card.getChildren().addAll(header, body, actions);
+						resultBox.getChildren().add(card);
+					}
+				}
+			}
+			catch(ValidationException ve) {
+				UiUtils.showAlert("Không hợp lệ", ve.getMessage(), Alert.AlertType.WARNING);
+			}
+			catch(PersistenceException pe) {
+				UiUtils.showAlert("Lỗi hệ thống", pe.getMessage(), Alert.AlertType.ERROR);
+			}
+			catch(Exception ex) {
+				UiUtils.showAlert("Lỗi", ex.getMessage(), Alert.AlertType.ERROR);
+			}
+		});
+
+		content.getChildren().addAll(controls, new Separator(), resultBox);
+
+		centerContainer.getChildren().addAll(title, content);
+	}
+
+	// helper để render lại phương án (dùng khi tối ưu lại)
+	private Node renderSolutionNode(PhuongAnThoiKhoaBieuDto pa,
+			SinhThoiKhoaBieuUseCase useCase,
+			DanhSachLopDto danhSach)
+	{
+		VBox card = new VBox(6);
+		card.setStyle("-fx-padding:8; -fx-border-color:#ddd; -fx-background-color:#fff;");
+
+		Label header = new Label("Điểm: " + pa.getDiemDanhGia());
+		StringBuilder sb = new StringBuilder();
+		if(pa.getLopHocPhanIds() != null) {
+			for(Long id : pa.getLopHocPhanIds()) sb.append(id).append(", ");
+			if(sb.length() > 2) sb.setLength(sb.length() - 2);
+		}
+		Label body = new Label(sb.length() == 0 ? "<rỗng>" : sb.toString());
+
+		Button saveBtn = new Button("Lưu");
+		saveBtn.setOnAction(e -> {
+			try {
+				long saved = useCase.luuPhuongAn(screenManager.getCurrentUser().getId(),
+						danhSach.getId(),
+						"PA " + System.currentTimeMillis(),
+						pa.getDiemDanhGia(),
+						pa.getLopHocPhanIds());
+				UiUtils.showAlert("Thành công", "Đã lưu (id=" + saved + ")", Alert.AlertType.INFORMATION);
+			}
+			catch(Exception ex) {
+				UiUtils.showAlert("Lỗi khi lưu", ex.getMessage(), Alert.AlertType.ERROR);
+			}
+		});
+
+		card.getChildren().addAll(header, body, saveBtn);
+		return card;
+	}
+}
