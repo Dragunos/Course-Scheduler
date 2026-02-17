@@ -36,6 +36,8 @@ public class HomeController
 
 	private SinhThoiKhoaBieuPaneHandler sinhTKBHandler;
 
+	private QuanLyThoiKhoaBieuPaneHandler quanLyThoiKhoaBieuHandler;
+
 	public void init(ScreenManager screenManager)
 	{
 		this.screenManager = screenManager;
@@ -52,6 +54,7 @@ public class HomeController
 		exportHandler = new ExportPaneHandler(screenManager, centerContainer);
 
 		sinhTKBHandler = new SinhThoiKhoaBieuPaneHandler(screenManager, centerContainer);
+		quanLyThoiKhoaBieuHandler = new QuanLyThoiKhoaBieuPaneHandler(screenManager, centerContainer);
 
 		authHandler.updateView();
 	}
@@ -90,5 +93,11 @@ public class HomeController
 	private void onShowOptimizerPane()
 	{
 		sinhTKBHandler.showOptimizerPane();
+	}
+
+	@FXML
+	private void onShowThoiKhoaBieuPane()
+	{
+		quanLyThoiKhoaBieuHandler.showThoiKhoaBieu();
 	}
 }

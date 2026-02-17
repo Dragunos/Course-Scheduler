@@ -2,16 +2,8 @@ package vn.edu.haui.scheduler;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
-import vn.edu.haui.scheduler.application.port.in.AuthUseCase;
-import vn.edu.haui.scheduler.application.service.AuthAppService;
-import vn.edu.haui.scheduler.application.port.in.ImportDanhSachLopUseCase;
-import vn.edu.haui.scheduler.application.service.ImportDanhSachLopAppService;
-import vn.edu.haui.scheduler.application.port.in.QuanLyDanhSachLopUseCase;
-import vn.edu.haui.scheduler.application.service.QuanLyDanhSachLopAppService;
-import vn.edu.haui.scheduler.application.port.in.XuatDanhSachLopUseCase;
-import vn.edu.haui.scheduler.application.service.XuatDanhSachLopAppService;
-import vn.edu.haui.scheduler.application.port.in.SinhThoiKhoaBieuUseCase;
-import vn.edu.haui.scheduler.application.service.SinhThoiKhoaBieuAppService;
+import vn.edu.haui.scheduler.application.port.in.*;
+import vn.edu.haui.scheduler.application.service.*;
 import vn.edu.haui.scheduler.infrastructure.io.exports.CsvExporter;
 import vn.edu.haui.scheduler.infrastructure.io.exports.ExcelExporter;
 import vn.edu.haui.scheduler.infrastructure.io.imports.ExcelCourseImporter;
@@ -50,21 +42,21 @@ public class MainApp extends Application
 
 		ImportDanhSachLopUseCase importUc = new ImportDanhSachLopAppService(importer, hocPhanRepo, giangVienRepo,
 				lopRepo, lichRepo, danhSachRepo, tepRepo);
-
 		screenManager.setImportDanhSachLopUseCase(importUc);
 
 		QuanLyDanhSachLopUseCase quanLyUc = new QuanLyDanhSachLopAppService(danhSachRepo);
-
 		screenManager.setQuanLyDanhSachLopUseCase(quanLyUc);
 
 		XuatDanhSachLopUseCase xuatUc = new XuatDanhSachLopAppService(danhSachRepo, csvExporter, excelExporter);
-
 		screenManager.setXuatDanhSachLopUseCase(xuatUc);
 
 		SinhThoiKhoaBieuUseCase sinhUc = new SinhThoiKhoaBieuAppService(tkbRepo, yeuCauRepo, yeuCauChiTietRepo,
 				danhSachRepo, lopRepo, lichRepo, rangBuocRepo);
-
 		screenManager.setSinhThoiKhoaBieuUseCase(sinhUc);
+
+		QuanLyThoiKhoaBieuUseCase quanLyTkbUc = new QuanLyThoiKhoaBieuAppService(tkbRepo, lopRepo, lichRepo,
+				giangVienRepo);
+		screenManager.setQuanLyThoiKhoaBieuUseCase(quanLyTkbUc);
 
 		screenManager.init();
 		stage.show();

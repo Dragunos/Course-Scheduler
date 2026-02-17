@@ -74,9 +74,11 @@
         			styleClass="menu-button"
         			onAction="#onShowOptimizerPane"/>
 
-            <Button text="Thời khóa biểu của tôi"
-                    maxWidth="Infinity"
-                    styleClass="menu-button"/>
+            <Button fx:id="thoiKhoaBieuMenuButton"
+        			text="Thời khóa biểu của tôi"
+        			maxWidth="Infinity"
+        			styleClass="menu-button"
+        			onAction="#onShowThoiKhoaBieuPane"/>
 
             <Separator/>
 

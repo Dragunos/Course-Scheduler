@@ -4,11 +4,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import vn.edu.haui.scheduler.application.port.in.AuthUseCase;
-import vn.edu.haui.scheduler.application.port.in.ImportDanhSachLopUseCase;
-import vn.edu.haui.scheduler.application.port.in.QuanLyDanhSachLopUseCase;
-import vn.edu.haui.scheduler.application.port.in.XuatDanhSachLopUseCase;
-import vn.edu.haui.scheduler.application.port.in.SinhThoiKhoaBieuUseCase;
+import vn.edu.haui.scheduler.application.port.in.*;
 import vn.edu.haui.scheduler.application.dto.NguoiDungDto;
 import vn.edu.haui.scheduler.ui.controller.*;
 
@@ -25,6 +21,8 @@ public class ScreenManager
 	private XuatDanhSachLopUseCase xuatDanhSachLopUseCase;
 
 	private SinhThoiKhoaBieuUseCase sinhThoiKhoaBieuUseCase;
+	
+	private QuanLyThoiKhoaBieuUseCase quanLyThoiKhoaBieuUseCase;
 
 	private Scene scene;
 
@@ -74,6 +72,14 @@ public class ScreenManager
 	public void setSinhThoiKhoaBieuUseCase(SinhThoiKhoaBieuUseCase sinhThoiKhoaBieuUseCase)
 	{
 		this.sinhThoiKhoaBieuUseCase = sinhThoiKhoaBieuUseCase;
+	}
+	
+	public void setQuanLyThoiKhoaBieuUseCase(QuanLyThoiKhoaBieuUseCase uc) {
+	    this.quanLyThoiKhoaBieuUseCase = uc;
+	}
+
+	public QuanLyThoiKhoaBieuUseCase getQuanLyThoiKhoaBieuUseCase() {
+	    return this.quanLyThoiKhoaBieuUseCase;
 	}
 
 	public void init()
