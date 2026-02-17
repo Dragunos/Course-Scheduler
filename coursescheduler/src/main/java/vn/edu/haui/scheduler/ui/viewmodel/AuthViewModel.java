@@ -33,8 +33,7 @@ public class AuthViewModel
 		this.authService = authService;
 	}
 
-	public NguoiDungDto login()
-			throws ValidationException, AuthenticationException, PersistenceException
+	public NguoiDungDto login() throws ValidationException, AuthenticationException, PersistenceException
 	{
 		runGuard();
 		try {
@@ -45,6 +44,7 @@ public class AuthViewModel
 			NguoiDungDto user = authService.login(request);
 
 			onSuccess("Đăng nhập thành công");
+
 			return user;
 		}
 		catch(Exception e) {
@@ -56,8 +56,7 @@ public class AuthViewModel
 		}
 	}
 
-	public void register()
-			throws ValidationException, UsernameAlreadyExistsException, PersistenceException
+	public void register() throws ValidationException, UsernameAlreadyExistsException, PersistenceException
 	{
 		runGuard();
 		try {
@@ -94,8 +93,7 @@ public class AuthViewModel
 
 	private void runGuard()
 	{
-		if(busy.get())
-			throw new IllegalStateException("busy");
+		if(busy.get()) throw new IllegalStateException("busy");
 
 		busy.set(true);
 		status.set(Status.NONE);
@@ -103,20 +101,16 @@ public class AuthViewModel
 
 	private void validateLogin() throws ValidationException
 	{
-		if(username.get().isBlank())
-			throw new ValidationException("Tên đăng nhập không được rỗng");
-		if(password.get().isBlank())
-			throw new ValidationException("Mật khẩu không được rỗng");
+		if(username.get().isBlank()) throw new ValidationException("Tên đăng nhập không được rỗng");
+		if(password.get().isBlank()) throw new ValidationException("Mật khẩu không được rỗng");
 	}
 
 	private void validateRegister() throws ValidationException
 	{
 		validateLogin();
 
-		if(password.get().length() < 6)
-			throw new ValidationException("Mật khẩu phải ≥ 6 ký tự");
-		if(!password.get().equals(confirm.get()))
-			throw new ValidationException("Mật khẩu xác nhận không khớp");
+		if(password.get().length() < 6) throw new ValidationException("Mật khẩu phải ≥ 6 ký tự");
+		if(!password.get().equals(confirm.get())) throw new ValidationException("Mật khẩu xác nhận không khớp");
 	}
 
 	public void clear()

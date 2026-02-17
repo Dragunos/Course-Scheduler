@@ -7,6 +7,11 @@ import java.util.Locale;
 
 public class FxConfig
 {
+	private FxConfig()
+	{
+		throw new UnsupportedOperationException("Utility class");
+	}
+
 	public static void apply(Stage stage)
 	{
 		stage.setTitle("Course Scheduler");
@@ -25,7 +30,6 @@ public class FxConfig
 
 	public static void apply(Scene scene)
 	{
-		scene.getStylesheets().add(
-				FxConfig.class.getResource("/css/style.css").toExternalForm());
+		scene.getStylesheets().add(FxConfig.class.getResource("/css/style.css").toExternalForm());
 	}
 }

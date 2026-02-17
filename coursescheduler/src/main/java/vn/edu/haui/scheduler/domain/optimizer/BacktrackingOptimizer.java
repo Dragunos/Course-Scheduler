@@ -21,17 +21,13 @@ public class BacktrackingOptimizer
 		this.start = System.currentTimeMillis();
 	}
 
-	public List<PhuongAn> solve(List<List<Long>> groups,
-			List<RangBuocToiUu> rangBuocs)
+	public List<PhuongAn> solve(List<List<Long>> groups, List<RangBuocToiUu> rangBuocs)
 	{
 		backtrack(0, groups, new ArrayList<>(), rangBuocs);
 		return new ArrayList<>(best);
 	}
 
-	private void backtrack(int index,
-			List<List<Long>> groups,
-			List<Long> current,
-			List<RangBuocToiUu> rangBuocs)
+	private void backtrack(int index, List<List<Long>> groups, List<Long> current, List<RangBuocToiUu> rangBuocs)
 	{
 		if(System.currentTimeMillis() - start > timeLimit)
 			return;
@@ -39,8 +35,7 @@ public class BacktrackingOptimizer
 		if(index == groups.size()) {
 			double score = evaluate(current, rangBuocs);
 
-			if(best.size() < topK)
-				best.add(new PhuongAn(current, score));
+			if(best.size() < topK) best.add(new PhuongAn(current, score));
 			else if(score > best.peek().diem) {
 				best.poll();
 				best.add(new PhuongAn(current, score));

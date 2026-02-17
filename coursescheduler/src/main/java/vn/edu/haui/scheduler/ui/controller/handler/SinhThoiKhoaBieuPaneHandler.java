@@ -58,7 +58,6 @@ public class SinhThoiKhoaBieuPaneHandler
 		VBox content = new VBox(10);
 		content.setPadding(new Insets(10));
 
-		// load danh sách của người dùng
 		List<DanhSachLopDto> dsList;
 		try {
 			Long userId = screenManager.getCurrentUser().getId();
@@ -80,7 +79,6 @@ public class SinhThoiKhoaBieuPaneHandler
 		choice.getItems().addAll(dsList);
 		choice.setPrefWidth(600);
 
-		// hiển thị ten danh sach trong ChoiceBox (simple)
 		choice.setConverter(new javafx.util.StringConverter<>()
 		{
 			@Override
@@ -132,11 +130,9 @@ public class SinhThoiKhoaBieuPaneHandler
 			try {
 				Long userId = screenManager.getCurrentUser().getId();
 
-				// tạo yêu cầu (tên tạm)
 				long yeuCauId = useCase.taoYeuCau(userId, selected.getId(),
 						"Yêu cầu từ UI " + System.currentTimeMillis());
 
-				// chạy optimizer
 				List<PhuongAnThoiKhoaBieuDto> solutions = useCase.chayToiUu(yeuCauId, topK, timeLimit);
 
 				resultBox.getChildren().clear();
@@ -188,12 +184,7 @@ public class SinhThoiKhoaBieuPaneHandler
 
 						optimizeAgainBtn.setOnAction(ev -> {
 							try {
-								// nếu phương án đã lưu trước đó, có id -> sử dụng toiUuLai; nếu chưa, cố gắng dùng
-								// yeuCauId
-								// đơn giản: gọi toiUuLai với yeuCauId (nếu use case triển khai) — ở backend bạn có thể
-								// map thoi_khoa_bieu -> danh_sach_lop
 								List<PhuongAnThoiKhoaBieuDto> again = useCase.chayToiUu(yeuCauId, topK, timeLimit);
-								// hiển thị thay thế
 								resultBox.getChildren().clear();
 								for(PhuongAnThoiKhoaBieuDto pa2 : again) {
 									resultBox.getChildren().add(renderSolutionNode(pa2, useCase, selected));
@@ -225,9 +216,7 @@ public class SinhThoiKhoaBieuPaneHandler
 		centerContainer.getChildren().addAll(title, content);
 	}
 
-	// helper để render lại phương án (dùng khi tối ưu lại)
-	private Node renderSolutionNode(PhuongAnThoiKhoaBieuDto pa,
-			SinhThoiKhoaBieuUseCase useCase,
+	private Node renderSolutionNode(PhuongAnThoiKhoaBieuDto pa, SinhThoiKhoaBieuUseCase useCase,
 			DanhSachLopDto danhSach)
 	{
 		VBox card = new VBox(6);

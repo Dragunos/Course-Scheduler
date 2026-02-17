@@ -115,8 +115,7 @@ public class ScreenManager
 	public void showHome()
 	{
 		try {
-			FXMLLoader loader = new FXMLLoader(
-					getClass().getResource("/fxml/home.fxml"));
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/home.fxml"));
 			Parent root = loader.load();
 
 			HomeController controller = loader.getController();

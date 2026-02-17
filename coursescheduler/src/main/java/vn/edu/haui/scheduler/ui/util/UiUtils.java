@@ -4,6 +4,11 @@ import javafx.scene.control.Alert;
 
 public class UiUtils
 {
+	private UiUtils()
+	{
+		throw new UnsupportedOperationException("Utility class");
+	}
+
 	public static void showAlert(String title, String message, Alert.AlertType type)
 	{
 		Alert alert = new Alert(type);
