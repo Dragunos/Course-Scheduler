@@ -4,5 +4,6 @@ public enum TargetType
 {
 	LOP,
 	HOC_PHAN,
-	GIANG_VIEN
+	GIANG_VIEN,
+	NONE
 }

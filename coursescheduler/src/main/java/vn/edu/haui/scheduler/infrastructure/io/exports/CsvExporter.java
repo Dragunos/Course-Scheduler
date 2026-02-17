@@ -8,9 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Xuất CSV đơn giản, escape quotes và wrap nếu cần.
- */
 public class CsvExporter
 {
 
@@ -22,7 +19,6 @@ public class CsvExporter
 			Files.createDirectories(outputPath.getParent());
 		}
 		try (BufferedWriter writer = Files.newBufferedWriter(outputPath)) {
-			// header
 			writer.write(headers.stream().collect(Collectors.joining(separator)));
 			writer.newLine();
 			for(Map<String, String> row : rows) {

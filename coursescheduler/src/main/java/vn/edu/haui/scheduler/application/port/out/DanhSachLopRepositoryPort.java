@@ -3,7 +3,7 @@ package vn.edu.haui.scheduler.application.port.out;
 import java.util.List;
 import java.util.Optional;
 
-import vn.edu.haui.scheduler.application.dto.DanhSachLopDto;
+import vn.edu.haui.scheduler.domain.model.DanhSachLop;
 
 public interface DanhSachLopRepositoryPort
 {
@@ -11,9 +11,9 @@ public interface DanhSachLopRepositoryPort
 
 	void addChiTiet(Long danhSachId, Long lopHocPhanId) throws Exception;
 
-	List<DanhSachLopDto> findByNguoiTaoOrShared(Long nguoiDungId) throws Exception;
+	List<DanhSachLop> findByNguoiTaoOrShared(Long nguoiDungId) throws Exception;
 
-	Optional<DanhSachLopDto> findByIdWithDetails(Long danhSachId) throws Exception;
+	Optional<DanhSachLop> findByIdWithDetails(Long danhSachId) throws Exception;
 
 	boolean isCreator(Long danhSachId, Long nguoiDungId) throws Exception;
 

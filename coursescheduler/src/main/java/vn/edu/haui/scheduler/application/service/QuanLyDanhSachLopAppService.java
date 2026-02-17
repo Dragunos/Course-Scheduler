@@ -2,13 +2,16 @@ package vn.edu.haui.scheduler.application.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import vn.edu.haui.scheduler.application.dto.DanhSachLopChiTietDto;
 import vn.edu.haui.scheduler.application.dto.DanhSachLopDto;
 import vn.edu.haui.scheduler.application.dto.UpdateDanhSachLopRequestDto;
-import vn.edu.haui.scheduler.application.port.in.QuanLyDanhSachLopUseCase;
-import vn.edu.haui.scheduler.application.port.out.DanhSachLopRepositoryPort;
 import vn.edu.haui.scheduler.application.exception.PersistenceException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
+import vn.edu.haui.scheduler.application.port.in.QuanLyDanhSachLopUseCase;
+import vn.edu.haui.scheduler.application.port.out.DanhSachLopRepositoryPort;
+import vn.edu.haui.scheduler.domain.model.DanhSachLop;
 
 public class QuanLyDanhSachLopAppService implements QuanLyDanhSachLopUseCase
 {
@@ -26,8 +29,13 @@ public class QuanLyDanhSachLopAppService implements QuanLyDanhSachLopUseCase
 		if(nguoiDungId == null) {
 			throw new ValidationException("User id required");
 		}
+
 		try {
-			return danhSachRepo.findByNguoiTaoOrShared(nguoiDungId);
+			List<DanhSachLop> danhSachList = danhSachRepo.findByNguoiTaoOrShared(nguoiDungId);
+
+			return danhSachList.stream()
+					.map(this::toDto)
+					.collect(Collectors.toList());
 		}
 		catch(Exception ex) {
 			throw new PersistenceException("Cannot load lists", ex);
@@ -40,14 +48,20 @@ public class QuanLyDanhSachLopAppService implements QuanLyDanhSachLopUseCase
 		if(nguoiDungId == null || danhSachId == null) {
 			throw new ValidationException("Missing ids");
 		}
+
 		try {
 			boolean allowed = danhSachRepo.isCreator(danhSachId, nguoiDungId)
 					|| danhSachRepo.isShared(danhSachId, nguoiDungId);
+
 			if(!allowed) {
 				throw new ValidationException("Access denied");
 			}
-			Optional<DanhSachLopDto> opt = danhSachRepo.findByIdWithDetails(danhSachId);
-			return opt.orElseThrow(() -> new ValidationException("Danh sach not found"));
+
+			Optional<DanhSachLop> opt = danhSachRepo.findByIdWithDetails(danhSachId);
+
+			DanhSachLop danhSach = opt.orElseThrow(() -> new ValidationException("Danh sach not found"));
+
+			return toDto(danhSach);
 		}
 		catch(ValidationException ve) {
 			throw ve;
@@ -66,11 +80,13 @@ public class QuanLyDanhSachLopAppService implements QuanLyDanhSachLopUseCase
 
 		try {
 			boolean isCreator = danhSachRepo.isCreator(request.getId(), nguoiDungId);
+
 			if(!isCreator) {
 				throw new ValidationException("Only creator can edit the list");
 			}
 
 			String ten = request.getTenDanhSach();
+
 			if(ten == null || ten.trim().isEmpty()) {
 				throw new ValidationException("Ten danh sach required");
 			}
@@ -81,6 +97,7 @@ public class QuanLyDanhSachLopAppService implements QuanLyDanhSachLopUseCase
 					request.getHocKyId());
 
 			if(request.getLopHocPhanIds() != null) {
+
 				danhSachRepo.deleteAllChiTiet(request.getId());
 
 				for(Long lopId : request.getLopHocPhanIds()) {
@@ -90,10 +107,11 @@ public class QuanLyDanhSachLopAppService implements QuanLyDanhSachLopUseCase
 				}
 			}
 
-			Optional<DanhSachLopDto> updated = danhSachRepo.findByIdWithDetails(request.getId());
+			Optional<DanhSachLop> updated = danhSachRepo.findByIdWithDetails(request.getId());
 
-			return updated.orElseThrow(
-					() -> new PersistenceException("Updated but cannot fetch"));
+			DanhSachLop danhSach = updated.orElseThrow(() -> new PersistenceException("Updated but cannot fetch"));
+
+			return toDto(danhSach);
 		}
 		catch(ValidationException ve) {
 			throw ve;
@@ -109,11 +127,14 @@ public class QuanLyDanhSachLopAppService implements QuanLyDanhSachLopUseCase
 		if(nguoiDungId == null || danhSachId == null) {
 			throw new ValidationException("Invalid ids");
 		}
+
 		try {
 			boolean isCreator = danhSachRepo.isCreator(danhSachId, nguoiDungId);
+
 			if(!isCreator) {
 				throw new ValidationException("Only creator can delete the list");
 			}
+
 			danhSachRepo.deleteDanhSach(danhSachId);
 		}
 		catch(ValidationException ve) {
@@ -122,5 +143,43 @@ public class QuanLyDanhSachLopAppService implements QuanLyDanhSachLopUseCase
 		catch(Exception ex) {
 			throw new PersistenceException("Cannot delete list", ex);
 		}
+	}
+
+	private DanhSachLopDto toDto(DanhSachLop model)
+	{
+		DanhSachLopDto dto = new DanhSachLopDto();
+
+		dto.setId(model.getId());
+		dto.setTenDanhSach(model.getTenDanhSach());
+		dto.setHocKyId(model.getHocKyId());
+		dto.setNguoiTaoId(model.getNguoiTaoId());
+		dto.setLaCongKhai(model.getLaCongKhai());
+		dto.setNgayTao(model.getNgayTao());
+
+		if(model.getChiTietList() != null) {
+
+			List<DanhSachLopChiTietDto> chiTietDtos = model.getChiTietList().stream()
+					.map(ct -> {
+
+						DanhSachLopChiTietDto ctd = new DanhSachLopChiTietDto();
+
+						ctd.setLopHocPhanId(ct.getLopHocPhan().getId());
+						ctd.setMaLop(ct.getLopHocPhan().getMaLop());
+						ctd.setTenHocPhan(ct.getLopHocPhan().getHocPhan().getTenHocPhan());
+
+						if(ct.getLopHocPhan().getGiangVien() != null) {
+							ctd.setTenGiangVien(
+									ct.getLopHocPhan().getGiangVien().getTenGiangVien());
+						}
+
+						ctd.setBatBuoc(ct.getBatBuoc());
+
+						return ctd;
+					})
+					.collect(Collectors.toList());
+
+			dto.setChiTiet(chiTietDtos);
+		}
+		return dto;
 	}
 }

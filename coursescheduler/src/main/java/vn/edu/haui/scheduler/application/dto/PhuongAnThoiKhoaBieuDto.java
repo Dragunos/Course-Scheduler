@@ -6,17 +6,16 @@ public class PhuongAnThoiKhoaBieuDto
 {
 	private Long id;
 
-	private List<Long> lopHocPhanIds;
+	private Long nguoiDungId;
 
-	private double diemDanhGia;
+	private String tenPhuongAn;
 
-	public PhuongAnThoiKhoaBieuDto(Long id,
-			List<Long> lopHocPhanIds,
-			double diemDanhGia)
+	private Double diemDanhGia;
+
+	private List<LopHocPhanDto> danhSachLopHocPhan;
+
+	public PhuongAnThoiKhoaBieuDto()
 	{
-		this.id = id;
-		this.lopHocPhanIds = lopHocPhanIds;
-		this.diemDanhGia = diemDanhGia;
 	}
 
 	public Long getId()
@@ -24,13 +23,48 @@ public class PhuongAnThoiKhoaBieuDto
 		return id;
 	}
 
-	public List<Long> getLopHocPhanIds()
+	public void setId(Long id)
 	{
-		return lopHocPhanIds;
+		this.id = id;
 	}
 
-	public double getDiemDanhGia()
+	public Long getNguoiDungId()
+	{
+		return nguoiDungId;
+	}
+
+	public void setNguoiDungId(Long nguoiDungId)
+	{
+		this.nguoiDungId = nguoiDungId;
+	}
+
+	public String getTenPhuongAn()
+	{
+		return tenPhuongAn;
+	}
+
+	public void setTenPhuongAn(String tenPhuongAn)
+	{
+		this.tenPhuongAn = tenPhuongAn;
+	}
+
+	public Double getDiemDanhGia()
 	{
 		return diemDanhGia;
+	}
+
+	public void setDiemDanhGia(Double diemDanhGia)
+	{
+		this.diemDanhGia = diemDanhGia;
+	}
+
+	public List<LopHocPhanDto> getDanhSachLopHocPhan()
+	{
+		return danhSachLopHocPhan;
+	}
+
+	public void setDanhSachLopHocPhan(List<LopHocPhanDto> danhSachLopHocPhan)
+	{
+		this.danhSachLopHocPhan = danhSachLopHocPhan;
 	}
 }

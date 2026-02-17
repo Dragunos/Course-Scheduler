@@ -1,28 +1,37 @@
 package vn.edu.haui.scheduler.application.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DanhSachLopChiTietDto
 {
-	private final Long lopHocPhanId;
 
-	private final String maLop;
+	private Long lopHocPhanId;
 
-	private final String tenHocPhan;
+	private String maLop;
 
-	private final Integer soTinChi;
+	private String tenHocPhan;
 
-	private final String tenGiangVien;
+	private Integer soTinChi;
 
-	private final String hinhThucDay;
+	private String tenGiangVien;
 
-	private final String diaDiem;
+	private String hinhThucDay;
 
-	private final List<LichHocDto> lichHoc;
+	private String diaDiem;
 
-	private final Integer batBuoc; // 0/1
+	private List<LichHocDto> lichHoc;
 
-	public DanhSachLopChiTietDto(Long lopHocPhanId,
+	private Integer batBuoc;
+
+	public DanhSachLopChiTietDto()
+	{
+		this.lichHoc = new ArrayList<>();
+		this.batBuoc = 0;
+	}
+
+	public DanhSachLopChiTietDto(
+			Long lopHocPhanId,
 			String maLop,
 			String tenHocPhan,
 			Integer soTinChi,
@@ -39,7 +48,7 @@ public class DanhSachLopChiTietDto
 		this.tenGiangVien = tenGiangVien;
 		this.hinhThucDay = hinhThucDay;
 		this.diaDiem = diaDiem;
-		this.lichHoc = lichHoc;
+		this.lichHoc = (lichHoc == null) ? new ArrayList<>() : new ArrayList<>(lichHoc);
 		this.batBuoc = (batBuoc == null) ? 0 : batBuoc;
 	}
 
@@ -48,9 +57,19 @@ public class DanhSachLopChiTietDto
 		return lopHocPhanId;
 	}
 
+	public void setLopHocPhanId(Long lopHocPhanId)
+	{
+		this.lopHocPhanId = lopHocPhanId;
+	}
+
 	public String getMaLop()
 	{
 		return maLop;
+	}
+
+	public void setMaLop(String maLop)
+	{
+		this.maLop = maLop;
 	}
 
 	public String getTenHocPhan()
@@ -58,9 +77,19 @@ public class DanhSachLopChiTietDto
 		return tenHocPhan;
 	}
 
+	public void setTenHocPhan(String tenHocPhan)
+	{
+		this.tenHocPhan = tenHocPhan;
+	}
+
 	public Integer getSoTinChi()
 	{
 		return soTinChi;
+	}
+
+	public void setSoTinChi(Integer soTinChi)
+	{
+		this.soTinChi = soTinChi;
 	}
 
 	public String getTenGiangVien()
@@ -68,9 +97,19 @@ public class DanhSachLopChiTietDto
 		return tenGiangVien;
 	}
 
+	public void setTenGiangVien(String tenGiangVien)
+	{
+		this.tenGiangVien = tenGiangVien;
+	}
+
 	public String getHinhThucDay()
 	{
 		return hinhThucDay;
+	}
+
+	public void setHinhThucDay(String hinhThucDay)
+	{
+		this.hinhThucDay = hinhThucDay;
 	}
 
 	public String getDiaDiem()
@@ -78,13 +117,33 @@ public class DanhSachLopChiTietDto
 		return diaDiem;
 	}
 
+	public void setDiaDiem(String diaDiem)
+	{
+		this.diaDiem = diaDiem;
+	}
+
 	public List<LichHocDto> getLichHoc()
 	{
 		return lichHoc;
 	}
 
+	public void setLichHoc(List<LichHocDto> lichHoc)
+	{
+		this.lichHoc = (lichHoc == null) ? new ArrayList<>() : new ArrayList<>(lichHoc);
+	}
+
 	public Integer getBatBuoc()
 	{
 		return batBuoc;
+	}
+
+	public void setBatBuoc(Integer batBuoc)
+	{
+		this.batBuoc = (batBuoc == null) ? 0 : batBuoc;
+	}
+
+	public boolean isBatBuoc()
+	{
+		return batBuoc != null && batBuoc == 1;
 	}
 }

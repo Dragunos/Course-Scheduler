@@ -14,7 +14,6 @@ public class HocPhan
 	{
 	}
 
-	// Constructor thuận tiện
 	public HocPhan(Long id, String maHocPhan, String tenHocPhan, Integer soTinChi)
 	{
 		this.id = id;

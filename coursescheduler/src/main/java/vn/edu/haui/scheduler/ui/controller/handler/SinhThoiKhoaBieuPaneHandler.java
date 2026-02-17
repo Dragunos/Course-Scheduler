@@ -6,6 +6,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import vn.edu.haui.scheduler.application.dto.DanhSachLopDto;
+import vn.edu.haui.scheduler.application.dto.LopHocPhanDto;
 import vn.edu.haui.scheduler.application.dto.PhuongAnThoiKhoaBieuDto;
 import vn.edu.haui.scheduler.application.exception.PersistenceException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
@@ -150,9 +151,9 @@ public class SinhThoiKhoaBieuPaneHandler
 						header.getStyleClass().add("home-subtitle");
 
 						StringBuilder sb = new StringBuilder();
-						if(pa.getLopHocPhanIds() != null && !pa.getLopHocPhanIds().isEmpty()) {
-							for(Long lopId : pa.getLopHocPhanIds()) {
-								sb.append(lopId).append(", ");
+						if(pa.getDanhSachLopHocPhan() != null && !pa.getDanhSachLopHocPhan().isEmpty()) {
+							for(LopHocPhanDto lop : pa.getDanhSachLopHocPhan()) {
+								sb.append(lop.getMaLop()).append(", ");
 							}
 							if(sb.length() > 2) sb.setLength(sb.length() - 2);
 						}
@@ -168,11 +169,15 @@ public class SinhThoiKhoaBieuPaneHandler
 						saveBtn.setOnAction(ev -> {
 							try {
 								String tenPA = "PA " + System.currentTimeMillis();
+								List<Long> ids = new ArrayList<>();
+								if(pa.getDanhSachLopHocPhan() != null) {
+									for(LopHocPhanDto lop : pa.getDanhSachLopHocPhan()) {
+										ids.add(lop.getId());
+									}
+								}
+
 								long savedId = useCase.luuPhuongAn(screenManager.getCurrentUser().getId(),
-										selected.getId(),
-										tenPA,
-										pa.getDiemDanhGia(),
-										pa.getLopHocPhanIds());
+										selected.getId(), tenPA, pa.getDiemDanhGia(), ids);
 
 								UiUtils.showAlert("Thành công", "Đã lưu phương án (id=" + savedId + ")",
 										Alert.AlertType.INFORMATION);
@@ -224,8 +229,10 @@ public class SinhThoiKhoaBieuPaneHandler
 
 		Label header = new Label("Điểm: " + pa.getDiemDanhGia());
 		StringBuilder sb = new StringBuilder();
-		if(pa.getLopHocPhanIds() != null) {
-			for(Long id : pa.getLopHocPhanIds()) sb.append(id).append(", ");
+		if(pa.getDanhSachLopHocPhan() != null) {
+			for(LopHocPhanDto lop : pa.getDanhSachLopHocPhan()) {
+				sb.append(lop.getId()).append(", ");
+			}
 			if(sb.length() > 2) sb.setLength(sb.length() - 2);
 		}
 		Label body = new Label(sb.length() == 0 ? "<rỗng>" : sb.toString());
@@ -233,11 +240,18 @@ public class SinhThoiKhoaBieuPaneHandler
 		Button saveBtn = new Button("Lưu");
 		saveBtn.setOnAction(e -> {
 			try {
+				List<Long> ids = new ArrayList<>();
+				if(pa.getDanhSachLopHocPhan() != null) {
+					for(LopHocPhanDto lop : pa.getDanhSachLopHocPhan()) {
+						ids.add(lop.getId());
+					}
+				}
+
 				long saved = useCase.luuPhuongAn(screenManager.getCurrentUser().getId(),
 						danhSach.getId(),
 						"PA " + System.currentTimeMillis(),
 						pa.getDiemDanhGia(),
-						pa.getLopHocPhanIds());
+						ids);
 				UiUtils.showAlert("Thành công", "Đã lưu (id=" + saved + ")", Alert.AlertType.INFORMATION);
 			}
 			catch(Exception ex) {

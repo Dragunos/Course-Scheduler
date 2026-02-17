@@ -19,23 +19,31 @@ public class DanhSachLop
 
 	private LocalDateTime ngayTao;
 
-	private List<Long> lopHocPhanIds;
+	private List<DanhSachLopChiTiet> chiTietList;
 
 	public DanhSachLop()
 	{
-		this.lopHocPhanIds = new ArrayList<>();
+		this.chiTietList = new ArrayList<>();
 	}
 
-	public DanhSachLop(Long id, String tenDanhSach, Long nguoiTaoId, Integer laCongKhai,
-			Long hocKyId, LocalDateTime ngayTao, List<Long> lopHocPhanIds)
+	public DanhSachLop(Long id,
+			String tenDanhSach,
+			Long nguoiTaoId,
+			Integer laCongKhai,
+			Long hocKyId,
+			LocalDateTime ngayTao,
+			List<DanhSachLopChiTiet> chiTietList)
 	{
+
 		this.id = id;
 		this.tenDanhSach = tenDanhSach;
 		this.nguoiTaoId = nguoiTaoId;
 		this.laCongKhai = laCongKhai;
 		this.hocKyId = hocKyId;
 		this.ngayTao = ngayTao;
-		this.lopHocPhanIds = (lopHocPhanIds == null) ? new ArrayList<>() : new ArrayList<>(lopHocPhanIds);
+		this.chiTietList = (chiTietList == null)
+				? new ArrayList<>()
+				: new ArrayList<>(chiTietList);
 	}
 
 	public Long getId()
@@ -98,21 +106,32 @@ public class DanhSachLop
 		this.ngayTao = ngayTao;
 	}
 
-	public List<Long> getLopHocPhanIds()
+	public List<DanhSachLopChiTiet> getChiTietList()
 	{
-		return new ArrayList<>(lopHocPhanIds);
+		return new ArrayList<>(chiTietList);
 	}
 
-	public void setLopHocPhanIds(List<Long> lopHocPhanIds)
+	public void setChiTietList(List<DanhSachLopChiTiet> chiTietList)
 	{
-		this.lopHocPhanIds = (lopHocPhanIds == null) ? new ArrayList<>() : new ArrayList<>(lopHocPhanIds);
+		this.chiTietList = (chiTietList == null)
+				? new ArrayList<>()
+				: new ArrayList<>(chiTietList);
+	}
+
+	public List<Long> getLopHocPhanIds()
+	{
+		List<Long> ids = new ArrayList<>();
+		for(DanhSachLopChiTiet ct : chiTietList) {
+			ids.add(ct.getLopHocPhanId());
+		}
+		return ids;
 	}
 
 	@Override
 	public boolean equals(Object o)
 	{
 		if(this == o) return true;
-		if(o == null || getClass() != o.getClass()) return false;
+		if(!(o instanceof DanhSachLop)) return false;
 		DanhSachLop that = (DanhSachLop) o;
 		return Objects.equals(id, that.id);
 	}
@@ -133,7 +152,7 @@ public class DanhSachLop
 				", laCongKhai=" + laCongKhai +
 				", hocKyId=" + hocKyId +
 				", ngayTao=" + ngayTao +
-				", lopHocPhanIds=" + lopHocPhanIds +
+				", chiTietList=" + chiTietList +
 				'}';
 	}
 }

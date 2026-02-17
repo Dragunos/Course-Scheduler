@@ -41,6 +41,9 @@ public class MainApp extends Application
 		DanhSachLopRepositoryPort danhSachRepo = new JdbcDanhSachLopRepository();
 		TepTaiLenRepositoryPort tepRepo = new JdbcTepTaiLenRepository();
 		ThoiKhoaBieuRepositoryPort tkbRepo = new JdbcThoiKhoaBieuRepository();
+		YeuCauRepositoryPort yeuCauRepo = new JdbcYeuCauRepository();
+		YeuCauChiTietRepositoryPort yeuCauChiTietRepo = new JdbcYeuCauChiTietRepository();
+		RangBuocToiUuRepositoryPort rangBuocRepo = new JdbcRangBuocToiUuRepository();
 
 		CsvExporter csvExporter = new CsvExporter();
 		ExcelExporter excelExporter = new ExcelExporter();
@@ -58,7 +61,8 @@ public class MainApp extends Application
 
 		screenManager.setXuatDanhSachLopUseCase(xuatUc);
 
-		SinhThoiKhoaBieuUseCase sinhUc = new SinhThoiKhoaBieuAppService(tkbRepo);
+		SinhThoiKhoaBieuUseCase sinhUc = new SinhThoiKhoaBieuAppService(tkbRepo, yeuCauRepo, yeuCauChiTietRepo,
+				danhSachRepo, lopRepo, lichRepo, rangBuocRepo);
 
 		screenManager.setSinhThoiKhoaBieuUseCase(sinhUc);
 

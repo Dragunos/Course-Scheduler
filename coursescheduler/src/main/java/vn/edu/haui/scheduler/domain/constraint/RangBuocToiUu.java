@@ -111,4 +111,30 @@ public final class RangBuocToiUu
 				operator,
 				value);
 	}
+
+	public static RangBuocToiUu requireSection(Long lopHocPhanId)
+	{
+		return new RangBuocToiUu(
+				LoaiRangBuoc.LOP_HOC_PHAN,
+				true,
+				1.0,
+				TargetType.LOP,
+				String.valueOf(lopHocPhanId),
+				null,
+				ToanTuSoSanh.EQUAL,
+				null);
+	}
+
+	public static RangBuocToiUu excludeSection(Long lopHocPhanId)
+	{
+		return new RangBuocToiUu(
+				LoaiRangBuoc.LOP_HOC_PHAN,
+				true,
+				1.0,
+				TargetType.LOP,
+				String.valueOf(lopHocPhanId),
+				null,
+				ToanTuSoSanh.NOT_EQUAL,
+				null);
+	}
 }

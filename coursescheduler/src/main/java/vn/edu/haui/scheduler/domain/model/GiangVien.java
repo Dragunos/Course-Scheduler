@@ -10,7 +10,6 @@ public class GiangVien
 	{
 	}
 
-	// Constructor thuận tiện
 	public GiangVien(Long id, String tenGiangVien)
 	{
 		this.id = id;

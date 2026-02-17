@@ -1,6 +1,9 @@
 package vn.edu.haui.scheduler.application.port.out;
 
 import java.util.List;
+import java.util.Optional;
+
+import vn.edu.haui.scheduler.domain.model.PhuongAnThoiKhoaBieu;
 
 public interface ThoiKhoaBieuRepositoryPort
 {
@@ -11,4 +14,12 @@ public interface ThoiKhoaBieuRepositoryPort
 	List<Long> findChiTietByThoiKhoaBieuId(long id) throws Exception;
 
 	long findDanhSachLopId(long thoiKhoaBieuId) throws Exception;
+
+	List<PhuongAnThoiKhoaBieu> findByNguoiDungId(long nguoiDungId) throws Exception;
+
+	Optional<PhuongAnThoiKhoaBieu> findById(long id) throws Exception;
+
+	void updateTenPhuongAn(long id, String tenMoi) throws Exception;
+
+	void deleteById(long id) throws Exception;
 }
