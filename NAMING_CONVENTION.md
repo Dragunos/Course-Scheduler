@@ -1,12 +1,8 @@
 # NAMING CONVENTION – CourseScheduler
 
 Tài liệu này là quy ước bắt buộc cho toàn bộ project.
-Mọi thành viên phải tuân thủ tuyệt đối.
 
-
-====================================================
 1. NGUYÊN TẮC NỀN TẢNG
-====================================================
 
 1.1 Phân tách ngôn ngữ theo vai trò
 
@@ -25,10 +21,7 @@ Ví dụ đúng:
 createNguoiDung()
 updateNguoiDung()
 
-
-====================================================
 2. DATABASE (SQLite)
-====================================================
 
 2.1 Tên bảng
 
@@ -59,10 +52,7 @@ la_cong_khai
 tiet_bat_dau
 tiet_ket_thuc
 
-
-====================================================
 3. DOMAIN LAYER
-====================================================
 
 3.1 Model Class
 
@@ -94,7 +84,6 @@ username
 password
 createdAt
 
-
 3.3 Enum
 
 - PascalCase
@@ -111,10 +100,7 @@ ONLINE
 TRUC_TIEP
 KHONG_XAC_DINH
 
-
-====================================================
 4. APPLICATION LAYER
-====================================================
 
 4.1 DTO
 
@@ -151,10 +137,7 @@ tenDangNhap
 matKhau
 ngayTao
 
-
-----------------------------------------------------
 4.2 UseCase Interface
-----------------------------------------------------
 
 Tên class:
 - PascalCase
@@ -202,10 +185,7 @@ handle()
 execute()
 doSomething()
 
-
-----------------------------------------------------
 4.3 Service Implementation
-----------------------------------------------------
 
 Tên class:
 <Auth>Service implements AuthUseCase
@@ -218,10 +198,7 @@ ManageThoiKhoaBieuAppService
 
 Tên method trong Service phải giống UseCase 100%.
 
-
-====================================================
 5. PORT OUT (Repository)
-====================================================
 
 5.1 Tên Interface
 
@@ -254,10 +231,7 @@ getUser()
 getData()
 getList()
 
-
-====================================================
 6. INFRASTRUCTURE
-====================================================
 
 6.1 JDBC Implementation
 
@@ -285,10 +259,7 @@ Không đặt:
 ExportHelper
 FileExportService
 
-
-====================================================
 7. UI LAYER
-====================================================
 
 7.1 Controller
 
@@ -303,10 +274,7 @@ FileExportService
 
 Không viết tắt.
 
-
-====================================================
 8. ĐỒNG BỘ GIỮA CÁC TẦNG
-====================================================
 
 Chuỗi tên phải khớp:
 
@@ -321,10 +289,7 @@ findByTenDangNhap()
 
 Nếu đổi tên ở một tầng, phải đổi ở tất cả tầng.
 
-
-====================================================
 9. QUY TẮC BẮT BUỘC
-====================================================
 
 1. Không dùng tiếng Anh cho field nghiệp vụ.
 2. Không dùng tiếng Việt cho hành vi kỹ thuật.
