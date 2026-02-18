@@ -25,6 +25,8 @@ public class ScreenManager
 	private QuanLyThoiKhoaBieuUseCase quanLyThoiKhoaBieuUseCase;
 
 	private XuatThoiKhoaBieuUseCase xuatThoiKhoaBieuUseCase;
+	
+	private QuanTriDanhSachLopUseCase quanTriDanhSachLopUseCase;
 
 	private Scene scene;
 
@@ -94,6 +96,17 @@ public class ScreenManager
 	public XuatThoiKhoaBieuUseCase getXuatThoiKhoaBieuUseCase()
 	{
 		return this.xuatThoiKhoaBieuUseCase;
+	}
+	
+	public void setQuanTriDanhSachLopUseCase(
+	        QuanTriDanhSachLopUseCase uc)
+	{
+	    this.quanTriDanhSachLopUseCase = uc;
+	}
+
+	public QuanTriDanhSachLopUseCase getQuanTriDanhSachLopUseCase()
+	{
+	    return this.quanTriDanhSachLopUseCase;
 	}
 
 	public void init()

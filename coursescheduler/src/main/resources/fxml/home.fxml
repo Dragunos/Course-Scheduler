@@ -84,14 +84,15 @@
 
             <Label fx:id="adminLabel"
                    text="QUẢN TRỊ"
-                   visible="false"
                    styleClass="menu-title"/>
 
             <Button fx:id="adminListButton"
-                    text="Danh sách lớp hệ thống"
-                    visible="false"
-                    maxWidth="Infinity"
-                    styleClass="menu-button"/>
+					text="Danh sách lớp hệ thống"
+      				visible="false"
+      				maxWidth="Infinity"
+      				styleClass="menu-button"
+      				onAction="#onShowAdminDanhSachPane"/>
+
         </VBox>
     </left>
 

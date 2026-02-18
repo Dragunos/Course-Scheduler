@@ -18,31 +18,52 @@ public class HomeAuthHandler
 
 	private final Label welcomeLabel;
 
-	public HomeAuthHandler(ScreenManager screenManager,
+	private final Button adminListButton;
+
+	public HomeAuthHandler(
+			ScreenManager screenManager,
 			Button loginButton,
 			Button registerButton,
 			Button logoutButton,
+			Button adminListButton,
 			Label welcomeLabel)
 	{
 		this.screenManager = screenManager;
 		this.loginButton = loginButton;
 		this.registerButton = registerButton;
 		this.logoutButton = logoutButton;
+		this.adminListButton = adminListButton;
 		this.welcomeLabel = welcomeLabel;
 	}
 
 	public void updateView()
 	{
-		boolean loggedIn = screenManager != null && screenManager.isAuthenticated();
+		boolean loggedIn = screenManager != null &&
+				screenManager.isAuthenticated();
 
 		loginButton.setVisible(!loggedIn);
 		registerButton.setVisible(!loggedIn);
 		logoutButton.setVisible(loggedIn);
 
+		boolean userIsAdmin = false;
+
 		if(loggedIn) {
 			NguoiDungDto user = screenManager.getCurrentUser();
+
 			if(user != null) {
-				welcomeLabel.setText("Xin chào, " + user.getTenDangNhap());
+				userIsAdmin = "ADMIN".equalsIgnoreCase(user.getVaiTro());
+			}
+		}
+
+		adminListButton.setVisible(userIsAdmin);
+
+		if(loggedIn) {
+			NguoiDungDto user = screenManager.getCurrentUser();
+
+			if(user != null) {
+				welcomeLabel.setText(
+						"Xin chào, " +
+								user.getTenDangNhap());
 			}
 			else {
 				welcomeLabel.setText("Xin chào");

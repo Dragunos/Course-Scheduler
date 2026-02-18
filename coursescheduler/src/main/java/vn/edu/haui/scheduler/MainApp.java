@@ -96,6 +96,13 @@ public class MainApp extends Application
 				icsExporter);
 		screenManager.setXuatThoiKhoaBieuUseCase(xuatTkbUc);
 
+		QuanTriDanhSachLopUseCase quanTriUc =
+		        new QuanTriDanhSachLopAppService(
+		                danhSachRepo,
+		                importUc);
+
+		screenManager.setQuanTriDanhSachLopUseCase(quanTriUc);
+		
 		screenManager.init();
 		stage.show();
 	}

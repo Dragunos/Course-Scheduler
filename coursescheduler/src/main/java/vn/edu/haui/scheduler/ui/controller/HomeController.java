@@ -8,7 +8,6 @@ import vn.edu.haui.scheduler.ui.fx.ScreenManager;
 
 public class HomeController
 {
-
 	@FXML
 	private Button loginButton;
 
@@ -22,6 +21,9 @@ public class HomeController
 	private Label welcomeLabel;
 
 	@FXML
+	private Button adminListButton;
+
+	@FXML
 	private VBox centerContainer;
 
 	private ScreenManager screenManager;
@@ -32,11 +34,11 @@ public class HomeController
 
 	private ImportPaneHandler importHandler;
 
-	private ExportPaneHandler exportHandler;
-
 	private SinhThoiKhoaBieuPaneHandler sinhTKBHandler;
 
 	private QuanLyThoiKhoaBieuPaneHandler quanLyThoiKhoaBieuHandler;
+
+	private QuanTriDanhSachLopPaneHandler quanTriDanhSachHandler;
 
 	public void init(ScreenManager screenManager)
 	{
@@ -47,14 +49,18 @@ public class HomeController
 				loginButton,
 				registerButton,
 				logoutButton,
+				adminListButton,
 				welcomeLabel);
+
+		adminListButton.setVisible(false);
 
 		danhSachHandler = new DanhSachLopPaneHandler(screenManager, centerContainer);
 		importHandler = new ImportPaneHandler(screenManager, centerContainer);
-		exportHandler = new ExportPaneHandler(screenManager, centerContainer);
 
 		sinhTKBHandler = new SinhThoiKhoaBieuPaneHandler(screenManager, centerContainer);
 		quanLyThoiKhoaBieuHandler = new QuanLyThoiKhoaBieuPaneHandler(screenManager, centerContainer);
+
+		quanTriDanhSachHandler = new QuanTriDanhSachLopPaneHandler(screenManager, centerContainer);
 
 		authHandler.updateView();
 	}
@@ -99,5 +105,11 @@ public class HomeController
 	private void onShowThoiKhoaBieuPane()
 	{
 		quanLyThoiKhoaBieuHandler.showThoiKhoaBieu();
+	}
+
+	@FXML
+	private void onShowAdminDanhSachPane()
+	{
+		quanTriDanhSachHandler.showDanhSachCongKhai();
 	}
 }
