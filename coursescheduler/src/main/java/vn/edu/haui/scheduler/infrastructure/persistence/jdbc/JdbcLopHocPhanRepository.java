@@ -1,6 +1,6 @@
 package vn.edu.haui.scheduler.infrastructure.persistence.jdbc;
 
-import vn.edu.haui.scheduler.application.port.out.LopHocPhanRepositoryPort;
+import vn.edu.haui.scheduler.application.port.out.LopHocPhanRepository;
 import vn.edu.haui.scheduler.domain.enums.HinhThucDay;
 import vn.edu.haui.scheduler.domain.model.GiangVien;
 import vn.edu.haui.scheduler.domain.model.HocPhan;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class JdbcLopHocPhanRepository implements LopHocPhanRepositoryPort
+public class JdbcLopHocPhanRepository implements LopHocPhanRepository
 {
 
 	@Override

@@ -1,6 +1,6 @@
 package vn.edu.haui.scheduler.infrastructure.persistence.jdbc;
 
-import vn.edu.haui.scheduler.application.port.out.NguoiDungRepositoryPort;
+import vn.edu.haui.scheduler.application.port.out.NguoiDungRepository;
 import vn.edu.haui.scheduler.domain.model.NguoiDung;
 import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 
@@ -10,7 +10,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Optional;
 
-public class JdbcNguoiDungRepository implements NguoiDungRepositoryPort
+public class JdbcNguoiDungRepository implements NguoiDungRepository
 {
 	@Override
 	public Optional<NguoiDung> findByUsername(String username) throws Exception

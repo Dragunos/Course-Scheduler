@@ -1,6 +1,6 @@
 package vn.edu.haui.scheduler.infrastructure.persistence.jdbc;
 
-import vn.edu.haui.scheduler.application.port.out.LichHocRepositoryPort;
+import vn.edu.haui.scheduler.application.port.out.LichHocRepository;
 import vn.edu.haui.scheduler.domain.enums.ThuTrongTuan;
 import vn.edu.haui.scheduler.domain.model.LichHoc;
 import vn.edu.haui.scheduler.domain.model.LopHocPhan;
@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class JdbcLichHocRepository implements LichHocRepositoryPort
+public class JdbcLichHocRepository implements LichHocRepository
 {
 	@Override
 	public void saveAll(Long lopHocPhanId, List<LichHoc> lichHocs) throws SQLException

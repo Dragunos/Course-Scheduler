@@ -7,11 +7,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import vn.edu.haui.scheduler.application.dto.DanhSachLopDto;
 import vn.edu.haui.scheduler.application.dto.LopHocPhanDto;
-import vn.edu.haui.scheduler.application.dto.PhuongAnThoiKhoaBieuDto;
-import vn.edu.haui.scheduler.application.exception.PersistenceException;
+import vn.edu.haui.scheduler.application.dto.ThoiKhoaBieuDto;
+import vn.edu.haui.scheduler.application.exception.DataAccessException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
-import vn.edu.haui.scheduler.application.port.in.QuanLyDanhSachLopUseCase;
-import vn.edu.haui.scheduler.application.port.in.SinhThoiKhoaBieuUseCase;
+import vn.edu.haui.scheduler.application.port.in.ManageDanhSachLopUseCase;
+import vn.edu.haui.scheduler.application.port.in.GenerateThoiKhoaBieuUseCase;
 import vn.edu.haui.scheduler.ui.fx.ScreenManager;
 import vn.edu.haui.scheduler.ui.util.UiUtils;
 
@@ -38,14 +38,14 @@ public class SinhThoiKhoaBieuPaneHandler
 			return;
 		}
 
-		SinhThoiKhoaBieuUseCase useCase = screenManager.getSinhThoiKhoaBieuUseCase();
+		GenerateThoiKhoaBieuUseCase useCase = screenManager.getSinhThoiKhoaBieuUseCase();
 		if(useCase == null) {
 			UiUtils.showAlert("Lỗi cấu hình", "Tính năng sinh thời khóa biểu chưa được cấu hình.",
 					Alert.AlertType.ERROR);
 			return;
 		}
 
-		QuanLyDanhSachLopUseCase dsUseCase = screenManager.getQuanLyDanhSachLopUseCase();
+		ManageDanhSachLopUseCase dsUseCase = screenManager.getQuanLyDanhSachLopUseCase();
 		if(dsUseCase == null) {
 			UiUtils.showAlert("Lỗi cấu hình", "Tính năng danh sách lớp chưa được cấu hình.", Alert.AlertType.ERROR);
 			return;
@@ -134,7 +134,7 @@ public class SinhThoiKhoaBieuPaneHandler
 				long yeuCauId = useCase.taoYeuCau(userId, selected.getId(),
 						"Yêu cầu từ UI " + System.currentTimeMillis());
 
-				List<PhuongAnThoiKhoaBieuDto> solutions = useCase.chayToiUu(yeuCauId, topK, timeLimit);
+				List<ThoiKhoaBieuDto> solutions = useCase.chayToiUu(yeuCauId, topK, timeLimit);
 
 				resultBox.getChildren().clear();
 
@@ -143,7 +143,7 @@ public class SinhThoiKhoaBieuPaneHandler
 				}
 				else {
 					int idx = 1;
-					for(PhuongAnThoiKhoaBieuDto pa : solutions) {
+					for(ThoiKhoaBieuDto pa : solutions) {
 						VBox card = new VBox(6);
 						card.setStyle("-fx-padding:8; -fx-border-color:#ddd; -fx-background-color:#fafafa;");
 
@@ -189,9 +189,9 @@ public class SinhThoiKhoaBieuPaneHandler
 
 						optimizeAgainBtn.setOnAction(ev -> {
 							try {
-								List<PhuongAnThoiKhoaBieuDto> again = useCase.chayToiUu(yeuCauId, topK, timeLimit);
+								List<ThoiKhoaBieuDto> again = useCase.chayToiUu(yeuCauId, topK, timeLimit);
 								resultBox.getChildren().clear();
-								for(PhuongAnThoiKhoaBieuDto pa2 : again) {
+								for(ThoiKhoaBieuDto pa2 : again) {
 									resultBox.getChildren().add(renderSolutionNode(pa2, useCase, selected));
 								}
 							}
@@ -208,7 +208,7 @@ public class SinhThoiKhoaBieuPaneHandler
 			catch(ValidationException ve) {
 				UiUtils.showAlert("Không hợp lệ", ve.getMessage(), Alert.AlertType.WARNING);
 			}
-			catch(PersistenceException pe) {
+			catch(DataAccessException pe) {
 				UiUtils.showAlert("Lỗi hệ thống", pe.getMessage(), Alert.AlertType.ERROR);
 			}
 			catch(Exception ex) {
@@ -221,7 +221,7 @@ public class SinhThoiKhoaBieuPaneHandler
 		centerContainer.getChildren().addAll(title, content);
 	}
 
-	private Node renderSolutionNode(PhuongAnThoiKhoaBieuDto pa, SinhThoiKhoaBieuUseCase useCase,
+	private Node renderSolutionNode(ThoiKhoaBieuDto pa, GenerateThoiKhoaBieuUseCase useCase,
 			DanhSachLopDto danhSach)
 	{
 		VBox card = new VBox(6);

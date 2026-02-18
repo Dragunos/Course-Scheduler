@@ -1,6 +1,6 @@
 package vn.edu.haui.scheduler.infrastructure.persistence.jdbc;
 
-import vn.edu.haui.scheduler.application.port.out.ThoiKhoaBieuRepositoryPort;
+import vn.edu.haui.scheduler.application.port.out.ThoiKhoaBieuRepository;
 import vn.edu.haui.scheduler.domain.model.PhuongAnThoiKhoaBieu;
 import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 
@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class JdbcThoiKhoaBieuRepository implements ThoiKhoaBieuRepositoryPort
+public class JdbcThoiKhoaBieuRepository implements ThoiKhoaBieuRepository
 {
 	@Override
 	public long save(long nguoiDungId,

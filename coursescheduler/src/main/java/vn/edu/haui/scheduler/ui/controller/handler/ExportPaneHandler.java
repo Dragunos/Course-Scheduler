@@ -7,9 +7,9 @@ import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import vn.edu.haui.scheduler.application.dto.DanhSachLopDto;
 import vn.edu.haui.scheduler.application.dto.NguoiDungDto;
-import vn.edu.haui.scheduler.application.exception.PersistenceException;
+import vn.edu.haui.scheduler.application.exception.DataAccessException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
-import vn.edu.haui.scheduler.application.port.in.XuatDanhSachLopUseCase;
+import vn.edu.haui.scheduler.application.port.in.ExportDanhSachLopUseCase;
 import vn.edu.haui.scheduler.ui.fx.ScreenManager;
 import vn.edu.haui.scheduler.ui.util.UiUtils;
 
@@ -73,7 +73,7 @@ public class ExportPaneHandler
 				NguoiDungDto user = screenManager.getCurrentUser();
 				String format = csvRb.isSelected() ? "CSV" : "EXCEL";
 
-				XuatDanhSachLopUseCase useCase = screenManager.getXuatDanhSachLopUseCase();
+				ExportDanhSachLopUseCase useCase = screenManager.getXuatDanhSachLopUseCase();
 
 				useCase.xuatDanhSach(
 						user.getId(),
@@ -94,7 +94,7 @@ public class ExportPaneHandler
 						ve.getMessage(),
 						Alert.AlertType.WARNING);
 			}
-			catch(PersistenceException pe) {
+			catch(DataAccessException pe) {
 				UiUtils.showAlert("Lỗi hệ thống",
 						pe.getMessage(),
 						Alert.AlertType.ERROR);

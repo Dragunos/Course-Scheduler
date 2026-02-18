@@ -6,10 +6,10 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import vn.edu.haui.scheduler.application.dto.NguoiDungDto;
-import vn.edu.haui.scheduler.application.dto.PhuongAnThoiKhoaBieuDto;
-import vn.edu.haui.scheduler.application.exception.PersistenceException;
+import vn.edu.haui.scheduler.application.dto.ThoiKhoaBieuDto;
+import vn.edu.haui.scheduler.application.exception.DataAccessException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
-import vn.edu.haui.scheduler.application.port.in.XuatThoiKhoaBieuUseCase;
+import vn.edu.haui.scheduler.application.port.in.ExportThoiKhoaBieuUseCase;
 import vn.edu.haui.scheduler.ui.fx.ScreenManager;
 import vn.edu.haui.scheduler.ui.util.UiUtils;
 
@@ -28,7 +28,7 @@ public class ExportThoiKhoaBieuPaneHandler
 		this.centerContainer = centerContainer;
 	}
 
-	public void showExportPane(PhuongAnThoiKhoaBieuDto dto)
+	public void showExportPane(ThoiKhoaBieuDto dto)
 	{
 
 		centerContainer.getChildren().clear();
@@ -82,7 +82,7 @@ public class ExportThoiKhoaBieuPaneHandler
 				else if(pdfRb.isSelected()) format = "PDF";
 				else format = "ICS";
 
-				XuatThoiKhoaBieuUseCase useCase = screenManager.getXuatThoiKhoaBieuUseCase();
+				ExportThoiKhoaBieuUseCase useCase = screenManager.getXuatThoiKhoaBieuUseCase();
 				if(useCase == null) {
 					UiUtils.showAlert("Lỗi cấu hình", "Tính năng xuất thời khóa biểu chưa được cấu hình.",
 							Alert.AlertType.ERROR);
@@ -98,7 +98,7 @@ public class ExportThoiKhoaBieuPaneHandler
 			catch(ValidationException ve) {
 				UiUtils.showAlert("Không hợp lệ", ve.getMessage(), Alert.AlertType.WARNING);
 			}
-			catch(PersistenceException pe) {
+			catch(DataAccessException pe) {
 				UiUtils.showAlert("Lỗi hệ thống", pe.getMessage(), Alert.AlertType.ERROR);
 			}
 			catch(Exception ex) {

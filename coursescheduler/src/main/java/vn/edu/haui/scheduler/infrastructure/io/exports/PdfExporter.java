@@ -6,7 +6,7 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 
-import vn.edu.haui.scheduler.application.port.out.FileExportPort;
+import vn.edu.haui.scheduler.application.port.out.FileExporter;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,7 +15,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
-public class PdfExporter implements FileExportPort
+public class PdfExporter implements FileExporter
 {
 
 	private static final float MARGIN = 50;

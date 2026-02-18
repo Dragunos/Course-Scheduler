@@ -1,12 +1,12 @@
 package vn.edu.haui.scheduler.infrastructure.persistence.jdbc;
 
-import vn.edu.haui.scheduler.application.port.out.TepTaiLenRepositoryPort;
+import vn.edu.haui.scheduler.application.port.out.TepTaiLenRepository;
 import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 
 import java.io.File;
 import java.sql.*;
 
-public class JdbcTepTaiLenRepository implements TepTaiLenRepositoryPort
+public class JdbcTepTaiLenRepository implements TepTaiLenRepository
 {
 	@Override
 	public Long saveMetadata(Long nguoiTaoId, File file, String loaiTep) throws SQLException

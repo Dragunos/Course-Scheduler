@@ -4,7 +4,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import vn.edu.haui.scheduler.application.dto.*;
-import vn.edu.haui.scheduler.application.port.in.QuanLyThoiKhoaBieuUseCase;
+import vn.edu.haui.scheduler.application.port.in.ManageThoiKhoaBieuUseCase;
 import vn.edu.haui.scheduler.ui.fx.ScreenManager;
 import vn.edu.haui.scheduler.ui.util.UiUtils;
 
@@ -28,7 +28,7 @@ public class QuanLyThoiKhoaBieuPaneHandler
 	{
 		if(!isAuthenticated()) return;
 
-		QuanLyThoiKhoaBieuUseCase useCase = screenManager.getQuanLyThoiKhoaBieuUseCase();
+		ManageThoiKhoaBieuUseCase useCase = screenManager.getQuanLyThoiKhoaBieuUseCase();
 		if(useCase == null) {
 			UiUtils.showAlert("Lỗi cấu hình",
 					"Tính năng quản lý thời khóa biểu chưa được cấu hình.",
@@ -45,13 +45,13 @@ public class QuanLyThoiKhoaBieuPaneHandler
 
 		try {
 			Long userId = screenManager.getCurrentUser().getId();
-			List<PhuongAnThoiKhoaBieuDto> list = useCase.layDanhSachTheoNguoiDung(userId);
+			List<ThoiKhoaBieuDto> list = useCase.layDanhSachTheoNguoiDung(userId);
 
 			if(list == null || list.isEmpty()) {
 				listBox.getChildren().add(new Label("Không có thời khóa biểu nào."));
 			}
 			else {
-				for(PhuongAnThoiKhoaBieuDto dto : list) {
+				for(ThoiKhoaBieuDto dto : list) {
 					listBox.getChildren().add(createCard(dto));
 				}
 			}
@@ -64,7 +64,7 @@ public class QuanLyThoiKhoaBieuPaneHandler
 		}
 	}
 
-	private VBox createCard(PhuongAnThoiKhoaBieuDto dto)
+	private VBox createCard(ThoiKhoaBieuDto dto)
 	{
 		String ten = dto.getTenPhuongAn() != null ? dto.getTenPhuongAn() : "<không tên>";
 
@@ -90,7 +90,7 @@ public class QuanLyThoiKhoaBieuPaneHandler
 		return card;
 	}
 
-	private void viewChiTiet(PhuongAnThoiKhoaBieuDto dto)
+	private void viewChiTiet(ThoiKhoaBieuDto dto)
 	{
 		if(!isAuthenticated()) return;
 
@@ -98,9 +98,9 @@ public class QuanLyThoiKhoaBieuPaneHandler
 
 		try {
 			Long userId = screenManager.getCurrentUser().getId();
-			QuanLyThoiKhoaBieuUseCase useCase = screenManager.getQuanLyThoiKhoaBieuUseCase();
+			ManageThoiKhoaBieuUseCase useCase = screenManager.getQuanLyThoiKhoaBieuUseCase();
 
-			PhuongAnThoiKhoaBieuDto detail = useCase.xemChiTiet(dto.getId(), userId);
+			ThoiKhoaBieuDto detail = useCase.xemChiTiet(dto.getId(), userId);
 
 			Label title = new Label(
 					"Chi tiết: " + (dto.getTenPhuongAn() != null ? dto.getTenPhuongAn() : "<không tên>"));
@@ -140,7 +140,7 @@ public class QuanLyThoiKhoaBieuPaneHandler
 		}
 	}
 
-	private void doiTen(PhuongAnThoiKhoaBieuDto dto)
+	private void doiTen(ThoiKhoaBieuDto dto)
 	{
 		if(!isAuthenticated()) return;
 
@@ -155,9 +155,9 @@ public class QuanLyThoiKhoaBieuPaneHandler
 		saveBtn.setOnAction(e -> {
 			try {
 				Long userId = screenManager.getCurrentUser().getId();
-				QuanLyThoiKhoaBieuUseCase useCase = screenManager.getQuanLyThoiKhoaBieuUseCase();
+				ManageThoiKhoaBieuUseCase useCase = screenManager.getQuanLyThoiKhoaBieuUseCase();
 
-				PhuongAnThoiKhoaBieuDto updated = useCase.doiTen(dto.getId(), userId, tenField.getText());
+				ThoiKhoaBieuDto updated = useCase.doiTen(dto.getId(), userId, tenField.getText());
 
 				UiUtils.showAlert("Thành công", "Đã cập nhật tên.", Alert.AlertType.INFORMATION);
 
@@ -174,7 +174,7 @@ public class QuanLyThoiKhoaBieuPaneHandler
 		centerContainer.getChildren().addAll(title, new Label("Tên mới"), tenField, new HBox(10, saveBtn, cancelBtn));
 	}
 
-	private void xoa(PhuongAnThoiKhoaBieuDto dto)
+	private void xoa(ThoiKhoaBieuDto dto)
 	{
 		if(!isAuthenticated()) return;
 

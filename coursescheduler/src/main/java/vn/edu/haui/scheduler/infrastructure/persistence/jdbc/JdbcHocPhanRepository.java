@@ -1,14 +1,14 @@
 package vn.edu.haui.scheduler.infrastructure.persistence.jdbc;
 
-import vn.edu.haui.scheduler.application.exception.PersistenceException;
-import vn.edu.haui.scheduler.application.port.out.HocPhanRepositoryPort;
+import vn.edu.haui.scheduler.application.exception.DataAccessException;
+import vn.edu.haui.scheduler.application.port.out.HocPhanRepository;
 import vn.edu.haui.scheduler.domain.model.HocPhan;
 import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 
 import java.sql.*;
 import java.util.Optional;
 
-public class JdbcHocPhanRepository implements HocPhanRepositoryPort
+public class JdbcHocPhanRepository implements HocPhanRepository
 {
 	@Override
 	public Optional<Long> findIdByMaHocPhan(String maHocPhan)
@@ -30,7 +30,7 @@ public class JdbcHocPhanRepository implements HocPhanRepositoryPort
 
 		}
 		catch(SQLException ex) {
-			throw new PersistenceException("Failed to find HocPhan by maHocPhan", ex);
+			throw new DataAccessException("Failed to find HocPhan by maHocPhan", ex);
 		}
 	}
 
@@ -56,17 +56,17 @@ public class JdbcHocPhanRepository implements HocPhanRepositoryPort
 			int affected = ps.executeUpdate();
 
 			if(affected == 0)
-				throw new PersistenceException("Insert hoc_phan failed");
+				throw new DataAccessException("Insert hoc_phan failed");
 
 			try (ResultSet rs = ps.getGeneratedKeys()) {
 				if(rs.next()) return rs.getLong(1);
 			}
 
-			throw new PersistenceException("No ID returned when saving HocPhan");
+			throw new DataAccessException("No ID returned when saving HocPhan");
 
 		}
 		catch(SQLException ex) {
-			throw new PersistenceException("Failed to save HocPhan", ex);
+			throw new DataAccessException("Failed to save HocPhan", ex);
 		}
 	}
 }

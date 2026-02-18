@@ -4,9 +4,9 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import vn.edu.haui.scheduler.application.dto.*;
-import vn.edu.haui.scheduler.application.exception.PersistenceException;
+import vn.edu.haui.scheduler.application.exception.DataAccessException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
-import vn.edu.haui.scheduler.application.port.in.QuanLyDanhSachLopUseCase;
+import vn.edu.haui.scheduler.application.port.in.ManageDanhSachLopUseCase;
 import vn.edu.haui.scheduler.ui.fx.ScreenManager;
 import vn.edu.haui.scheduler.ui.util.UiUtils;
 
@@ -29,7 +29,7 @@ public class DanhSachLopPaneHandler
 	{
 		if(!isAuthenticated()) return;
 
-		QuanLyDanhSachLopUseCase useCase = screenManager.getQuanLyDanhSachLopUseCase();
+		ManageDanhSachLopUseCase useCase = screenManager.getQuanLyDanhSachLopUseCase();
 		if(useCase == null) {
 			UiUtils.showAlert("Lỗi cấu hình",
 					"Tính năng quản lý danh sách chưa được cấu hình.",
@@ -60,7 +60,7 @@ public class DanhSachLopPaneHandler
 			centerContainer.getChildren().addAll(title, listBox);
 
 		}
-		catch(PersistenceException e) {
+		catch(DataAccessException e) {
 			UiUtils.showAlert("Lỗi hệ thống", e.getMessage(), Alert.AlertType.ERROR);
 		}
 	}
@@ -101,7 +101,7 @@ public class DanhSachLopPaneHandler
 
 		try {
 			Long userId = screenManager.getCurrentUser().getId();
-			QuanLyDanhSachLopUseCase useCase = screenManager.getQuanLyDanhSachLopUseCase();
+			ManageDanhSachLopUseCase useCase = screenManager.getQuanLyDanhSachLopUseCase();
 
 			DanhSachLopDto detail = useCase.getChiTietDanhSach(userId, dto.getId());
 
@@ -134,7 +134,7 @@ public class DanhSachLopPaneHandler
 		catch(ValidationException ve) {
 			UiUtils.showAlert("Không hợp lệ", ve.getMessage(), Alert.AlertType.WARNING);
 		}
-		catch(PersistenceException pe) {
+		catch(DataAccessException pe) {
 			UiUtils.showAlert("Lỗi hệ thống", pe.getMessage(), Alert.AlertType.ERROR);
 		}
 	}
@@ -172,7 +172,7 @@ public class DanhSachLopPaneHandler
 				UiUtils.showAlert("Không hợp lệ", ve.getMessage(),
 						Alert.AlertType.WARNING);
 			}
-			catch(PersistenceException pe) {
+			catch(DataAccessException pe) {
 				UiUtils.showAlert("Lỗi hệ thống", pe.getMessage(),
 						Alert.AlertType.ERROR);
 			}

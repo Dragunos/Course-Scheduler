@@ -33,13 +33,13 @@ public class AuthViewModel
 		this.authService = authService;
 	}
 
-	public NguoiDungDto login() throws ValidationException, AuthenticationException, PersistenceException
+	public NguoiDungDto login() throws ValidationException, AuthenticationException, DataAccessException
 	{
 		runGuard();
 		try {
 			validateLogin();
 
-			DangNhapRequestDto request = new DangNhapRequestDto(username.get(), password.get());
+			LoginRequestDto request = new LoginRequestDto(username.get(), password.get());
 
 			NguoiDungDto user = authService.login(request);
 
@@ -56,13 +56,13 @@ public class AuthViewModel
 		}
 	}
 
-	public void register() throws ValidationException, UsernameAlreadyExistsException, PersistenceException
+	public void register() throws ValidationException, DuplicateUsernameException, DataAccessException
 	{
 		runGuard();
 		try {
 			validateRegister();
 
-			DangKyRequestDto request = new DangKyRequestDto(username.get(), password.get());
+			RegisterRequestDto request = new RegisterRequestDto(username.get(), password.get());
 
 			authService.register(request);
 

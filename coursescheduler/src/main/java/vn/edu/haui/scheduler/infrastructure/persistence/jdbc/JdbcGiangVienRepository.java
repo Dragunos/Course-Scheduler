@@ -1,6 +1,6 @@
 package vn.edu.haui.scheduler.infrastructure.persistence.jdbc;
 
-import vn.edu.haui.scheduler.application.port.out.GiangVienRepositoryPort;
+import vn.edu.haui.scheduler.application.port.out.GiangVienRepository;
 import vn.edu.haui.scheduler.domain.model.GiangVien;
 import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class JdbcGiangVienRepository implements GiangVienRepositoryPort
+public class JdbcGiangVienRepository implements GiangVienRepository
 {
 	@Override
 	public Optional<Long> findIdByTen(String tenGiangVien)

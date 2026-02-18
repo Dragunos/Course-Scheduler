@@ -16,17 +16,17 @@ public class ScreenManager
 
 	private ImportDanhSachLopUseCase importDanhSachLopUseCase;
 
-	private QuanLyDanhSachLopUseCase quanLyDanhSachLopUseCase;
+	private ManageDanhSachLopUseCase manageDanhSachLopUseCase;
 
-	private XuatDanhSachLopUseCase xuatDanhSachLopUseCase;
+	private ExportDanhSachLopUseCase exportDanhSachLopUseCase;
 
-	private SinhThoiKhoaBieuUseCase sinhThoiKhoaBieuUseCase;
+	private GenerateThoiKhoaBieuUseCase generateThoiKhoaBieuUseCase;
 
-	private QuanLyThoiKhoaBieuUseCase quanLyThoiKhoaBieuUseCase;
+	private ManageThoiKhoaBieuUseCase manageThoiKhoaBieuUseCase;
 
-	private XuatThoiKhoaBieuUseCase xuatThoiKhoaBieuUseCase;
+	private ExportThoiKhoaBieuUseCase exportThoiKhoaBieuUseCase;
 	
-	private QuanTriDanhSachLopUseCase quanTriDanhSachLopUseCase;
+	private AdminDanhSachLopUseCase adminDanhSachLopUseCase;
 
 	private Scene scene;
 
@@ -48,65 +48,65 @@ public class ScreenManager
 		return importDanhSachLopUseCase;
 	}
 
-	public void setQuanLyDanhSachLopUseCase(QuanLyDanhSachLopUseCase uc)
+	public void setQuanLyDanhSachLopUseCase(ManageDanhSachLopUseCase uc)
 	{
-		this.quanLyDanhSachLopUseCase = uc;
+		this.manageDanhSachLopUseCase = uc;
 	}
 
-	public QuanLyDanhSachLopUseCase getQuanLyDanhSachLopUseCase()
+	public ManageDanhSachLopUseCase getQuanLyDanhSachLopUseCase()
 	{
-		return quanLyDanhSachLopUseCase;
+		return manageDanhSachLopUseCase;
 	}
 
-	public void setXuatDanhSachLopUseCase(XuatDanhSachLopUseCase uc)
+	public void setXuatDanhSachLopUseCase(ExportDanhSachLopUseCase uc)
 	{
-		this.xuatDanhSachLopUseCase = uc;
+		this.exportDanhSachLopUseCase = uc;
 	}
 
-	public XuatDanhSachLopUseCase getXuatDanhSachLopUseCase()
+	public ExportDanhSachLopUseCase getXuatDanhSachLopUseCase()
 	{
-		return xuatDanhSachLopUseCase;
+		return exportDanhSachLopUseCase;
 	}
 
-	public SinhThoiKhoaBieuUseCase getSinhThoiKhoaBieuUseCase()
+	public GenerateThoiKhoaBieuUseCase getSinhThoiKhoaBieuUseCase()
 	{
-		return sinhThoiKhoaBieuUseCase;
+		return generateThoiKhoaBieuUseCase;
 	}
 
-	public void setSinhThoiKhoaBieuUseCase(SinhThoiKhoaBieuUseCase sinhThoiKhoaBieuUseCase)
+	public void setSinhThoiKhoaBieuUseCase(GenerateThoiKhoaBieuUseCase generateThoiKhoaBieuUseCase)
 	{
-		this.sinhThoiKhoaBieuUseCase = sinhThoiKhoaBieuUseCase;
+		this.generateThoiKhoaBieuUseCase = generateThoiKhoaBieuUseCase;
 	}
 
-	public void setQuanLyThoiKhoaBieuUseCase(QuanLyThoiKhoaBieuUseCase uc)
+	public void setQuanLyThoiKhoaBieuUseCase(ManageThoiKhoaBieuUseCase uc)
 	{
-		this.quanLyThoiKhoaBieuUseCase = uc;
+		this.manageThoiKhoaBieuUseCase = uc;
 	}
 
-	public QuanLyThoiKhoaBieuUseCase getQuanLyThoiKhoaBieuUseCase()
+	public ManageThoiKhoaBieuUseCase getQuanLyThoiKhoaBieuUseCase()
 	{
-		return this.quanLyThoiKhoaBieuUseCase;
+		return this.manageThoiKhoaBieuUseCase;
 	}
 
-	public void setXuatThoiKhoaBieuUseCase(XuatThoiKhoaBieuUseCase uc)
+	public void setXuatThoiKhoaBieuUseCase(ExportThoiKhoaBieuUseCase uc)
 	{
-		this.xuatThoiKhoaBieuUseCase = uc;
+		this.exportThoiKhoaBieuUseCase = uc;
 	}
 
-	public XuatThoiKhoaBieuUseCase getXuatThoiKhoaBieuUseCase()
+	public ExportThoiKhoaBieuUseCase getXuatThoiKhoaBieuUseCase()
 	{
-		return this.xuatThoiKhoaBieuUseCase;
+		return this.exportThoiKhoaBieuUseCase;
 	}
 	
 	public void setQuanTriDanhSachLopUseCase(
-	        QuanTriDanhSachLopUseCase uc)
+	        AdminDanhSachLopUseCase uc)
 	{
-	    this.quanTriDanhSachLopUseCase = uc;
+	    this.adminDanhSachLopUseCase = uc;
 	}
 
-	public QuanTriDanhSachLopUseCase getQuanTriDanhSachLopUseCase()
+	public AdminDanhSachLopUseCase getQuanTriDanhSachLopUseCase()
 	{
-	    return this.quanTriDanhSachLopUseCase;
+	    return this.adminDanhSachLopUseCase;
 	}
 
 	public void init()

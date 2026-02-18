@@ -1,6 +1,6 @@
 package vn.edu.haui.scheduler.infrastructure.persistence.jdbc;
 
-import vn.edu.haui.scheduler.application.port.out.YeuCauChiTietRepositoryPort;
+import vn.edu.haui.scheduler.application.port.out.YeuCauChiTietRepository;
 import vn.edu.haui.scheduler.domain.enums.LoaiChiDinh;
 import vn.edu.haui.scheduler.domain.model.YeuCauChiTiet;
 import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
@@ -9,7 +9,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JdbcYeuCauChiTietRepository implements YeuCauChiTietRepositoryPort
+public class JdbcYeuCauChiTietRepository implements YeuCauChiTietRepository
 {
 	@Override
 	public void save(YeuCauChiTiet entity) throws Exception

@@ -5,9 +5,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import vn.edu.haui.scheduler.application.dto.*;
-import vn.edu.haui.scheduler.application.exception.PersistenceException;
+import vn.edu.haui.scheduler.application.exception.DataAccessException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
-import vn.edu.haui.scheduler.application.port.in.QuanTriDanhSachLopUseCase;
+import vn.edu.haui.scheduler.application.port.in.AdminDanhSachLopUseCase;
 import vn.edu.haui.scheduler.ui.fx.ScreenManager;
 import vn.edu.haui.scheduler.ui.util.UiUtils;
 
@@ -33,7 +33,7 @@ public class QuanTriDanhSachLopPaneHandler
 	{
 		if(!isAdmin()) return;
 
-		QuanTriDanhSachLopUseCase useCase = screenManager.getQuanTriDanhSachLopUseCase();
+		AdminDanhSachLopUseCase useCase = screenManager.getQuanTriDanhSachLopUseCase();
 
 		if(useCase == null) {
 			UiUtils.showAlert("Lỗi cấu hình",
@@ -69,7 +69,7 @@ public class QuanTriDanhSachLopPaneHandler
 					.addAll(title, importBtn, listBox);
 
 		}
-		catch(PersistenceException e) {
+		catch(DataAccessException e) {
 			UiUtils.showAlert("Lỗi hệ thống",
 					e.getMessage(),
 					Alert.AlertType.ERROR);

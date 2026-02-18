@@ -1,6 +1,6 @@
 package vn.edu.haui.scheduler.infrastructure.persistence.jdbc;
 
-import vn.edu.haui.scheduler.application.port.out.VaiTroRepositoryPort;
+import vn.edu.haui.scheduler.application.port.out.VaiTroRepository;
 import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 
 import java.sql.Connection;
@@ -9,7 +9,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Optional;
 
-public class JdbcVaiTroRepository implements VaiTroRepositoryPort
+public class JdbcVaiTroRepository implements VaiTroRepository
 {
 	@Override
 	public Optional<Long> findIdByName(String roleName) throws Exception

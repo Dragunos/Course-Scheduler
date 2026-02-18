@@ -1,7 +1,7 @@
 package vn.edu.haui.scheduler.infrastructure.persistence.jdbc;
 
 import vn.edu.haui.scheduler.application.dto.RangBuocToiUuDto;
-import vn.edu.haui.scheduler.application.port.out.RangBuocToiUuRepositoryPort;
+import vn.edu.haui.scheduler.application.port.out.RangBuocToiUuRepository;
 import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 
 import java.sql.*;
@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class JdbcRangBuocToiUuRepository implements RangBuocToiUuRepositoryPort
+public class JdbcRangBuocToiUuRepository implements RangBuocToiUuRepository
 {
 	@Override
 	public RangBuocToiUuDto save(RangBuocToiUuDto dto) throws Exception

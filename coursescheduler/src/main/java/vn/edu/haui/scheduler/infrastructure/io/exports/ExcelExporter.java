@@ -3,7 +3,7 @@ package vn.edu.haui.scheduler.infrastructure.io.exports;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import vn.edu.haui.scheduler.application.port.out.FileExportPort;
+import vn.edu.haui.scheduler.application.port.out.FileExporter;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -12,7 +12,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
-public class ExcelExporter implements FileExportPort
+public class ExcelExporter implements FileExporter
 {
 	public void exportExcel(Path outputPath, List<String> headers, List<Map<String, String>> rows) throws IOException
 	{

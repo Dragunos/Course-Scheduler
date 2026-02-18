@@ -1,13 +1,13 @@
 package vn.edu.haui.scheduler.infrastructure.io.exports;
 
-import vn.edu.haui.scheduler.application.port.out.FileExportPort;
+import vn.edu.haui.scheduler.application.port.out.FileExporter;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
-public class CompositeFileExporter implements FileExportPort
+public class CompositeFileExporter implements FileExporter
 {
 	private final CsvExporter csvExporter;
 

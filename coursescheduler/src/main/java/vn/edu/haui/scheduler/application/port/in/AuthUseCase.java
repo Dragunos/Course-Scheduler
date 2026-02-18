@@ -5,9 +5,9 @@ import vn.edu.haui.scheduler.application.exception.*;
 
 public interface AuthUseCase
 {
-	long register(DangKyRequestDto request)
-			throws ValidationException, UsernameAlreadyExistsException, PersistenceException;
+	long register(RegisterRequestDto request)
+			throws ValidationException, DuplicateUsernameException, DataAccessException;
 
-	NguoiDungDto login(DangNhapRequestDto request)
-			throws ValidationException, AuthenticationException, PersistenceException;
+	NguoiDungDto login(LoginRequestDto request)
+			throws ValidationException, AuthenticationException, DataAccessException;
 }

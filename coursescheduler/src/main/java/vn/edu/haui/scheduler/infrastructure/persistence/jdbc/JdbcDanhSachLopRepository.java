@@ -1,7 +1,7 @@
 package vn.edu.haui.scheduler.infrastructure.persistence.jdbc;
 
 import vn.edu.haui.scheduler.application.exception.*;
-import vn.edu.haui.scheduler.application.port.out.DanhSachLopRepositoryPort;
+import vn.edu.haui.scheduler.application.port.out.DanhSachLopRepository;
 import vn.edu.haui.scheduler.domain.enums.HinhThucDay;
 import vn.edu.haui.scheduler.domain.enums.ThuTrongTuan;
 import vn.edu.haui.scheduler.domain.model.*;
@@ -11,7 +11,7 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.*;
 
-public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
+public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 {
 	@Override
 	public Long save(String tenDanhSach, Long nguoiTaoId, boolean laCongKhai, Long hocKyId)
@@ -36,17 +36,17 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 
 			int affected = ps.executeUpdate();
 			if(affected == 0)
-				throw new PersistenceException("Insert danh_sach_lop failed");
+				throw new DataAccessException("Insert danh_sach_lop failed");
 
 			try (ResultSet keys = ps.getGeneratedKeys()) {
 				if(keys.next()) return keys.getLong(1);
 			}
 
-			throw new PersistenceException("No ID returned");
+			throw new DataAccessException("No ID returned");
 
 		}
 		catch(SQLException ex) {
-			throw new PersistenceException("Failed to save DanhSachLop", ex);
+			throw new DataAccessException("Failed to save DanhSachLop", ex);
 		}
 	}
 
@@ -68,7 +68,7 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 
 		}
 		catch(SQLException ex) {
-			throw new PersistenceException("Failed to addChiTiet", ex);
+			throw new DataAccessException("Failed to addChiTiet", ex);
 		}
 	}
 
@@ -105,7 +105,7 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 
 		}
 		catch(SQLException ex) {
-			throw new PersistenceException("Failed to findByNguoiTaoOrShared", ex);
+			throw new DataAccessException("Failed to findByNguoiTaoOrShared", ex);
 		}
 	}
 
@@ -225,7 +225,7 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 
 		}
 		catch(SQLException ex) {
-			throw new PersistenceException("Failed to findByIdWithDetails", ex);
+			throw new DataAccessException("Failed to findByIdWithDetails", ex);
 		}
 	}
 
@@ -246,7 +246,7 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 
 		}
 		catch(SQLException ex) {
-			throw new PersistenceException("Failed to check isCreator", ex);
+			throw new DataAccessException("Failed to check isCreator", ex);
 		}
 	}
 
@@ -267,7 +267,7 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 
 		}
 		catch(SQLException ex) {
-			throw new PersistenceException("Failed to check isShared", ex);
+			throw new DataAccessException("Failed to check isShared", ex);
 		}
 	}
 
@@ -291,7 +291,7 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 
 		}
 		catch(SQLException ex) {
-			throw new PersistenceException("Failed to updateHeader", ex);
+			throw new DataAccessException("Failed to updateHeader", ex);
 		}
 	}
 
@@ -308,7 +308,7 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 
 		}
 		catch(SQLException ex) {
-			throw new PersistenceException("Failed to deleteAllChiTiet", ex);
+			throw new DataAccessException("Failed to deleteAllChiTiet", ex);
 		}
 	}
 
@@ -325,7 +325,7 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 
 		}
 		catch(SQLException ex) {
-			throw new PersistenceException("Failed to deleteDanhSach", ex);
+			throw new DataAccessException("Failed to deleteDanhSach", ex);
 		}
 	}
 
@@ -354,7 +354,7 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 
 		}
 		catch(SQLException ex) {
-			throw new PersistenceException("Failed to findAllPublic", ex);
+			throw new DataAccessException("Failed to findAllPublic", ex);
 		}
 	}
 
@@ -377,7 +377,7 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 
 		}
 		catch(SQLException ex) {
-			throw new PersistenceException("Failed to check isPublic", ex);
+			throw new DataAccessException("Failed to check isPublic", ex);
 		}
 	}
 

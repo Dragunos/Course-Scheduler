@@ -1,6 +1,6 @@
 package vn.edu.haui.scheduler.infrastructure.persistence.jdbc;
 
-import vn.edu.haui.scheduler.application.port.out.YeuCauRepositoryPort;
+import vn.edu.haui.scheduler.application.port.out.YeuCauRepository;
 import vn.edu.haui.scheduler.domain.model.YeuCau;
 import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 
@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class JdbcYeuCauRepository implements YeuCauRepositoryPort
+public class JdbcYeuCauRepository implements YeuCauRepository
 {
 	@Override
 	public long save(long nguoiTaoId,
