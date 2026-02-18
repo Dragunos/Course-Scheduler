@@ -1,5 +1,6 @@
 package vn.edu.haui.scheduler.infrastructure.persistence.jdbc;
 
+import vn.edu.haui.scheduler.application.exception.*;
 import vn.edu.haui.scheduler.application.port.out.DanhSachLopRepositoryPort;
 import vn.edu.haui.scheduler.domain.enums.HinhThucDay;
 import vn.edu.haui.scheduler.domain.enums.ThuTrongTuan;
@@ -14,7 +15,6 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 {
 	@Override
 	public Long save(String tenDanhSach, Long nguoiTaoId, boolean laCongKhai, Long hocKyId)
-			throws Exception
 	{
 		String sql = """
 				INSERT INTO danh_sach_lop
@@ -29,24 +29,29 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 			ps.setLong(2, nguoiTaoId);
 			ps.setInt(3, laCongKhai ? 1 : 0);
 
-			if(hocKyId != null) ps.setLong(4, hocKyId);
-			else ps.setNull(4, Types.BIGINT);
+			if(hocKyId != null)
+				ps.setLong(4, hocKyId);
+			else
+				ps.setNull(4, Types.BIGINT);
 
 			int affected = ps.executeUpdate();
-			if(affected == 0) {
-				throw new RuntimeException("Insert danh_sach_lop failed");
-			}
+			if(affected == 0)
+				throw new PersistenceException("Insert danh_sach_lop failed");
 
 			try (ResultSet keys = ps.getGeneratedKeys()) {
 				if(keys.next()) return keys.getLong(1);
 			}
 
-			throw new RuntimeException("No ID returned");
+			throw new PersistenceException("No ID returned");
+
+		}
+		catch(SQLException ex) {
+			throw new PersistenceException("Failed to save DanhSachLop", ex);
 		}
 	}
 
 	@Override
-	public void addChiTiet(Long danhSachId, Long lopHocPhanId) throws Exception
+	public void addChiTiet(Long danhSachId, Long lopHocPhanId)
 	{
 		String sql = """
 				INSERT OR IGNORE INTO danh_sach_lop_chi_tiet
@@ -60,12 +65,15 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 			ps.setLong(1, danhSachId);
 			ps.setLong(2, lopHocPhanId);
 			ps.executeUpdate();
+
+		}
+		catch(SQLException ex) {
+			throw new PersistenceException("Failed to addChiTiet", ex);
 		}
 	}
 
 	@Override
 	public List<DanhSachLop> findByNguoiTaoOrShared(Long nguoiDungId)
-			throws Exception
 	{
 		String sql = """
 				SELECT d.id, d.ten_danh_sach, d.nguoi_tao_id,
@@ -92,14 +100,17 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 					result.add(mapHeader(rs));
 				}
 			}
-		}
 
-		return result;
+			return result;
+
+		}
+		catch(SQLException ex) {
+			throw new PersistenceException("Failed to findByNguoiTaoOrShared", ex);
+		}
 	}
 
 	@Override
 	public Optional<DanhSachLop> findByIdWithDetails(Long danhSachId)
-			throws Exception
 	{
 		String sql = """
 				SELECT
@@ -153,11 +164,9 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 				if(!rs.next()) return Optional.empty();
 
 				DanhSachLop danhSach = mapHeader(rs);
-
 				Map<Long, DanhSachLopChiTiet> chiTietMap = new LinkedHashMap<>();
 
 				do {
-
 					Long lopHocPhanId = rs.getObject("lop_hoc_phan_id", Long.class);
 					if(lopHocPhanId == null) continue;
 
@@ -176,7 +185,8 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 								rs.getString("ten_giang_vien"));
 
 						String htd = rs.getString("hinh_thuc_day");
-						HinhThucDay hinhThuc = htd != null ? HinhThucDay.valueOf(htd) : HinhThucDay.KHONG_XAC_DINH;
+						HinhThucDay hinhThuc = htd != null ? HinhThucDay.valueOf(htd)
+								: HinhThucDay.KHONG_XAC_DINH;
 
 						LopHocPhan lop = new LopHocPhan(
 								lopHocPhanId,
@@ -197,7 +207,6 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 
 					Long lichId = rs.getObject("lich_id", Long.class);
 					if(lichId != null) {
-
 						LichHoc lich = new LichHoc(
 								lichId,
 								lopHocPhanId,
@@ -210,24 +219,20 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 
 				} while(rs.next());
 
-				danhSach.setChiTietList(
-						new ArrayList<>(chiTietMap.values()));
-
+				danhSach.setChiTietList(new ArrayList<>(chiTietMap.values()));
 				return Optional.of(danhSach);
 			}
+
+		}
+		catch(SQLException ex) {
+			throw new PersistenceException("Failed to findByIdWithDetails", ex);
 		}
 	}
 
 	@Override
 	public boolean isCreator(Long danhSachId, Long nguoiDungId)
-			throws Exception
 	{
-		String sql = """
-				SELECT 1
-				FROM danh_sach_lop
-				WHERE id = ? AND nguoi_tao_id = ?
-				LIMIT 1
-				""";
+		String sql = "SELECT 1 FROM danh_sach_lop WHERE id = ? AND nguoi_tao_id = ? LIMIT 1";
 
 		try (Connection connection = DataSourceProvider.getDataSource().getConnection();
 				PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -238,20 +243,17 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 			try (ResultSet rs = ps.executeQuery()) {
 				return rs.next();
 			}
+
+		}
+		catch(SQLException ex) {
+			throw new PersistenceException("Failed to check isCreator", ex);
 		}
 	}
 
 	@Override
 	public boolean isShared(Long danhSachId, Long nguoiDungId)
-			throws Exception
 	{
-		String sql = """
-				SELECT 1
-				FROM chia_se_danh_sach_lop
-				WHERE danh_sach_lop_id = ?
-				  AND nguoi_dung_id = ?
-				LIMIT 1
-				""";
+		String sql = "SELECT 1 FROM chia_se_danh_sach_lop WHERE danh_sach_lop_id = ? AND nguoi_dung_id = ? LIMIT 1";
 
 		try (Connection connection = DataSourceProvider.getDataSource().getConnection();
 				PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -262,35 +264,39 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 			try (ResultSet rs = ps.executeQuery()) {
 				return rs.next();
 			}
+
+		}
+		catch(SQLException ex) {
+			throw new PersistenceException("Failed to check isShared", ex);
 		}
 	}
 
 	@Override
 	public void updateHeader(Long danhSachId, String tenDanhSach, Long hocKyId)
-			throws Exception
 	{
-		String sql = """
-				UPDATE danh_sach_lop
-				SET ten_danh_sach = ?, hoc_ky_id = ?
-				WHERE id = ?
-				""";
+		String sql = "UPDATE danh_sach_lop SET ten_danh_sach = ?, hoc_ky_id = ? WHERE id = ?";
 
 		try (Connection connection = DataSourceProvider.getDataSource().getConnection();
 				PreparedStatement ps = connection.prepareStatement(sql)) {
 
 			ps.setString(1, tenDanhSach);
 
-			if(hocKyId != null) ps.setLong(2, hocKyId);
-			else ps.setNull(2, Types.BIGINT);
+			if(hocKyId != null)
+				ps.setLong(2, hocKyId);
+			else
+				ps.setNull(2, Types.BIGINT);
 
 			ps.setLong(3, danhSachId);
-
 			ps.executeUpdate();
+
+		}
+		catch(SQLException ex) {
+			throw new PersistenceException("Failed to updateHeader", ex);
 		}
 	}
 
 	@Override
-	public void deleteAllChiTiet(Long danhSachId) throws Exception
+	public void deleteAllChiTiet(Long danhSachId)
 	{
 		String sql = "DELETE FROM danh_sach_lop_chi_tiet WHERE danh_sach_lop_id = ?";
 
@@ -299,11 +305,15 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 
 			ps.setLong(1, danhSachId);
 			ps.executeUpdate();
+
+		}
+		catch(SQLException ex) {
+			throw new PersistenceException("Failed to deleteAllChiTiet", ex);
 		}
 	}
 
 	@Override
-	public void deleteDanhSach(Long danhSachId) throws Exception
+	public void deleteDanhSach(Long danhSachId)
 	{
 		String sql = "DELETE FROM danh_sach_lop WHERE id = ?";
 
@@ -312,6 +322,62 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepositoryPort
 
 			ps.setLong(1, danhSachId);
 			ps.executeUpdate();
+
+		}
+		catch(SQLException ex) {
+			throw new PersistenceException("Failed to deleteDanhSach", ex);
+		}
+	}
+
+	@Override
+	public List<DanhSachLop> findAllPublic()
+	{
+		String sql = """
+				SELECT id, ten_danh_sach, nguoi_tao_id,
+				       la_cong_khai, hoc_ky_id, ngay_tao
+				FROM danh_sach_lop
+				WHERE la_cong_khai = 1
+				ORDER BY ngay_tao DESC
+				""";
+
+		List<DanhSachLop> result = new ArrayList<>();
+
+		try (Connection connection = DataSourceProvider.getDataSource().getConnection();
+				PreparedStatement ps = connection.prepareStatement(sql);
+				ResultSet rs = ps.executeQuery()) {
+
+			while(rs.next()) {
+				result.add(mapHeader(rs));
+			}
+
+			return result;
+
+		}
+		catch(SQLException ex) {
+			throw new PersistenceException("Failed to findAllPublic", ex);
+		}
+	}
+
+	@Override
+	public boolean isPublic(Long danhSachId)
+	{
+		String sql = "SELECT la_cong_khai FROM danh_sach_lop WHERE id = ?";
+
+		try (Connection connection = DataSourceProvider.getDataSource().getConnection();
+				PreparedStatement ps = connection.prepareStatement(sql)) {
+
+			ps.setLong(1, danhSachId);
+
+			try (ResultSet rs = ps.executeQuery()) {
+				if(rs.next())
+					return rs.getInt("la_cong_khai") == 1;
+			}
+
+			return false;
+
+		}
+		catch(SQLException ex) {
+			throw new PersistenceException("Failed to check isPublic", ex);
 		}
 	}
 

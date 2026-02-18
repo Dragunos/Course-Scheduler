@@ -15,8 +15,9 @@ import java.util.stream.Collectors;
 
 public class JdbcLopHocPhanRepository implements LopHocPhanRepositoryPort
 {
+
 	@Override
-	public Optional<Long> findIdByMaAndHocPhanId(String maLop, Long hocPhanId) throws SQLException
+	public Optional<Long> findIdByMaAndHocPhanId(String maLop, Long hocPhanId)
 	{
 		String sql = "SELECT id FROM lop_hoc_phan WHERE ma_lop = ? AND hoc_phan_id = ?";
 
@@ -29,13 +30,17 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepositoryPort
 			try (ResultSet rs = ps.executeQuery()) {
 				if(rs.next()) return Optional.of(rs.getLong("id"));
 			}
-		}
 
-		return Optional.empty();
+			return Optional.empty();
+
+		}
+		catch(SQLException e) {
+			throw new RuntimeException("Error finding LopHocPhan ID", e);
+		}
 	}
 
 	@Override
-	public Long save(LopHocPhan lop) throws SQLException
+	public Long save(LopHocPhan lop)
 	{
 		String sql = """
 				INSERT INTO lop_hoc_phan
@@ -65,18 +70,25 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepositoryPort
 
 			ps.setString(5, lop.getDiaDiem());
 
-			ps.executeUpdate();
+			int affected = ps.executeUpdate();
+			if(affected == 0) {
+				throw new RuntimeException("Insert lop_hoc_phan failed");
+			}
 
 			try (ResultSet rs = ps.getGeneratedKeys()) {
 				if(rs.next()) return rs.getLong(1);
 			}
-		}
 
-		throw new SQLException("Cannot insert lop_hoc_phan");
+			throw new RuntimeException("No ID returned after insert");
+
+		}
+		catch(SQLException e) {
+			throw new RuntimeException("Error saving LopHocPhan", e);
+		}
 	}
 
 	@Override
-	public Optional<LopHocPhan> findById(Long id) throws SQLException
+	public Optional<LopHocPhan> findById(Long id)
 	{
 		String sql = """
 				SELECT id, ma_lop, hoc_phan_id,
@@ -95,13 +107,17 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepositoryPort
 					return Optional.of(mapRow(rs));
 				}
 			}
-		}
 
-		return Optional.empty();
+			return Optional.empty();
+
+		}
+		catch(SQLException e) {
+			throw new RuntimeException("Error finding LopHocPhan by id", e);
+		}
 	}
 
 	@Override
-	public List<LopHocPhan> findByIds(List<Long> ids) throws SQLException
+	public List<LopHocPhan> findByIds(List<Long> ids)
 	{
 		if(ids == null || ids.isEmpty()) return List.of();
 
@@ -129,9 +145,13 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepositoryPort
 					result.add(mapRow(rs));
 				}
 			}
-		}
 
-		return result;
+			return result;
+
+		}
+		catch(SQLException e) {
+			throw new RuntimeException("Error finding LopHocPhan list", e);
+		}
 	}
 
 	private LopHocPhan mapRow(ResultSet rs) throws SQLException

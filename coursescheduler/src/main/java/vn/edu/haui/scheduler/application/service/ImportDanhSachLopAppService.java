@@ -1,8 +1,10 @@
 package vn.edu.haui.scheduler.application.service;
 
 import vn.edu.haui.scheduler.application.port.in.ImportDanhSachLopUseCase;
+import vn.edu.haui.scheduler.application.dto.DanhSachLopDto;
 import vn.edu.haui.scheduler.application.dto.ImportDanhSachLopRequestDto;
 import vn.edu.haui.scheduler.application.exception.PersistenceException;
+import vn.edu.haui.scheduler.domain.model.DanhSachLop;
 import vn.edu.haui.scheduler.domain.model.GiangVien;
 import vn.edu.haui.scheduler.domain.model.HocPhan;
 import vn.edu.haui.scheduler.domain.model.LopHocPhan;
@@ -51,13 +53,21 @@ public class ImportDanhSachLopAppService implements ImportDanhSachLopUseCase
 	}
 
 	@Override
-	public void importDanhSach(ImportDanhSachLopRequestDto request) throws Exception
+	public DanhSachLopDto importDanhSach(ImportDanhSachLopRequestDto request)
 	{
 		File f = new File(request.getFilePath());
-		if(!f.exists())
+		if(!f.exists()) {
 			throw new IllegalArgumentException("File not found: " + request.getFilePath());
+		}
 
-		List<ImportedLopRow> rows = importer.importFrom(f);
+		List<ImportedLopRow> rows;
+
+		try {
+			rows = importer.importFrom(f);
+		}
+		catch(Exception ex) {
+			throw new PersistenceException("Failed to read file", ex);
+		}
 
 		Map<String, ImportedLopAggregate> map = new LinkedHashMap<>();
 		for(ImportedLopRow r : rows) {
@@ -65,10 +75,15 @@ public class ImportDanhSachLopAppService implements ImportDanhSachLopUseCase
 			agg.merge(r);
 		}
 
-		try {
-			Long tepId = tepRepo.saveMetadata(request.getNguoiTaoId(), f, "application/vnd.ms-excel");
+		Long danhSachId;
 
-			Long danhSachId = danhSachRepo.save(
+		try {
+			tepRepo.saveMetadata(
+					request.getNguoiTaoId(),
+					f,
+					"application/vnd.ms-excel");
+
+			danhSachId = danhSachRepo.save(
 					request.getTenDanhSach(),
 					request.getNguoiTaoId(),
 					request.isLaCongKhai(),
@@ -85,13 +100,18 @@ public class ImportDanhSachLopAppService implements ImportDanhSachLopUseCase
 				lichRepo.saveAll(lopId, lichHocList);
 				danhSachRepo.addChiTiet(danhSachId, lopId);
 			}
+
 		}
 		catch(Exception ex) {
-			throw new PersistenceException("Import failed: " + ex.getMessage(), ex);
+			throw new PersistenceException("Import failed", ex);
 		}
+
+		return danhSachRepo.findByIdWithDetails(danhSachId)
+				.map(this::toDto)
+				.orElseThrow(() -> new PersistenceException("Cannot load created list"));
 	}
 
-	private Long resolveHocPhan(ImportedLopAggregate agg) throws Exception
+	private Long resolveHocPhan(ImportedLopAggregate agg)
 	{
 		if(agg.maHocPhan != null) {
 			Optional<Long> idOpt = hocPhanRepo.findIdByMaHocPhan(agg.maHocPhan);
@@ -107,7 +127,7 @@ public class ImportDanhSachLopAppService implements ImportDanhSachLopUseCase
 		return hocPhanRepo.save(hp);
 	}
 
-	private Long resolveGiangVien(ImportedLopAggregate agg) throws Exception
+	private Long resolveGiangVien(ImportedLopAggregate agg)
 	{
 		if(agg.tenGiangVien != null &&
 				!agg.tenGiangVien.isEmpty()) {
@@ -128,7 +148,7 @@ public class ImportDanhSachLopAppService implements ImportDanhSachLopUseCase
 	private Long resolveLopHocPhan(
 			ImportedLopAggregate agg,
 			Long hocPhanId,
-			Long giangVienId) throws Exception
+			Long giangVienId)
 	{
 		Optional<Long> idOpt = lopRepo.findIdByMaAndHocPhanId(
 				agg.maLop,
@@ -152,7 +172,6 @@ public class ImportDanhSachLopAppService implements ImportDanhSachLopUseCase
 		lop.setDiaDiem(agg.diaDiem);
 
 		return lopRepo.save(lop);
-
 	}
 
 	private List<LichHoc> convertAndDedupeBuoi(
@@ -271,5 +290,18 @@ public class ImportDanhSachLopAppService implements ImportDanhSachLopUseCase
 		{
 			return buoiList;
 		}
+	}
+
+	private DanhSachLopDto toDto(DanhSachLop model)
+	{
+		DanhSachLopDto dto = new DanhSachLopDto();
+		dto.setId(model.getId());
+		dto.setTenDanhSach(model.getTenDanhSach());
+		dto.setNguoiTaoId(model.getNguoiTaoId());
+		dto.setHocKyId(model.getHocKyId());
+		dto.setLaCongKhai(model.getLaCongKhai());
+		dto.setNgayTao(model.getNgayTao());
+
+		return dto;
 	}
 }

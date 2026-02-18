@@ -136,6 +136,11 @@ public class DanhSachLop
 		return Objects.equals(id, that.id);
 	}
 
+	public boolean isCongKhai()
+	{
+		return Integer.valueOf(1).equals(this.laCongKhai);
+	}
+
 	@Override
 	public int hashCode()
 	{
