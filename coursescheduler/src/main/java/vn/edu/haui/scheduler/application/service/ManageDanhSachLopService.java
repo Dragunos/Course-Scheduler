@@ -24,7 +24,7 @@ public class ManageDanhSachLopService implements ManageDanhSachLopUseCase
 	}
 
 	@Override
-	public List<DanhSachLopDto> listDanhSachChoNguoiDung(Long nguoiDungId)
+	public List<DanhSachLopDto> getAllDanhSachLopByNguoiDungId(Long nguoiDungId)
 	{
 		if(nguoiDungId == null) {
 			throw new ValidationException("User id required");
@@ -43,7 +43,7 @@ public class ManageDanhSachLopService implements ManageDanhSachLopUseCase
 	}
 
 	@Override
-	public DanhSachLopDto getChiTietDanhSach(Long nguoiDungId, Long danhSachId)
+	public DanhSachLopDto getDanhSachLopById(Long nguoiDungId, Long danhSachId)
 	{
 		if(nguoiDungId == null || danhSachId == null) {
 			throw new ValidationException("Missing ids");
@@ -72,7 +72,7 @@ public class ManageDanhSachLopService implements ManageDanhSachLopUseCase
 	}
 
 	@Override
-	public DanhSachLopDto updateDanhSach(Long nguoiDungId, UpdateDanhSachLopRequestDto request)
+	public DanhSachLopDto updateDanhSachLop(Long nguoiDungId, UpdateDanhSachLopRequestDto request)
 	{
 		if(nguoiDungId == null || request == null || request.getId() == null) {
 			throw new ValidationException("Invalid request");
@@ -122,7 +122,7 @@ public class ManageDanhSachLopService implements ManageDanhSachLopUseCase
 	}
 
 	@Override
-	public void deleteDanhSach(Long nguoiDungId, Long danhSachId)
+	public void deleteDanhSachLop(Long nguoiDungId, Long danhSachId)
 	{
 		if(nguoiDungId == null || danhSachId == null) {
 			throw new ValidationException("Invalid ids");

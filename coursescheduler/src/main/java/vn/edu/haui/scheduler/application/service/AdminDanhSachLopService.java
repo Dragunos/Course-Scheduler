@@ -28,7 +28,7 @@ public class AdminDanhSachLopService
 	}
 
 	@Override
-	public List<DanhSachLopDto> listDanhSachCongKhai()
+	public List<DanhSachLopDto> getAllDanhSachCongKhai()
 	{
 		try {
 			return repo.findAllPublic()
@@ -42,7 +42,7 @@ public class AdminDanhSachLopService
 	}
 
 	@Override
-	public DanhSachLopDto getChiTiet(Long danhSachId)
+	public DanhSachLopDto getDanhSachLopById(Long danhSachId)
 	{
 		try {
 			Optional<DanhSachLop> opt = repo.findByIdWithDetails(danhSachId);
@@ -65,20 +65,20 @@ public class AdminDanhSachLopService
 	}
 
 	@Override
-	public DanhSachLopDto importDanhSach(
+	public DanhSachLopDto importDanhSachLop(
 			ImportDanhSachLopRequestDto request)
 	{
 		if(request == null) {
 			throw new ValidationException("Invalid request");
 		}
 
-		DanhSachLopDto dto = importUseCase.importDanhSach(request);
+		DanhSachLopDto dto = importUseCase.importDanhSachLop(request);
 
 		return dto;
 	}
 
 	@Override
-	public DanhSachLopDto updateDanhSach(
+	public DanhSachLopDto updateDanhSachLop(
 			UpdateDanhSachLopRequestDto request)
 	{
 		if(request == null || request.getId() == null) {
@@ -99,7 +99,7 @@ public class AdminDanhSachLopService
 				}
 			}
 
-			return getChiTiet(request.getId());
+			return getDanhSachLopById(request.getId());
 		}
 		catch(Exception ex) {
 			throw new DataAccessException("Cannot update", ex);
@@ -107,7 +107,7 @@ public class AdminDanhSachLopService
 	}
 
 	@Override
-	public void deleteDanhSach(Long danhSachId)
+	public void deleteDanhSachLop(Long danhSachId)
 	{
 		try {
 			if(!repo.isPublic(danhSachId)) {

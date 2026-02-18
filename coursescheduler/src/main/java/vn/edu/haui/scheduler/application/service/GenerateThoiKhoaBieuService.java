@@ -48,7 +48,7 @@ public class GenerateThoiKhoaBieuService implements GenerateThoiKhoaBieuUseCase
 	}
 
 	@Override
-	public long taoYeuCau(long nguoiDungId,
+	public long createYeuCau(long nguoiDungId,
 			long danhSachLopId,
 			String tenYeuCau) throws Exception
 	{
@@ -56,7 +56,7 @@ public class GenerateThoiKhoaBieuService implements GenerateThoiKhoaBieuUseCase
 	}
 
 	@Override
-	public List<ThoiKhoaBieuDto> chayToiUu(
+	public List<ThoiKhoaBieuDto> generateThoiKhoaBieu(
 			long yeuCauId,
 			int topK,
 			long timeLimitMillis) throws Exception
@@ -140,7 +140,7 @@ public class GenerateThoiKhoaBieuService implements GenerateThoiKhoaBieuUseCase
 	}
 
 	@Override
-	public long luuPhuongAn(
+	public long saveThoiKhoaBieu(
 			long nguoiDungId,
 			long danhSachLopId,
 			String ten,
@@ -159,14 +159,14 @@ public class GenerateThoiKhoaBieuService implements GenerateThoiKhoaBieuUseCase
 	}
 
 	@Override
-	public List<ThoiKhoaBieuDto> toiUuLai(
+	public List<ThoiKhoaBieuDto> regenerateThoiKhoaBieu(
 			long thoiKhoaBieuId,
 			int topK,
 			long timeLimitMillis) throws Exception
 	{
 		long yeuCauId = yeuCauRepo.createFromThoiKhoaBieu(thoiKhoaBieuId);
 
-		return chayToiUu(yeuCauId, topK, timeLimitMillis);
+		return generateThoiKhoaBieu(yeuCauId, topK, timeLimitMillis);
 	}
 
 	private RangBuocToiUu mapToDomain(RangBuocToiUuDto dto)

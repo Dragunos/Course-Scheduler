@@ -6,12 +6,13 @@ import java.util.List;
 
 public interface GenerateThoiKhoaBieuUseCase
 {
-	long taoYeuCau(long nguoiDungId, long danhSachLopId, String tenYeuCau) throws Exception;
+	long createYeuCau(long nguoiDungId, long danhSachLopId, String tenYeuCau) throws Exception;
 
-	List<ThoiKhoaBieuDto> chayToiUu(long yeuCauId, int topK, long timeLimitMillis) throws Exception;
+	List<ThoiKhoaBieuDto> generateThoiKhoaBieu(long yeuCauId, int topK, long timeLimitMillis) throws Exception;
 
-	long luuPhuongAn(long nguoiDungId, long danhSachLopId, String tenPhuongAn, double diem, List<Long> lopHocPhanIds)
+	long saveThoiKhoaBieu(long nguoiDungId, long danhSachLopId, String tenPhuongAn, double diemDanhGia,
+			List<Long> lopHocPhanIds)
 			throws Exception;
 
-	List<ThoiKhoaBieuDto> toiUuLai(long thoiKhoaBieuId, int topK, long timeLimitMillis) throws Exception;
+	List<ThoiKhoaBieuDto> regenerateThoiKhoaBieu(long thoiKhoaBieuId, int topK, long timeLimitMillis) throws Exception;
 }

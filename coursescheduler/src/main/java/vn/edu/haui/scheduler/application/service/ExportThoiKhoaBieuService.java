@@ -54,7 +54,7 @@ public class ExportThoiKhoaBieuService implements ExportThoiKhoaBieuUseCase
 	}
 
 	@Override
-	public void xuatThoiKhoaBieu(Long nguoiDungId, Long thoiKhoaBieuId, String duongDanFile, String dinhDang)
+	public void exportThoiKhoaBieu(Long nguoiDungId, Long thoiKhoaBieuId, String duongDanFile, String dinhDang)
 			throws ValidationException, DataAccessException
 	{
 		if(nguoiDungId == null)

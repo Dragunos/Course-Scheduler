@@ -37,7 +37,7 @@ public class ExportDanhSachLopService implements ExportDanhSachLopUseCase
 	}
 
 	@Override
-	public void xuatDanhSach(
+	public void exportDanhSachLop(
 			Long nguoiDungId,
 			Long danhSachId,
 			String duongDanFile,

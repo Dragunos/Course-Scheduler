@@ -50,7 +50,7 @@ public class AdminDanhSachLopPaneHandler
 		VBox listBox = new VBox(10);
 
 		try {
-			List<DanhSachLopDto> list = useCase.listDanhSachCongKhai();
+			List<DanhSachLopDto> list = useCase.getAllDanhSachCongKhai();
 
 			if(list == null || list.isEmpty()) {
 				listBox.getChildren()
@@ -102,7 +102,7 @@ public class AdminDanhSachLopPaneHandler
 		try {
 			DanhSachLopDto dto = screenManager
 					.getQuanTriDanhSachLopUseCase()
-					.getChiTiet(id);
+					.getDanhSachLopById(id);
 
 			centerContainer.getChildren().clear();
 
@@ -166,7 +166,7 @@ public class AdminDanhSachLopPaneHandler
 
 				screenManager
 						.getQuanTriDanhSachLopUseCase()
-						.updateDanhSach(req);
+						.updateDanhSachLop(req);
 
 				UiUtils.showAlert("Thành công",
 						"Đã cập nhật.",
@@ -208,7 +208,7 @@ public class AdminDanhSachLopPaneHandler
 			try {
 				screenManager
 						.getQuanTriDanhSachLopUseCase()
-						.deleteDanhSach(id);
+						.deleteDanhSachLop(id);
 
 				showDanhSachCongKhai();
 			}
@@ -241,7 +241,7 @@ public class AdminDanhSachLopPaneHandler
 
 			screenManager
 					.getQuanTriDanhSachLopUseCase()
-					.importDanhSach(req);
+					.importDanhSachLop(req);
 
 			UiUtils.showAlert("Thành công",
 					"Đã nhập danh sách.",

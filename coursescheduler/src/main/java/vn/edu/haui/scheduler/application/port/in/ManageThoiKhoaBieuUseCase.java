@@ -5,11 +5,11 @@ import vn.edu.haui.scheduler.application.dto.ThoiKhoaBieuDto;
 
 public interface ManageThoiKhoaBieuUseCase
 {
-	List<ThoiKhoaBieuDto> layDanhSachTheoNguoiDung(long nguoiDungId) throws Exception;
+	List<ThoiKhoaBieuDto> getAllThoiKhoaBieuByNguoiDungId(long nguoiDungId) throws Exception;
 
-	ThoiKhoaBieuDto xemChiTiet(long thoiKhoaBieuId, long nguoiDungId) throws Exception;
+	ThoiKhoaBieuDto getThoiKhoaBieuById(long thoiKhoaBieuId, long nguoiDungId) throws Exception;
 
-	ThoiKhoaBieuDto doiTen(long thoiKhoaBieuId, long nguoiDungId, String tenMoi) throws Exception;
+	ThoiKhoaBieuDto updateTenThoiKhoaBieu(long thoiKhoaBieuId, long nguoiDungId, String tenMoi) throws Exception;
 
-	void xoa(long thoiKhoaBieuId, long nguoiDungId) throws Exception;
+	void deleteThoiKhoaBieu(long thoiKhoaBieuId, long nguoiDungId) throws Exception;
 }

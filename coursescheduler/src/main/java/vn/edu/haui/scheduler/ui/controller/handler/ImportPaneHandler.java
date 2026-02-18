@@ -70,7 +70,7 @@ public class ImportPaneHandler
 
 				ImportDanhSachLopUseCase useCase = screenManager.getImportDanhSachLopUseCase();
 
-				useCase.importDanhSach(req);
+				useCase.importDanhSachLop(req);
 
 				UiUtils.showAlert("Thành công",
 						"Nhập hoàn tất.",

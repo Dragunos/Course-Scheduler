@@ -5,6 +5,6 @@ import vn.edu.haui.scheduler.application.exception.ValidationException;
 
 public interface ExportThoiKhoaBieuUseCase
 {
-	void xuatThoiKhoaBieu(Long nguoiDungId, Long thoiKhoaBieuId, String duongDanFile, String dinhDang)
+	void exportThoiKhoaBieu(Long nguoiDungId, Long thoiKhoaBieuId, String duongDanFile, String dinhDang)
 			throws ValidationException, DataAccessException;
 }

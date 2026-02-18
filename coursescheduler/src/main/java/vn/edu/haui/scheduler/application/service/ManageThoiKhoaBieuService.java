@@ -32,7 +32,7 @@ public class ManageThoiKhoaBieuService implements ManageThoiKhoaBieuUseCase
 	}
 
 	@Override
-	public List<ThoiKhoaBieuDto> layDanhSachTheoNguoiDung(long nguoiDungId) throws Exception
+	public List<ThoiKhoaBieuDto> getAllThoiKhoaBieuByNguoiDungId(long nguoiDungId) throws Exception
 	{
 		List<ThoiKhoaBieu> danhSach = thoiKhoaBieuRepo.findByNguoiDungId(nguoiDungId);
 
@@ -42,7 +42,7 @@ public class ManageThoiKhoaBieuService implements ManageThoiKhoaBieuUseCase
 	}
 
 	@Override
-	public ThoiKhoaBieuDto xemChiTiet(long thoiKhoaBieuId, long nguoiDungId) throws Exception
+	public ThoiKhoaBieuDto getThoiKhoaBieuById(long thoiKhoaBieuId, long nguoiDungId) throws Exception
 	{
 		ThoiKhoaBieu pa = thoiKhoaBieuRepo.findById(thoiKhoaBieuId)
 				.orElseThrow(() -> new RuntimeException("Không tìm thấy thời khóa biểu"));
@@ -100,7 +100,7 @@ public class ManageThoiKhoaBieuService implements ManageThoiKhoaBieuUseCase
 	}
 
 	@Override
-	public ThoiKhoaBieuDto doiTen(long thoiKhoaBieuId, long nguoiDungId, String tenMoi) throws Exception
+	public ThoiKhoaBieuDto updateTenThoiKhoaBieu(long thoiKhoaBieuId, long nguoiDungId, String tenMoi) throws Exception
 	{
 		if(tenMoi == null || tenMoi.trim().isEmpty())
 			throw new RuntimeException("Tên không hợp lệ");
@@ -118,7 +118,7 @@ public class ManageThoiKhoaBieuService implements ManageThoiKhoaBieuUseCase
 	}
 
 	@Override
-	public void xoa(long thoiKhoaBieuId, long nguoiDungId) throws Exception
+	public void deleteThoiKhoaBieu(long thoiKhoaBieuId, long nguoiDungId) throws Exception
 	{
 		ThoiKhoaBieu pa = thoiKhoaBieuRepo.findById(thoiKhoaBieuId)
 				.orElseThrow(() -> new RuntimeException("Không tìm thấy thời khóa biểu"));

@@ -7,13 +7,13 @@ import vn.edu.haui.scheduler.application.dto.UpdateDanhSachLopRequestDto;
 
 public interface AdminDanhSachLopUseCase
 {
-	List<DanhSachLopDto> listDanhSachCongKhai();
+	List<DanhSachLopDto> getAllDanhSachCongKhai();
 
-	DanhSachLopDto getChiTiet(Long danhSachId);
+	DanhSachLopDto getDanhSachLopById(Long danhSachLopId);
 
-	DanhSachLopDto importDanhSach(ImportDanhSachLopRequestDto request);
+	DanhSachLopDto importDanhSachLop(ImportDanhSachLopRequestDto request);
 
-	DanhSachLopDto updateDanhSach(UpdateDanhSachLopRequestDto request);
+	DanhSachLopDto updateDanhSachLop(UpdateDanhSachLopRequestDto request);
 
-	void deleteDanhSach(Long danhSachId); 
+	void deleteDanhSachLop(Long danhSachLopId);
 }

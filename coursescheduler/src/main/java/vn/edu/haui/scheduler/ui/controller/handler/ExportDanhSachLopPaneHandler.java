@@ -75,7 +75,7 @@ public class ExportDanhSachLopPaneHandler
 
 				ExportDanhSachLopUseCase useCase = screenManager.getXuatDanhSachLopUseCase();
 
-				useCase.xuatDanhSach(
+				useCase.exportDanhSachLop(
 						user.getId(),
 						dto.getId(),
 						pathField.getText(),

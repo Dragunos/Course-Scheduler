@@ -5,6 +5,6 @@ import vn.edu.haui.scheduler.application.exception.ValidationException;
 
 public interface ExportDanhSachLopUseCase
 {
-	void xuatDanhSach(Long nguoiDungId, Long danhSachId, String duongDanFile, String dinhDang)
+	void exportDanhSachLop(Long nguoiDungId, Long danhSachLopId, String duongDanFile, String dinhDang)
 			throws ValidationException, DataAccessException;
 }

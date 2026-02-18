@@ -46,7 +46,7 @@ public class ManageDanhSachLopPaneHandler
 
 		try {
 			Long userId = screenManager.getCurrentUser().getId();
-			List<DanhSachLopDto> list = useCase.listDanhSachChoNguoiDung(userId);
+			List<DanhSachLopDto> list = useCase.getAllDanhSachLopByNguoiDungId(userId);
 
 			if(list == null || list.isEmpty()) {
 				listBox.getChildren().add(new Label("Không có danh sách nào."));
@@ -103,7 +103,7 @@ public class ManageDanhSachLopPaneHandler
 			Long userId = screenManager.getCurrentUser().getId();
 			ManageDanhSachLopUseCase useCase = screenManager.getQuanLyDanhSachLopUseCase();
 
-			DanhSachLopDto detail = useCase.getChiTietDanhSach(userId, dto.getId());
+			DanhSachLopDto detail = useCase.getDanhSachLopById(userId, dto.getId());
 
 			Label title = new Label("Chi tiết: " + dto.getTenDanhSach());
 			title.getStyleClass().add("home-title");
@@ -160,7 +160,7 @@ public class ManageDanhSachLopPaneHandler
 				Long userId = screenManager.getCurrentUser().getId();
 
 				screenManager.getQuanLyDanhSachLopUseCase()
-						.updateDanhSach(userId, req);
+						.updateDanhSachLop(userId, req);
 
 				UiUtils.showAlert("Thành công", "Đã cập nhật.",
 						Alert.AlertType.INFORMATION);
@@ -199,7 +199,7 @@ public class ManageDanhSachLopPaneHandler
 				Long userId = screenManager.getCurrentUser().getId();
 
 				screenManager.getQuanLyDanhSachLopUseCase()
-						.deleteDanhSach(userId, dto.getId());
+						.deleteDanhSachLop(userId, dto.getId());
 
 				UiUtils.showAlert("Thành công", "Đã xóa.",
 						Alert.AlertType.INFORMATION);

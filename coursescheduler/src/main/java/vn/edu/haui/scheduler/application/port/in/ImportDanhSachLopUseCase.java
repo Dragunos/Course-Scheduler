@@ -5,5 +5,5 @@ import vn.edu.haui.scheduler.application.dto.ImportDanhSachLopRequestDto;
 
 public interface ImportDanhSachLopUseCase
 {
-	DanhSachLopDto importDanhSach(ImportDanhSachLopRequestDto request);
+	DanhSachLopDto importDanhSachLop(ImportDanhSachLopRequestDto request);
 }

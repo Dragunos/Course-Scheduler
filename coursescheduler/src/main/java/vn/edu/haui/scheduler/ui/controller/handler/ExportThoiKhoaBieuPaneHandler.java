@@ -89,7 +89,7 @@ public class ExportThoiKhoaBieuPaneHandler
 					return;
 				}
 
-				useCase.xuatThoiKhoaBieu(user.getId(), dto.getId(), pathField.getText(), format);
+				useCase.exportThoiKhoaBieu(user.getId(), dto.getId(), pathField.getText(), format);
 
 				UiUtils.showAlert("Thành công", "Xuất thời khóa biểu thành công.", Alert.AlertType.INFORMATION);
 

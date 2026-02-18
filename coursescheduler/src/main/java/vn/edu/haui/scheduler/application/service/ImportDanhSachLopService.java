@@ -53,7 +53,7 @@ public class ImportDanhSachLopService implements ImportDanhSachLopUseCase
 	}
 
 	@Override
-	public DanhSachLopDto importDanhSach(ImportDanhSachLopRequestDto request)
+	public DanhSachLopDto importDanhSachLop(ImportDanhSachLopRequestDto request)
 	{
 		File f = new File(request.getFilePath());
 		if(!f.exists()) {

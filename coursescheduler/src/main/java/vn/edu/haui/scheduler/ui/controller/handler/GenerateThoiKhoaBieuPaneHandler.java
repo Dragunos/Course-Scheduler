@@ -62,7 +62,7 @@ public class GenerateThoiKhoaBieuPaneHandler
 		List<DanhSachLopDto> dsList;
 		try {
 			Long userId = screenManager.getCurrentUser().getId();
-			dsList = dsUseCase.listDanhSachChoNguoiDung(userId);
+			dsList = dsUseCase.getAllDanhSachLopByNguoiDungId(userId);
 		}
 		catch(Exception ex) {
 			UiUtils.showAlert("Lỗi hệ thống", ex.getMessage(), Alert.AlertType.ERROR);
@@ -131,10 +131,10 @@ public class GenerateThoiKhoaBieuPaneHandler
 			try {
 				Long userId = screenManager.getCurrentUser().getId();
 
-				long yeuCauId = useCase.taoYeuCau(userId, selected.getId(),
+				long yeuCauId = useCase.createYeuCau(userId, selected.getId(),
 						"Yêu cầu từ UI " + System.currentTimeMillis());
 
-				List<ThoiKhoaBieuDto> solutions = useCase.chayToiUu(yeuCauId, topK, timeLimit);
+				List<ThoiKhoaBieuDto> solutions = useCase.generateThoiKhoaBieu(yeuCauId, topK, timeLimit);
 
 				resultBox.getChildren().clear();
 
@@ -176,7 +176,7 @@ public class GenerateThoiKhoaBieuPaneHandler
 									}
 								}
 
-								long savedId = useCase.luuPhuongAn(screenManager.getCurrentUser().getId(),
+								long savedId = useCase.saveThoiKhoaBieu(screenManager.getCurrentUser().getId(),
 										selected.getId(), tenPA, pa.getDiemDanhGia(), ids);
 
 								UiUtils.showAlert("Thành công", "Đã lưu phương án (id=" + savedId + ")",
@@ -189,7 +189,7 @@ public class GenerateThoiKhoaBieuPaneHandler
 
 						optimizeAgainBtn.setOnAction(ev -> {
 							try {
-								List<ThoiKhoaBieuDto> again = useCase.chayToiUu(yeuCauId, topK, timeLimit);
+								List<ThoiKhoaBieuDto> again = useCase.generateThoiKhoaBieu(yeuCauId, topK, timeLimit);
 								resultBox.getChildren().clear();
 								for(ThoiKhoaBieuDto pa2 : again) {
 									resultBox.getChildren().add(renderSolutionNode(pa2, useCase, selected));
@@ -247,7 +247,7 @@ public class GenerateThoiKhoaBieuPaneHandler
 					}
 				}
 
-				long saved = useCase.luuPhuongAn(screenManager.getCurrentUser().getId(),
+				long saved = useCase.saveThoiKhoaBieu(screenManager.getCurrentUser().getId(),
 						danhSach.getId(),
 						"PA " + System.currentTimeMillis(),
 						pa.getDiemDanhGia(),

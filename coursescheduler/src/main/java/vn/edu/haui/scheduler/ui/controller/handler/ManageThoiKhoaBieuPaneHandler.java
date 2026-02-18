@@ -45,7 +45,7 @@ public class ManageThoiKhoaBieuPaneHandler
 
 		try {
 			Long userId = screenManager.getCurrentUser().getId();
-			List<ThoiKhoaBieuDto> list = useCase.layDanhSachTheoNguoiDung(userId);
+			List<ThoiKhoaBieuDto> list = useCase.getAllThoiKhoaBieuByNguoiDungId(userId);
 
 			if(list == null || list.isEmpty()) {
 				listBox.getChildren().add(new Label("Không có thời khóa biểu nào."));
@@ -100,7 +100,7 @@ public class ManageThoiKhoaBieuPaneHandler
 			Long userId = screenManager.getCurrentUser().getId();
 			ManageThoiKhoaBieuUseCase useCase = screenManager.getQuanLyThoiKhoaBieuUseCase();
 
-			ThoiKhoaBieuDto detail = useCase.xemChiTiet(dto.getId(), userId);
+			ThoiKhoaBieuDto detail = useCase.getThoiKhoaBieuById(dto.getId(), userId);
 
 			Label title = new Label(
 					"Chi tiết: " + (dto.getTenPhuongAn() != null ? dto.getTenPhuongAn() : "<không tên>"));
@@ -157,7 +157,7 @@ public class ManageThoiKhoaBieuPaneHandler
 				Long userId = screenManager.getCurrentUser().getId();
 				ManageThoiKhoaBieuUseCase useCase = screenManager.getQuanLyThoiKhoaBieuUseCase();
 
-				ThoiKhoaBieuDto updated = useCase.doiTen(dto.getId(), userId, tenField.getText());
+				ThoiKhoaBieuDto updated = useCase.updateTenThoiKhoaBieu(dto.getId(), userId, tenField.getText());
 
 				UiUtils.showAlert("Thành công", "Đã cập nhật tên.", Alert.AlertType.INFORMATION);
 
@@ -188,7 +188,7 @@ public class ManageThoiKhoaBieuPaneHandler
 		if(result.isPresent() && result.get() == ButtonType.OK) {
 			try {
 				Long userId = screenManager.getCurrentUser().getId();
-				screenManager.getQuanLyThoiKhoaBieuUseCase().xoa(dto.getId(), userId);
+				screenManager.getQuanLyThoiKhoaBieuUseCase().deleteThoiKhoaBieu(dto.getId(), userId);
 
 				UiUtils.showAlert("Thành công", "Đã xóa.", Alert.AlertType.INFORMATION);
 
