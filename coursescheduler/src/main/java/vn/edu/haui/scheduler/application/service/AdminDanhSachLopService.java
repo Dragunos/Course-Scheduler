@@ -127,12 +127,23 @@ public class AdminDanhSachLopService
 	private DanhSachLopDto toDto(DanhSachLop model)
 	{
 		DanhSachLopDto dto = new DanhSachLopDto();
+
 		dto.setId(model.getId());
 		dto.setTenDanhSach(model.getTenDanhSach());
-		dto.setHocKyId(model.getHocKyId());
-		dto.setNguoiTaoId(model.getNguoiTaoId());
-		dto.setLaCongKhai(model.getLaCongKhai());
+
+		dto.setHocKyId(
+				model.getHocKy() != null
+						? model.getHocKy().getId()
+						: null);
+
+		dto.setNguoiTaoId(
+				model.getNguoiTao() != null
+						? model.getNguoiTao().getId()
+						: null);
+
+		dto.setLaCongKhai(model.isCongKhai() ? 1 : 0);
 		dto.setNgayTao(model.getNgayTao());
+
 		return dto;
 	}
 }

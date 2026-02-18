@@ -2,8 +2,6 @@ package vn.edu.haui.scheduler.domain.model;
 
 import vn.edu.haui.scheduler.domain.enums.ThuTrongTuan;
 
-import java.util.Objects;
-
 public class LichHoc
 {
 	private Long id;
@@ -12,21 +10,26 @@ public class LichHoc
 
 	private ThuTrongTuan thu;
 
-	private Integer tietBatDau;
-
-	private Integer tietKetThuc;
+	private KhoangTiet khoangTiet;
 
 	public LichHoc()
 	{
 	}
 
-	public LichHoc(Long id, Long lopHocPhanId, ThuTrongTuan thu, Integer tietBatDau, Integer tietKetThuc)
+	public LichHoc(Long id, Long lopHocPhanId, ThuTrongTuan thu, KhoangTiet khoangTiet)
 	{
 		this.id = id;
 		this.lopHocPhanId = lopHocPhanId;
 		this.thu = thu;
-		setTietBatDau(tietBatDau);
-		setTietKetThuc(tietKetThuc);
+		this.khoangTiet = khoangTiet;
+	}
+
+	public LichHoc(Long id, Long lopHocPhanId, ThuTrongTuan thu, int tietBatDau, int tietKetThuc)
+	{
+		this.id = id;
+		this.lopHocPhanId = lopHocPhanId;
+		this.thu = thu;
+		this.khoangTiet = new KhoangTiet(tietBatDau, tietKetThuc);
 	}
 
 	public Long getId()
@@ -59,29 +62,38 @@ public class LichHoc
 		this.thu = thu;
 	}
 
-	public Integer getTietBatDau()
+	public KhoangTiet getKhoangTiet()
 	{
-		return tietBatDau;
+		return khoangTiet;
 	}
 
-	public void setTietBatDau(Integer tietBatDau)
+	public Integer getTietBatDau()
 	{
-		this.tietBatDau = tietBatDau;
-		if(this.tietKetThuc != null && this.tietBatDau != null && this.tietBatDau > this.tietKetThuc) {
-			throw new IllegalArgumentException("tietBatDau must be <= tietKetThuc");
-		}
+		return khoangTiet != null ? khoangTiet.getTietBatDau() : null;
 	}
 
 	public Integer getTietKetThuc()
 	{
-		return tietKetThuc;
+		return khoangTiet != null ? khoangTiet.getTietKetThuc() : null;
 	}
 
-	public void setTietKetThuc(Integer tietKetThuc)
+	public void setTietBatDau(int tietBatDau)
 	{
-		this.tietKetThuc = tietKetThuc;
-		if(this.tietBatDau != null && this.tietKetThuc != null && this.tietBatDau > this.tietKetThuc) {
-			throw new IllegalArgumentException("tietBatDau must be <= tietKetThuc");
+		if(this.khoangTiet == null) {
+			this.khoangTiet = new KhoangTiet(tietBatDau, tietBatDau);
+		}
+		else {
+			this.khoangTiet = new KhoangTiet(tietBatDau, this.khoangTiet.getTietKetThuc());
+		}
+	}
+
+	public void setTietKetThuc(int tietKetThuc)
+	{
+		if(this.khoangTiet == null) {
+			this.khoangTiet = new KhoangTiet(tietKetThuc, tietKetThuc);
+		}
+		else {
+			this.khoangTiet = new KhoangTiet(this.khoangTiet.getTietBatDau(), tietKetThuc);
 		}
 	}
 
@@ -89,15 +101,15 @@ public class LichHoc
 	public boolean equals(Object o)
 	{
 		if(this == o) return true;
-		if(o == null || getClass() != o.getClass()) return false;
-		LichHoc lichHoc = (LichHoc) o;
-		return Objects.equals(id, lichHoc.id);
+		if(!(o instanceof LichHoc)) return false;
+		LichHoc other = (LichHoc) o;
+		return id != null && id.equals(other.id);
 	}
 
 	@Override
 	public int hashCode()
 	{
-		return Objects.hash(id);
+		return id != null ? id.hashCode() : 0;
 	}
 
 	@Override
@@ -107,8 +119,7 @@ public class LichHoc
 				"id=" + id +
 				", lopHocPhanId=" + lopHocPhanId +
 				", thu=" + thu +
-				", tietBatDau=" + tietBatDau +
-				", tietKetThuc=" + tietKetThuc +
+				", khoangTiet=" + khoangTiet +
 				'}';
 	}
 }

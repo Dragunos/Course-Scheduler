@@ -151,35 +151,21 @@ public class ManageDanhSachLopService implements ManageDanhSachLopUseCase
 
 		dto.setId(model.getId());
 		dto.setTenDanhSach(model.getTenDanhSach());
-		dto.setHocKyId(model.getHocKyId());
-		dto.setNguoiTaoId(model.getNguoiTaoId());
-		dto.setLaCongKhai(model.getLaCongKhai());
+
+		dto.setNguoiTaoId(
+				model.getNguoiTao() != null
+						? model.getNguoiTao().getId()
+						: null);
+
+		dto.setHocKyId(
+				model.getHocKy() != null
+						? model.getHocKy().getId()
+						: null);
+
+		dto.setLaCongKhai(model.isCongKhai() ? 1 : 0);
+
 		dto.setNgayTao(model.getNgayTao());
 
-		if(model.getChiTietList() != null) {
-
-			List<DanhSachLopChiTietDto> chiTietDtos = model.getChiTietList().stream()
-					.map(ct -> {
-
-						DanhSachLopChiTietDto ctd = new DanhSachLopChiTietDto();
-
-						ctd.setLopHocPhanId(ct.getLopHocPhan().getId());
-						ctd.setMaLop(ct.getLopHocPhan().getMaLop());
-						ctd.setTenHocPhan(ct.getLopHocPhan().getHocPhan().getTenHocPhan());
-
-						if(ct.getLopHocPhan().getGiangVien() != null) {
-							ctd.setTenGiangVien(
-									ct.getLopHocPhan().getGiangVien().getTenGiangVien());
-						}
-
-						ctd.setBatBuoc(ct.getBatBuoc());
-
-						return ctd;
-					})
-					.collect(Collectors.toList());
-
-			dto.setChiTiet(chiTietDtos);
-		}
 		return dto;
 	}
 }

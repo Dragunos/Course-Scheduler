@@ -10,6 +10,8 @@ public class DanhSachLopChiTietDto
 
 	private String maLop;
 
+	private String maHocPhan;
+
 	private String tenHocPhan;
 
 	private Integer soTinChi;
@@ -33,6 +35,7 @@ public class DanhSachLopChiTietDto
 	public DanhSachLopChiTietDto(
 			Long lopHocPhanId,
 			String maLop,
+			String maHocPhan,
 			String tenHocPhan,
 			Integer soTinChi,
 			String tenGiangVien,
@@ -43,6 +46,7 @@ public class DanhSachLopChiTietDto
 	{
 		this.lopHocPhanId = lopHocPhanId;
 		this.maLop = maLop;
+		this.maHocPhan = maHocPhan;
 		this.tenHocPhan = tenHocPhan;
 		this.soTinChi = soTinChi;
 		this.tenGiangVien = tenGiangVien;
@@ -70,6 +74,16 @@ public class DanhSachLopChiTietDto
 	public void setMaLop(String maLop)
 	{
 		this.maLop = maLop;
+	}
+
+	public String getMaHocPhan()
+	{
+		return maHocPhan;
+	}
+
+	public void setMaHocPhan(String maHocPhan)
+	{
+		this.maHocPhan = maHocPhan;
 	}
 
 	public String getTenHocPhan()

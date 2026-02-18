@@ -1,49 +1,75 @@
 package vn.edu.haui.scheduler.domain.model;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class DanhSachLop
 {
 	private Long id;
 
-	private String tenDanhSach;
+	private final String tenDanhSach;
 
-	private Long nguoiTaoId;
+	private final NguoiDung nguoiTao;
 
-	private Integer laCongKhai;
+	private final boolean congKhai;
 
-	private Long hocKyId;
+	private final HocKy hocKy;
 
-	private LocalDateTime ngayTao;
+	private final LocalDateTime ngayTao;
 
-	private List<DanhSachLopChiTiet> chiTietList;
+	private final List<DanhSachLopChiTiet> chiTietList;
 
-	public DanhSachLop()
+	public DanhSachLop(String tenDanhSach,
+			NguoiDung nguoiTao,
+			boolean congKhai,
+			HocKy hocKy)
 	{
+		if(tenDanhSach == null || tenDanhSach.isBlank())
+			throw new IllegalArgumentException("Ten danh sach khong duoc rong");
+
+		this.tenDanhSach = tenDanhSach.trim();
+		this.nguoiTao = Objects.requireNonNull(nguoiTao);
+		this.congKhai = congKhai;
+		this.hocKy = Objects.requireNonNull(hocKy);
+		this.ngayTao = LocalDateTime.now();
 		this.chiTietList = new ArrayList<>();
 	}
 
 	public DanhSachLop(Long id,
 			String tenDanhSach,
-			Long nguoiTaoId,
-			Integer laCongKhai,
-			Long hocKyId,
+			NguoiDung nguoiTao,
+			boolean congKhai,
+			HocKy hocKy,
 			LocalDateTime ngayTao,
 			List<DanhSachLopChiTiet> chiTietList)
 	{
-
 		this.id = id;
 		this.tenDanhSach = tenDanhSach;
-		this.nguoiTaoId = nguoiTaoId;
-		this.laCongKhai = laCongKhai;
-		this.hocKyId = hocKyId;
+		this.nguoiTao = nguoiTao;
+		this.congKhai = congKhai;
+		this.hocKy = hocKy;
 		this.ngayTao = ngayTao;
-		this.chiTietList = (chiTietList == null)
+		this.chiTietList = chiTietList == null
 				? new ArrayList<>()
 				: new ArrayList<>(chiTietList);
+	}
+
+	public void themLop(LopHocPhan lop, boolean batBuoc)
+	{
+		Objects.requireNonNull(lop);
+
+		boolean daTonTai = chiTietList.stream()
+				.anyMatch(ct -> ct.getLopHocPhan().getId().equals(lop.getId()));
+
+		if(daTonTai)
+			throw new IllegalStateException("Lop da ton tai");
+
+		chiTietList.add(new DanhSachLopChiTiet(lop, batBuoc));
+	}
+
+	public List<DanhSachLopChiTiet> getChiTietList()
+	{
+		return Collections.unmodifiableList(chiTietList);
 	}
 
 	public Long getId()
@@ -51,113 +77,28 @@ public class DanhSachLop
 		return id;
 	}
 
-	public void setId(Long id)
-	{
-		this.id = id;
-	}
-
 	public String getTenDanhSach()
 	{
 		return tenDanhSach;
 	}
 
-	public void setTenDanhSach(String tenDanhSach)
+	public NguoiDung getNguoiTao()
 	{
-		this.tenDanhSach = tenDanhSach;
+		return nguoiTao;
 	}
 
-	public Long getNguoiTaoId()
+	public boolean isCongKhai()
 	{
-		return nguoiTaoId;
+		return congKhai;
 	}
 
-	public void setNguoiTaoId(Long nguoiTaoId)
+	public HocKy getHocKy()
 	{
-		this.nguoiTaoId = nguoiTaoId;
-	}
-
-	public Integer getLaCongKhai()
-	{
-		return laCongKhai;
-	}
-
-	public void setLaCongKhai(Integer laCongKhai)
-	{
-		this.laCongKhai = laCongKhai;
-	}
-
-	public Long getHocKyId()
-	{
-		return hocKyId;
-	}
-
-	public void setHocKyId(Long hocKyId)
-	{
-		this.hocKyId = hocKyId;
+		return hocKy;
 	}
 
 	public LocalDateTime getNgayTao()
 	{
 		return ngayTao;
-	}
-
-	public void setNgayTao(LocalDateTime ngayTao)
-	{
-		this.ngayTao = ngayTao;
-	}
-
-	public List<DanhSachLopChiTiet> getChiTietList()
-	{
-		return new ArrayList<>(chiTietList);
-	}
-
-	public void setChiTietList(List<DanhSachLopChiTiet> chiTietList)
-	{
-		this.chiTietList = (chiTietList == null)
-				? new ArrayList<>()
-				: new ArrayList<>(chiTietList);
-	}
-
-	public List<Long> getLopHocPhanIds()
-	{
-		List<Long> ids = new ArrayList<>();
-		for(DanhSachLopChiTiet ct : chiTietList) {
-			ids.add(ct.getLopHocPhanId());
-		}
-		return ids;
-	}
-
-	@Override
-	public boolean equals(Object o)
-	{
-		if(this == o) return true;
-		if(!(o instanceof DanhSachLop)) return false;
-		DanhSachLop that = (DanhSachLop) o;
-		return Objects.equals(id, that.id);
-	}
-
-	public boolean isCongKhai()
-	{
-		return Integer.valueOf(1).equals(this.laCongKhai);
-	}
-
-	@Override
-	public int hashCode()
-	{
-		return Objects.hash(id);
-	}
-
-	@Override
-	public String toString()
-	{
-		return "DanhSachLop{" +
-				"id=" + id +
-				", tenDanhSach='" + tenDanhSach + '\'' +
-				", nguoiTaoId=" + nguoiTaoId +
-				", laCongKhai=" + laCongKhai +
-				", hocKyId=" + hocKyId +
-				", ngayTao=" + ngayTao +
-				", chiTietList=" + chiTietList +
-				'}';
 	}
 }

@@ -1,34 +1,38 @@
 package vn.edu.haui.scheduler.domain.model;
 
+import java.util.Objects;
+
 import vn.edu.haui.scheduler.domain.enums.ThuTrongTuan;
 
-public class BuoiHoc
-{
-	private ThuTrongTuan thu;
+public final class BuoiHoc {
 
-	private KhoangTiet khoangTiet;
+	private final ThuTrongTuan thu;
+	private final KhoangTiet khoangTiet;
 
-	public BuoiHoc()
-	{
+	public BuoiHoc(ThuTrongTuan thu, KhoangTiet khoangTiet) {
+		this.thu = Objects.requireNonNull(thu);
+		this.khoangTiet = Objects.requireNonNull(khoangTiet);
 	}
 
-	public ThuTrongTuan getThu()
-	{
+	public ThuTrongTuan getThu() {
 		return thu;
 	}
 
-	public void setThu(ThuTrongTuan thu)
-	{
-		this.thu = thu;
-	}
-
-	public KhoangTiet getKhoangTiet()
-	{
+	public KhoangTiet getKhoangTiet() {
 		return khoangTiet;
 	}
 
-	public void setKhoangTiet(KhoangTiet khoangTiet)
-	{
-		this.khoangTiet = khoangTiet;
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof BuoiHoc)) return false;
+		BuoiHoc that = (BuoiHoc) o;
+		return thu == that.thu &&
+			   khoangTiet.equals(that.khoangTiet);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(thu, khoangTiet);
 	}
 }

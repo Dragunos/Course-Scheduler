@@ -198,9 +198,8 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 								new ArrayList<>());
 
 						chiTiet = new DanhSachLopChiTiet(
-								danhSachId,
 								lop,
-								rs.getInt("bat_buoc"));
+								rs.getInt("bat_buoc") == 1);
 
 						chiTietMap.put(lopHocPhanId, chiTiet);
 					}
@@ -219,8 +218,16 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 
 				} while(rs.next());
 
-				danhSach.setChiTietList(new ArrayList<>(chiTietMap.values()));
-				return Optional.of(danhSach);
+				return Optional.of(
+						new DanhSachLop(
+								danhSach.getId(),
+								danhSach.getTenDanhSach(),
+								danhSach.getNguoiTao(),
+								danhSach.isCongKhai(),
+								danhSach.getHocKy(),
+								danhSach.getNgayTao(),
+								new ArrayList<>(chiTietMap.values())));
+
 			}
 
 		}
@@ -386,12 +393,28 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 		Timestamp ts = rs.getTimestamp("ngay_tao");
 		LocalDateTime ngayTao = ts != null ? ts.toLocalDateTime() : null;
 
+		Long nguoiTaoId = rs.getLong("nguoi_tao_id");
+		Long hocKyId = rs.getObject("hoc_ky_id") != null
+				? rs.getLong("hoc_ky_id")
+				: null;
+
+		NguoiDung nguoiTao = new NguoiDung(
+				nguoiTaoId,
+				null,
+				null,
+				null,
+				null);
+
+		HocKy hocKy = hocKyId != null
+				? new HocKy(hocKyId, "UNKNOWN", "UNKNOWN")
+				: null;
+
 		return new DanhSachLop(
 				rs.getLong("id"),
 				rs.getString("ten_danh_sach"),
-				rs.getLong("nguoi_tao_id"),
-				rs.getInt("la_cong_khai"),
-				rs.getObject("hoc_ky_id") != null ? rs.getLong("hoc_ky_id") : null,
+				nguoiTao,
+				rs.getInt("la_cong_khai") == 1,
+				hocKy,
 				ngayTao,
 				new ArrayList<>());
 	}

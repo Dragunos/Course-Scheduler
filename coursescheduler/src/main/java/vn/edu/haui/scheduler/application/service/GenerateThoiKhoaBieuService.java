@@ -97,7 +97,7 @@ public class GenerateThoiKhoaBieuService implements GenerateThoiKhoaBieuUseCase
 	{
 		List<Long> ids = danhSach.getChiTietList()
 				.stream()
-				.map(DanhSachLopChiTiet::getLopHocPhanId)
+				.map(ct -> ct.getLopHocPhan().getId())
 				.collect(Collectors.toList());
 
 		List<LopHocPhan> lops = lopRepo.findByIds(ids);

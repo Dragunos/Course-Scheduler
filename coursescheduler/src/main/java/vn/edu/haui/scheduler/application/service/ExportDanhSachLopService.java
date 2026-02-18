@@ -58,7 +58,8 @@ public class ExportDanhSachLopService implements ExportDanhSachLopUseCase
 			DanhSachLop entity = danhSachRepo.findByIdWithDetails(danhSachId)
 					.orElseThrow(() -> new ValidationException("Không tìm thấy danh sách lớp."));
 
-			if(!entity.getNguoiTaoId().equals(nguoiDungId))
+			if(entity.getNguoiTao() == null || !entity.getNguoiTao().getId().equals(nguoiDungId))
+
 				throw new ValidationException("Không có quyền xuất danh sách này.");
 
 			DanhSachLopDto ds = mapToDto(entity);
@@ -125,7 +126,6 @@ public class ExportDanhSachLopService implements ExportDanhSachLopUseCase
 
 	private DanhSachLopDto mapToDto(DanhSachLop entity)
 	{
-
 		List<DanhSachLopChiTietDto> chiTietDtos = new ArrayList<>();
 
 		for(DanhSachLopChiTiet ct : entity.getChiTietList()) {
@@ -135,32 +135,37 @@ public class ExportDanhSachLopService implements ExportDanhSachLopUseCase
 			GiangVien gv = lhp.getGiangVien();
 
 			List<LichHocDto> lichDtos = new ArrayList<>();
-			for(LichHoc lich : lhp.getDanhSachLichHoc()) {
-				lichDtos.add(new LichHocDto(
-						lich.getThu(),
-						lich.getTietBatDau(),
-						lich.getTietKetThuc()));
 
+			if(lhp.getDanhSachLichHoc() != null) {
+				for(LichHoc lich : lhp.getDanhSachLichHoc()) {
+					lichDtos.add(new LichHocDto(
+							lich.getThu(),
+							lich.getTietBatDau(),
+							lich.getTietKetThuc()));
+				}
 			}
 
-			chiTietDtos.add(new DanhSachLopChiTietDto(
+			DanhSachLopChiTietDto dto = new DanhSachLopChiTietDto(
 					lhp.getId(),
 					lhp.getMaLop(),
+					hp.getMaHocPhan(),
 					hp.getTenHocPhan(),
 					hp.getSoTinChi(),
 					gv == null ? "" : gv.getTenGiangVien(),
 					lhp.getHinhThucDay().name(),
 					lhp.getDiaDiem(),
 					lichDtos,
-					ct.getBatBuoc()));
+					ct.isBatBuoc() ? 1 : 0);
+
+			chiTietDtos.add(dto);
 		}
 
 		return new DanhSachLopDto(
 				entity.getId(),
 				entity.getTenDanhSach(),
-				entity.getNguoiTaoId(),
-				entity.getLaCongKhai(),
-				entity.getHocKyId(),
+				entity.getNguoiTao() == null ? null : entity.getNguoiTao().getId(),
+				entity.isCongKhai() ? 1 : 0,
+				entity.getHocKy() == null ? null : entity.getHocKy().getId(),
 				entity.getNgayTao(),
 				chiTietDtos);
 	}
@@ -170,34 +175,33 @@ public class ExportDanhSachLopService implements ExportDanhSachLopUseCase
 			DanhSachLopChiTietDto ct,
 			LichHocDto lich)
 	{
-		Map<String, String> r = new LinkedHashMap<>();
+		Map<String, String> row = new LinkedHashMap<>();
 
-		r.put("ten_danh_sach", safe(ds.getTenDanhSach()));
-		r.put("ma_lop", safe(ct.getMaLop()));
-		r.put("ma_hoc_phan", "");
-		r.put("ten_hoc_phan", safe(ct.getTenHocPhan()));
-		r.put("so_tin_chi",
-				ct.getSoTinChi() == null ? "" : String.valueOf(ct.getSoTinChi()));
-		r.put("ten_giang_vien", safe(ct.getTenGiangVien()));
-		r.put("hinh_thuc_day", safe(ct.getHinhThucDay()));
-		r.put("dia_diem", safe(ct.getDiaDiem()));
+		row.put("ten_danh_sach", safe(ds.getTenDanhSach()));
+		row.put("ma_lop", safe(ct.getMaLop()));
+		row.put("ma_hoc_phan", safe(ct.getMaHocPhan()));
+		row.put("ten_hoc_phan", safe(ct.getTenHocPhan()));
+		row.put("so_tin_chi", ct.getSoTinChi() == null ? "" : ct.getSoTinChi().toString());
+		row.put("ten_giang_vien", safe(ct.getTenGiangVien()));
+		row.put("hinh_thuc_day", safe(ct.getHinhThucDay()));
+		row.put("dia_diem", safe(ct.getDiaDiem()));
 
-		r.put("thu",
-				lich == null || lich.getThu() == null ? "" : String.valueOf(lich.getThu()));
+		if(lich != null) {
+			row.put("thu", lich.getThu() == null ? "" : lich.getThu().toString());
+			row.put("tiet_bat_dau", lich.getTietBatDau() == null ? "" : lich.getTietBatDau().toString());
+			row.put("tiet_ket_thuc", lich.getTietKetThuc() == null ? "" : lich.getTietKetThuc().toString());
+		}
+		else {
+			row.put("thu", "");
+			row.put("tiet_bat_dau", "");
+			row.put("tiet_ket_thuc", "");
+		}
 
-		r.put("tiet_bat_dau",
-				lich == null || lich.getTietBatDau() == null
+		row.put("bat_buoc",
+				ct.getBatBuoc() == null
 						? ""
-						: String.valueOf(lich.getTietBatDau()));
+						: (ct.getBatBuoc() == 1 ? "1" : "0"));
 
-		r.put("tiet_ket_thuc",
-				lich == null || lich.getTietKetThuc() == null
-						? ""
-						: String.valueOf(lich.getTietKetThuc()));
-
-		r.put("bat_buoc",
-				ct.getBatBuoc() == null ? "0" : String.valueOf(ct.getBatBuoc()));
-
-		return r;
+		return row;
 	}
 }
