@@ -19,13 +19,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class SinhThoiKhoaBieuPaneHandler
+public class GenerateThoiKhoaBieuPaneHandler
 {
 	private final ScreenManager screenManager;
 
 	private final VBox centerContainer;
 
-	public SinhThoiKhoaBieuPaneHandler(ScreenManager screenManager, VBox centerContainer)
+	public GenerateThoiKhoaBieuPaneHandler(ScreenManager screenManager, VBox centerContainer)
 	{
 		this.screenManager = screenManager;
 		this.centerContainer = centerContainer;

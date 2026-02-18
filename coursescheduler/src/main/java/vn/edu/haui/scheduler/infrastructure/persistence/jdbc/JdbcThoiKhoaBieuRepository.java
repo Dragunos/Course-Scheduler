@@ -1,7 +1,7 @@
 package vn.edu.haui.scheduler.infrastructure.persistence.jdbc;
 
 import vn.edu.haui.scheduler.application.port.out.ThoiKhoaBieuRepository;
-import vn.edu.haui.scheduler.domain.model.PhuongAnThoiKhoaBieu;
+import vn.edu.haui.scheduler.domain.model.ThoiKhoaBieu;
 import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 
 import java.sql.*;
@@ -104,7 +104,7 @@ public class JdbcThoiKhoaBieuRepository implements ThoiKhoaBieuRepository
 	}
 
 	@Override
-	public List<PhuongAnThoiKhoaBieu> findByNguoiDungId(long nguoiDungId) throws Exception
+	public List<ThoiKhoaBieu> findByNguoiDungId(long nguoiDungId) throws Exception
 	{
 		String sql = """
 					SELECT id, nguoi_dung_id, danh_sach_lop_id,
@@ -114,7 +114,7 @@ public class JdbcThoiKhoaBieuRepository implements ThoiKhoaBieuRepository
 					ORDER BY ngay_tao DESC
 				""";
 
-		List<PhuongAnThoiKhoaBieu> result = new ArrayList<>();
+		List<ThoiKhoaBieu> result = new ArrayList<>();
 
 		try (Connection conn = DataSourceProvider.getDataSource().getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -123,7 +123,7 @@ public class JdbcThoiKhoaBieuRepository implements ThoiKhoaBieuRepository
 
 			try (ResultSet rs = ps.executeQuery()) {
 				while(rs.next()) {
-					PhuongAnThoiKhoaBieu pa = new PhuongAnThoiKhoaBieu();
+					ThoiKhoaBieu pa = new ThoiKhoaBieu();
 					pa.setId(rs.getLong("id"));
 					pa.setNguoiDungId(rs.getLong("nguoi_dung_id"));
 					pa.setDanhSachLopId(rs.getLong("danh_sach_lop_id"));
@@ -143,7 +143,7 @@ public class JdbcThoiKhoaBieuRepository implements ThoiKhoaBieuRepository
 	}
 
 	@Override
-	public Optional<PhuongAnThoiKhoaBieu> findById(long id) throws Exception
+	public Optional<ThoiKhoaBieu> findById(long id) throws Exception
 	{
 		String sql = """
 					SELECT id, nguoi_dung_id, danh_sach_lop_id,
@@ -159,7 +159,7 @@ public class JdbcThoiKhoaBieuRepository implements ThoiKhoaBieuRepository
 
 			try (ResultSet rs = ps.executeQuery()) {
 				if(rs.next()) {
-					PhuongAnThoiKhoaBieu pa = new PhuongAnThoiKhoaBieu();
+					ThoiKhoaBieu pa = new ThoiKhoaBieu();
 					pa.setId(rs.getLong("id"));
 					pa.setNguoiDungId(rs.getLong("nguoi_dung_id"));
 					pa.setDanhSachLopId(rs.getLong("danh_sach_lop_id"));

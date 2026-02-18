@@ -15,13 +15,13 @@ import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
-public class QuanTriDanhSachLopPaneHandler
+public class AdminDanhSachLopPaneHandler
 {
 	private final ScreenManager screenManager;
 
 	private final VBox centerContainer;
 
-	public QuanTriDanhSachLopPaneHandler(
+	public AdminDanhSachLopPaneHandler(
 			ScreenManager screenManager,
 			VBox centerContainer)
 	{

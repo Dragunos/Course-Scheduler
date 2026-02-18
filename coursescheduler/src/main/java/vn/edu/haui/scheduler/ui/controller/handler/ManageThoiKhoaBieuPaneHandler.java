@@ -11,14 +11,14 @@ import vn.edu.haui.scheduler.ui.util.UiUtils;
 import java.util.List;
 import java.util.Optional;
 
-public class QuanLyThoiKhoaBieuPaneHandler
+public class ManageThoiKhoaBieuPaneHandler
 {
 
 	private final ScreenManager screenManager;
 
 	private final VBox centerContainer;
 
-	public QuanLyThoiKhoaBieuPaneHandler(ScreenManager screenManager, VBox centerContainer)
+	public ManageThoiKhoaBieuPaneHandler(ScreenManager screenManager, VBox centerContainer)
 	{
 		this.screenManager = screenManager;
 		this.centerContainer = centerContainer;

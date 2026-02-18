@@ -15,14 +15,14 @@ import vn.edu.haui.scheduler.ui.util.UiUtils;
 
 import java.io.File;
 
-public class ExportPaneHandler
+public class ExportDanhSachLopPaneHandler
 {
 
 	private final ScreenManager screenManager;
 
 	private final VBox centerContainer;
 
-	public ExportPaneHandler(ScreenManager screenManager, VBox centerContainer)
+	public ExportDanhSachLopPaneHandler(ScreenManager screenManager, VBox centerContainer)
 	{
 		this.screenManager = screenManager;
 		this.centerContainer = centerContainer;
@@ -85,7 +85,7 @@ public class ExportPaneHandler
 						"Xuất danh sách thành công.",
 						Alert.AlertType.INFORMATION);
 
-				new DanhSachLopPaneHandler(screenManager, centerContainer)
+				new ManageDanhSachLopPaneHandler(screenManager, centerContainer)
 						.showDanhSach();
 
 			}
@@ -107,7 +107,7 @@ public class ExportPaneHandler
 		});
 
 		Button cancelBtn = new Button("Hủy");
-		cancelBtn.setOnAction(e -> new DanhSachLopPaneHandler(screenManager, centerContainer)
+		cancelBtn.setOnAction(e -> new ManageDanhSachLopPaneHandler(screenManager, centerContainer)
 				.showDanhSach());
 
 		centerContainer.getChildren().add(

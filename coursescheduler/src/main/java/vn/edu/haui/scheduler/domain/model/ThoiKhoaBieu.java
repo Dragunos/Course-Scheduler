@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Set;
 
-public class PhuongAnThoiKhoaBieu
+public class ThoiKhoaBieu
 {
 	private Long id;
 
@@ -20,11 +20,11 @@ public class PhuongAnThoiKhoaBieu
 
 	private Set<LopHocPhan> cacLopDuocChon;
 
-	public PhuongAnThoiKhoaBieu()
+	public ThoiKhoaBieu()
 	{
 	}
 
-	public PhuongAnThoiKhoaBieu(
+	public ThoiKhoaBieu(
 			Long id,
 			Long nguoiDungId,
 			Long danhSachLopId,

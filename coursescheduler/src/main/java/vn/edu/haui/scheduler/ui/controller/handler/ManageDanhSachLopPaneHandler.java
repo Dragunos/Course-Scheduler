@@ -13,13 +13,13 @@ import vn.edu.haui.scheduler.ui.util.UiUtils;
 import java.util.List;
 import java.util.Optional;
 
-public class DanhSachLopPaneHandler
+public class ManageDanhSachLopPaneHandler
 {
 	private final ScreenManager screenManager;
 
 	private final VBox centerContainer;
 
-	public DanhSachLopPaneHandler(ScreenManager screenManager, VBox centerContainer)
+	public ManageDanhSachLopPaneHandler(ScreenManager screenManager, VBox centerContainer)
 	{
 		this.screenManager = screenManager;
 		this.centerContainer = centerContainer;
@@ -82,7 +82,7 @@ public class DanhSachLopPaneHandler
 		viewBtn.setOnAction(e -> viewChiTiet(dto));
 		editBtn.setOnAction(e -> editDanhSach(dto));
 		deleteBtn.setOnAction(e -> deleteDanhSach(dto));
-		exportBtn.setOnAction(e -> new ExportPaneHandler(screenManager, centerContainer)
+		exportBtn.setOnAction(e -> new ExportDanhSachLopPaneHandler(screenManager, centerContainer)
 				.showExportPane(dto));
 
 		HBox actions = new HBox(10, viewBtn, editBtn, deleteBtn, exportBtn);

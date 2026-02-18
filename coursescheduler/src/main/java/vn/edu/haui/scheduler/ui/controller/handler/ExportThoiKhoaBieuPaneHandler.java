@@ -93,7 +93,7 @@ public class ExportThoiKhoaBieuPaneHandler
 
 				UiUtils.showAlert("Thành công", "Xuất thời khóa biểu thành công.", Alert.AlertType.INFORMATION);
 
-				new QuanLyThoiKhoaBieuPaneHandler(screenManager, centerContainer).showThoiKhoaBieu();
+				new ManageThoiKhoaBieuPaneHandler(screenManager, centerContainer).showThoiKhoaBieu();
 			}
 			catch(ValidationException ve) {
 				UiUtils.showAlert("Không hợp lệ", ve.getMessage(), Alert.AlertType.WARNING);
@@ -108,7 +108,7 @@ public class ExportThoiKhoaBieuPaneHandler
 
 		Button cancelBtn = new Button("Hủy");
 		cancelBtn
-				.setOnAction(e -> new QuanLyThoiKhoaBieuPaneHandler(screenManager, centerContainer).showThoiKhoaBieu());
+				.setOnAction(e -> new ManageThoiKhoaBieuPaneHandler(screenManager, centerContainer).showThoiKhoaBieu());
 
 		centerContainer.getChildren().add(
 				new VBox(8, title,

@@ -34,7 +34,7 @@ public class ManageThoiKhoaBieuService implements ManageThoiKhoaBieuUseCase
 	@Override
 	public List<ThoiKhoaBieuDto> layDanhSachTheoNguoiDung(long nguoiDungId) throws Exception
 	{
-		List<PhuongAnThoiKhoaBieu> danhSach = thoiKhoaBieuRepo.findByNguoiDungId(nguoiDungId);
+		List<ThoiKhoaBieu> danhSach = thoiKhoaBieuRepo.findByNguoiDungId(nguoiDungId);
 
 		return danhSach.stream()
 				.map(this::mapToDto)
@@ -44,7 +44,7 @@ public class ManageThoiKhoaBieuService implements ManageThoiKhoaBieuUseCase
 	@Override
 	public ThoiKhoaBieuDto xemChiTiet(long thoiKhoaBieuId, long nguoiDungId) throws Exception
 	{
-		PhuongAnThoiKhoaBieu pa = thoiKhoaBieuRepo.findById(thoiKhoaBieuId)
+		ThoiKhoaBieu pa = thoiKhoaBieuRepo.findById(thoiKhoaBieuId)
 				.orElseThrow(() -> new RuntimeException("Không tìm thấy thời khóa biểu"));
 
 		if(pa.getNguoiDungId() != nguoiDungId)
@@ -105,7 +105,7 @@ public class ManageThoiKhoaBieuService implements ManageThoiKhoaBieuUseCase
 		if(tenMoi == null || tenMoi.trim().isEmpty())
 			throw new RuntimeException("Tên không hợp lệ");
 
-		PhuongAnThoiKhoaBieu pa = thoiKhoaBieuRepo.findById(thoiKhoaBieuId)
+		ThoiKhoaBieu pa = thoiKhoaBieuRepo.findById(thoiKhoaBieuId)
 				.orElseThrow(() -> new RuntimeException("Không tìm thấy thời khóa biểu"));
 
 		if(pa.getNguoiDungId() != nguoiDungId)
@@ -120,7 +120,7 @@ public class ManageThoiKhoaBieuService implements ManageThoiKhoaBieuUseCase
 	@Override
 	public void xoa(long thoiKhoaBieuId, long nguoiDungId) throws Exception
 	{
-		PhuongAnThoiKhoaBieu pa = thoiKhoaBieuRepo.findById(thoiKhoaBieuId)
+		ThoiKhoaBieu pa = thoiKhoaBieuRepo.findById(thoiKhoaBieuId)
 				.orElseThrow(() -> new RuntimeException("Không tìm thấy thời khóa biểu"));
 
 		if(pa.getNguoiDungId() != nguoiDungId)
@@ -129,7 +129,7 @@ public class ManageThoiKhoaBieuService implements ManageThoiKhoaBieuUseCase
 		thoiKhoaBieuRepo.deleteById(thoiKhoaBieuId);
 	}
 
-	private ThoiKhoaBieuDto mapToDto(PhuongAnThoiKhoaBieu pa)
+	private ThoiKhoaBieuDto mapToDto(ThoiKhoaBieu pa)
 	{
 		ThoiKhoaBieuDto dto = new ThoiKhoaBieuDto();
 		dto.setId(pa.getId());

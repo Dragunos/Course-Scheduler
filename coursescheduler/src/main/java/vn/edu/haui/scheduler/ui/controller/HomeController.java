@@ -28,23 +28,23 @@ public class HomeController
 
 	private ScreenManager screenManager;
 
-	private HomeAuthHandler authHandler;
+	private AuthPaneHandler authHandler;
 
-	private DanhSachLopPaneHandler danhSachHandler;
+	private ManageDanhSachLopPaneHandler danhSachHandler;
 
 	private ImportPaneHandler importHandler;
 
-	private SinhThoiKhoaBieuPaneHandler sinhTKBHandler;
+	private GenerateThoiKhoaBieuPaneHandler sinhTKBHandler;
 
-	private QuanLyThoiKhoaBieuPaneHandler quanLyThoiKhoaBieuHandler;
+	private ManageThoiKhoaBieuPaneHandler quanLyThoiKhoaBieuHandler;
 
-	private QuanTriDanhSachLopPaneHandler quanTriDanhSachHandler;
+	private AdminDanhSachLopPaneHandler quanTriDanhSachHandler;
 
 	public void init(ScreenManager screenManager)
 	{
 		this.screenManager = screenManager;
 
-		authHandler = new HomeAuthHandler(
+		authHandler = new AuthPaneHandler(
 				screenManager,
 				loginButton,
 				registerButton,
@@ -54,13 +54,13 @@ public class HomeController
 
 		adminListButton.setVisible(false);
 
-		danhSachHandler = new DanhSachLopPaneHandler(screenManager, centerContainer);
+		danhSachHandler = new ManageDanhSachLopPaneHandler(screenManager, centerContainer);
 		importHandler = new ImportPaneHandler(screenManager, centerContainer);
 
-		sinhTKBHandler = new SinhThoiKhoaBieuPaneHandler(screenManager, centerContainer);
-		quanLyThoiKhoaBieuHandler = new QuanLyThoiKhoaBieuPaneHandler(screenManager, centerContainer);
+		sinhTKBHandler = new GenerateThoiKhoaBieuPaneHandler(screenManager, centerContainer);
+		quanLyThoiKhoaBieuHandler = new ManageThoiKhoaBieuPaneHandler(screenManager, centerContainer);
 
-		quanTriDanhSachHandler = new QuanTriDanhSachLopPaneHandler(screenManager, centerContainer);
+		quanTriDanhSachHandler = new AdminDanhSachLopPaneHandler(screenManager, centerContainer);
 
 		authHandler.updateView();
 	}

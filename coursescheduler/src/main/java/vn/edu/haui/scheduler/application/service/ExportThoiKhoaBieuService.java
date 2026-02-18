@@ -13,7 +13,7 @@ import vn.edu.haui.scheduler.domain.model.GiangVien;
 import vn.edu.haui.scheduler.domain.model.HocPhan;
 import vn.edu.haui.scheduler.domain.model.LichHoc;
 import vn.edu.haui.scheduler.domain.model.LopHocPhan;
-import vn.edu.haui.scheduler.domain.model.PhuongAnThoiKhoaBieu;
+import vn.edu.haui.scheduler.domain.model.ThoiKhoaBieu;
 import vn.edu.haui.scheduler.infrastructure.io.exports.IcsExporter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -65,7 +65,7 @@ public class ExportThoiKhoaBieuService implements ExportThoiKhoaBieuUseCase
 			throw new ValidationException("Đường dẫn file không hợp lệ.");
 
 		try {
-			PhuongAnThoiKhoaBieu pa = thoiKhoaBieuRepo.findById(thoiKhoaBieuId)
+			ThoiKhoaBieu pa = thoiKhoaBieuRepo.findById(thoiKhoaBieuId)
 					.orElseThrow(() -> new ValidationException("Không tìm thấy thời khóa biểu."));
 
 			if(!Objects.equals(pa.getNguoiDungId(), nguoiDungId))

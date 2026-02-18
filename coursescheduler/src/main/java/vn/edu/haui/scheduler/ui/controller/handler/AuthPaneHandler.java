@@ -5,7 +5,7 @@ import javafx.scene.control.Label;
 import vn.edu.haui.scheduler.application.dto.NguoiDungDto;
 import vn.edu.haui.scheduler.ui.fx.ScreenManager;
 
-public class HomeAuthHandler
+public class AuthPaneHandler
 {
 
 	private final ScreenManager screenManager;
@@ -20,7 +20,7 @@ public class HomeAuthHandler
 
 	private final Button adminListButton;
 
-	public HomeAuthHandler(
+	public AuthPaneHandler(
 			ScreenManager screenManager,
 			Button loginButton,
 			Button registerButton,
