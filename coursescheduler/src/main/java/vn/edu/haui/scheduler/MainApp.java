@@ -2,15 +2,17 @@ package vn.edu.haui.scheduler;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
+
 import vn.edu.haui.scheduler.application.port.in.*;
 import vn.edu.haui.scheduler.application.service.*;
-import vn.edu.haui.scheduler.infrastructure.io.exports.CsvExporter;
-import vn.edu.haui.scheduler.infrastructure.io.exports.ExcelExporter;
+import vn.edu.haui.scheduler.application.port.out.*;
+
+import vn.edu.haui.scheduler.infrastructure.io.exports.*;
 import vn.edu.haui.scheduler.infrastructure.io.imports.ExcelCourseImporter;
 import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.*;
-import vn.edu.haui.scheduler.application.port.out.*;
 import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 import vn.edu.haui.scheduler.infrastructure.security.PasswordHasher;
+
 import vn.edu.haui.scheduler.ui.fx.ScreenManager;
 import vn.edu.haui.scheduler.ui.fx.config.FxConfig;
 
@@ -26,6 +28,7 @@ public class MainApp extends Application
 		ScreenManager screenManager = new ScreenManager(stage, authUseCase);
 
 		ExcelCourseImporter importer = new ExcelCourseImporter();
+
 		HocPhanRepositoryPort hocPhanRepo = new JdbcHocPhanRepository();
 		GiangVienRepositoryPort giangVienRepo = new JdbcGiangVienRepository();
 		LopHocPhanRepositoryPort lopRepo = new JdbcLopHocPhanRepository();
@@ -39,24 +42,59 @@ public class MainApp extends Application
 
 		CsvExporter csvExporter = new CsvExporter();
 		ExcelExporter excelExporter = new ExcelExporter();
+		PdfExporter pdfExporter = new PdfExporter("fonts/SEGOEUI.TTF");
+		IcsExporter icsExporter = new IcsExporter();
 
-		ImportDanhSachLopUseCase importUc = new ImportDanhSachLopAppService(importer, hocPhanRepo, giangVienRepo,
-				lopRepo, lichRepo, danhSachRepo, tepRepo);
+		FileExportPort fileExportPort = new CompositeFileExporter(
+				csvExporter,
+				excelExporter,
+				pdfExporter);
+
+		ImportDanhSachLopUseCase importUc = new ImportDanhSachLopAppService(
+				importer,
+				hocPhanRepo,
+				giangVienRepo,
+				lopRepo,
+				lichRepo,
+				danhSachRepo,
+				tepRepo);
+
 		screenManager.setImportDanhSachLopUseCase(importUc);
 
 		QuanLyDanhSachLopUseCase quanLyUc = new QuanLyDanhSachLopAppService(danhSachRepo);
 		screenManager.setQuanLyDanhSachLopUseCase(quanLyUc);
 
-		XuatDanhSachLopUseCase xuatUc = new XuatDanhSachLopAppService(danhSachRepo, csvExporter, excelExporter);
+		XuatDanhSachLopUseCase xuatUc = new XuatDanhSachLopAppService(
+				danhSachRepo,
+				fileExportPort);
 		screenManager.setXuatDanhSachLopUseCase(xuatUc);
 
-		SinhThoiKhoaBieuUseCase sinhUc = new SinhThoiKhoaBieuAppService(tkbRepo, yeuCauRepo, yeuCauChiTietRepo,
-				danhSachRepo, lopRepo, lichRepo, rangBuocRepo);
+		SinhThoiKhoaBieuUseCase sinhUc = new SinhThoiKhoaBieuAppService(
+				tkbRepo,
+				yeuCauRepo,
+				yeuCauChiTietRepo,
+				danhSachRepo,
+				lopRepo,
+				lichRepo,
+				rangBuocRepo);
 		screenManager.setSinhThoiKhoaBieuUseCase(sinhUc);
 
-		QuanLyThoiKhoaBieuUseCase quanLyTkbUc = new QuanLyThoiKhoaBieuAppService(tkbRepo, lopRepo, lichRepo,
+		QuanLyThoiKhoaBieuUseCase quanLyTkbUc = new QuanLyThoiKhoaBieuAppService(
+				tkbRepo,
+				lopRepo,
+				lichRepo,
 				giangVienRepo);
 		screenManager.setQuanLyThoiKhoaBieuUseCase(quanLyTkbUc);
+
+		XuatThoiKhoaBieuUseCase xuatTkbUc = new XuatThoiKhoaBieuAppService(
+				tkbRepo,
+				lopRepo,
+				lichRepo,
+				hocPhanRepo,
+				giangVienRepo,
+				fileExportPort,
+				icsExporter);
+		screenManager.setXuatThoiKhoaBieuUseCase(xuatTkbUc);
 
 		screenManager.init();
 		stage.show();

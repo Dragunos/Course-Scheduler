@@ -15,7 +15,6 @@ import java.util.Optional;
 
 public class DanhSachLopPaneHandler
 {
-
 	private final ScreenManager screenManager;
 
 	private final VBox centerContainer;

@@ -3,6 +3,8 @@ package vn.edu.haui.scheduler.infrastructure.io.exports;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import vn.edu.haui.scheduler.application.port.out.FileExportPort;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -10,13 +12,9 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Xuất .xlsx bằng Apache POI.
- */
-public class ExcelExporter
+public class ExcelExporter implements FileExportPort
 {
-
-	public void export(Path outputPath, List<String> headers, List<Map<String, String>> rows) throws IOException
+	public void exportExcel(Path outputPath, List<String> headers, List<Map<String, String>> rows) throws IOException
 	{
 		if(outputPath.getParent() != null) {
 			Files.createDirectories(outputPath.getParent());
@@ -25,7 +23,6 @@ public class ExcelExporter
 		try (Workbook workbook = new XSSFWorkbook()) {
 			Sheet sheet = workbook.createSheet("DanhSachLop");
 
-			// header style
 			CellStyle headerStyle = workbook.createCellStyle();
 			Font font = workbook.createFont();
 			font.setBold(true);
@@ -57,5 +54,22 @@ public class ExcelExporter
 				workbook.write(out);
 			}
 		}
+	}
+
+	@Override
+	public void exportCsv(Path outputPath,
+			List<String> headers,
+			List<Map<String, String>> rows)
+	{
+		throw new UnsupportedOperationException("CSV not supported");
+	}
+
+	@Override
+	public void exportPdf(Path outputPath,
+			String title,
+			List<String> headers,
+			List<Map<String, String>> rows)
+	{
+		throw new UnsupportedOperationException("PDF not supported");
 	}
 }

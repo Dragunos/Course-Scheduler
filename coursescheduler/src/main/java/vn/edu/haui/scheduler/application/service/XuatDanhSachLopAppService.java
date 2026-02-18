@@ -2,6 +2,7 @@ package vn.edu.haui.scheduler.application.service;
 
 import vn.edu.haui.scheduler.application.port.in.XuatDanhSachLopUseCase;
 import vn.edu.haui.scheduler.application.port.out.DanhSachLopRepositoryPort;
+import vn.edu.haui.scheduler.application.port.out.FileExportPort;
 import vn.edu.haui.scheduler.domain.model.DanhSachLop;
 import vn.edu.haui.scheduler.domain.model.DanhSachLopChiTiet;
 import vn.edu.haui.scheduler.domain.model.GiangVien;
@@ -25,18 +26,14 @@ public class XuatDanhSachLopAppService implements XuatDanhSachLopUseCase
 
 	private final DanhSachLopRepositoryPort danhSachRepo;
 
-	private final CsvExporter csvExporter;
-
-	private final ExcelExporter excelExporter;
+	private final FileExportPort fileExportPort;
 
 	public XuatDanhSachLopAppService(
 			DanhSachLopRepositoryPort danhSachRepo,
-			CsvExporter csvExporter,
-			ExcelExporter excelExporter)
+			FileExportPort fileExportPort)
 	{
 		this.danhSachRepo = danhSachRepo;
-		this.csvExporter = csvExporter;
-		this.excelExporter = excelExporter;
+		this.fileExportPort = fileExportPort;
 	}
 
 	@Override
@@ -105,8 +102,12 @@ public class XuatDanhSachLopAppService implements XuatDanhSachLopUseCase
 			boolean isExcel = "EXCEL".equals(fmt)
 					|| duongDanFile.toLowerCase().endsWith(".xlsx");
 
-			if(isExcel) excelExporter.export(output, headers, rows);
-			else csvExporter.export(output, headers, rows);
+			if(isExcel) {
+				fileExportPort.exportExcel(output, headers, rows);
+			}
+			else {
+				fileExportPort.exportCsv(output, headers, rows);
+			}
 
 		}
 		catch(ValidationException e) {

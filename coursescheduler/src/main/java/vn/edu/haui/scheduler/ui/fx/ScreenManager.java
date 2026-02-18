@@ -21,8 +21,10 @@ public class ScreenManager
 	private XuatDanhSachLopUseCase xuatDanhSachLopUseCase;
 
 	private SinhThoiKhoaBieuUseCase sinhThoiKhoaBieuUseCase;
-	
+
 	private QuanLyThoiKhoaBieuUseCase quanLyThoiKhoaBieuUseCase;
+
+	private XuatThoiKhoaBieuUseCase xuatThoiKhoaBieuUseCase;
 
 	private Scene scene;
 
@@ -73,13 +75,25 @@ public class ScreenManager
 	{
 		this.sinhThoiKhoaBieuUseCase = sinhThoiKhoaBieuUseCase;
 	}
-	
-	public void setQuanLyThoiKhoaBieuUseCase(QuanLyThoiKhoaBieuUseCase uc) {
-	    this.quanLyThoiKhoaBieuUseCase = uc;
+
+	public void setQuanLyThoiKhoaBieuUseCase(QuanLyThoiKhoaBieuUseCase uc)
+	{
+		this.quanLyThoiKhoaBieuUseCase = uc;
 	}
 
-	public QuanLyThoiKhoaBieuUseCase getQuanLyThoiKhoaBieuUseCase() {
-	    return this.quanLyThoiKhoaBieuUseCase;
+	public QuanLyThoiKhoaBieuUseCase getQuanLyThoiKhoaBieuUseCase()
+	{
+		return this.quanLyThoiKhoaBieuUseCase;
+	}
+
+	public void setXuatThoiKhoaBieuUseCase(XuatThoiKhoaBieuUseCase uc)
+	{
+		this.xuatThoiKhoaBieuUseCase = uc;
+	}
+
+	public XuatThoiKhoaBieuUseCase getXuatThoiKhoaBieuUseCase()
+	{
+		return this.xuatThoiKhoaBieuUseCase;
 	}
 
 	public void init()

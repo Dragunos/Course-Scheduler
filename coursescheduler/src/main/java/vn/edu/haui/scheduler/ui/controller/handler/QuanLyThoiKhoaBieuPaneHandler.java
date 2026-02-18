@@ -78,7 +78,11 @@ public class QuanLyThoiKhoaBieuPaneHandler
 		renameBtn.setOnAction(e -> doiTen(dto));
 		deleteBtn.setOnAction(e -> xoa(dto));
 
-		HBox actions = new HBox(10, viewBtn, renameBtn, deleteBtn);
+		Button exportBtn = new Button("Xuất");
+		exportBtn.setOnAction(
+				e -> new ExportThoiKhoaBieuPaneHandler(screenManager, centerContainer).showExportPane(dto));
+
+		HBox actions = new HBox(10, viewBtn, renameBtn, deleteBtn, exportBtn);
 
 		VBox card = new VBox(5, tenLabel, actions);
 		card.setStyle("-fx-padding:10; -fx-border-color:#ccc;");
@@ -120,6 +124,12 @@ public class QuanLyThoiKhoaBieuPaneHandler
 			}
 
 			Button backBtn = new Button("Quay lại");
+
+			Button exportBtn = new Button("Xuất thời khóa biểu");
+			exportBtn.setOnAction(
+					e -> new ExportThoiKhoaBieuPaneHandler(screenManager, centerContainer).showExportPane(dto));
+			centerContainer.getChildren().addAll(title, listBox, new HBox(10, exportBtn, backBtn));
+
 			backBtn.setOnAction(e -> showThoiKhoaBieu());
 
 			centerContainer.getChildren().addAll(title, listBox, backBtn);
