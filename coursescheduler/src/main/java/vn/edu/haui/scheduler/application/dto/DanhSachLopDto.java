@@ -114,7 +114,7 @@ public class DanhSachLopDto
 		if(this == o) return true;
 		if(o == null || getClass() != o.getClass()) return false;
 		DanhSachLopDto that = (DanhSachLopDto) o;
-		return Objects.equals(id, that.id);
+		return Objects.equals(id, that.id); 
 	}
 
 	@Override

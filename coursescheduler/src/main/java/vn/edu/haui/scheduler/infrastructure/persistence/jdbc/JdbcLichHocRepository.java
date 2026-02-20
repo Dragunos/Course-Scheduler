@@ -19,7 +19,7 @@ public class JdbcLichHocRepository implements LichHocRepository
 	{
 		if(lichHocs == null || lichHocs.isEmpty()) return;
 
-		String insert = "INSERT INTO lich_hoc (lop_hoc_phan_id, thu, tiet_bat_dau, tiet_ket_thuc) VALUES (?,?,?,?)";
+		String insert = "INSERT OR IGNORE INTO lich_hoc (lop_hoc_phan_id, thu, tiet_bat_dau, tiet_ket_thuc) VALUES (?,?,?,?)";
 
 		try (Connection conn = DataSourceProvider.getDataSource().getConnection();
 				PreparedStatement ps = conn.prepareStatement(insert)) {
@@ -101,5 +101,31 @@ public class JdbcLichHocRepository implements LichHocRepository
 		}
 
 		return result;
+	}
+
+	@Override
+	public void replaceAllByLopHocPhanId(
+			Long lopId,
+			List<LichHoc> newList)
+	{
+		String deleteSql = """
+				    DELETE FROM lich_hoc
+				    WHERE lop_hoc_phan_id = ?
+				""";
+
+		try (Connection conn = DataSourceProvider
+				.getDataSource()
+				.getConnection()) {
+			try (PreparedStatement ps = conn.prepareStatement(deleteSql)) {
+				ps.setLong(1, lopId);
+				ps.executeUpdate();
+			}
+
+			if(!newList.isEmpty())
+				saveAll(lopId, newList);
+		}
+		catch(SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

@@ -6,6 +6,8 @@ import vn.edu.haui.scheduler.domain.model.DanhSachLop;
 
 public interface DanhSachLopRepository
 {
+	void save(DanhSachLop danhSach);
+
 	Long save(String tenDanhSach, Long nguoiTaoId, boolean laCongKhai, Long hocKyId);
 
 	void addChiTiet(Long danhSachId, Long lopHocPhanId);

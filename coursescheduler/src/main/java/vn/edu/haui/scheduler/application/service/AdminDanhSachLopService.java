@@ -65,16 +65,14 @@ public class AdminDanhSachLopService
 	}
 
 	@Override
-	public DanhSachLopDto importDanhSachLop(
+	public ImportDanhSachLopResultDto importDanhSachLop(
 			ImportDanhSachLopRequestDto request)
 	{
 		if(request == null) {
 			throw new ValidationException("Invalid request");
 		}
 
-		DanhSachLopDto dto = importUseCase.importDanhSachLop(request);
-
-		return dto;
+		return importUseCase.importDanhSachLop(request);
 	}
 
 	@Override

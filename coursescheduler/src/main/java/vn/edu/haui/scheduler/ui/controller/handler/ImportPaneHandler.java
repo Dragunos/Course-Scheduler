@@ -66,7 +66,8 @@ public class ImportPaneHandler
 						tenField.getText(),
 						user.getId(),
 						null,
-						false);
+						false,
+						"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
 				ImportDanhSachLopUseCase useCase = screenManager.getImportDanhSachLopUseCase();
 

@@ -27,14 +27,13 @@ public class LopHocPhan
 		this.danhSachLichHoc = new ArrayList<>();
 	}
 
-	public LopHocPhan(
-			Long id,
-			String maLop,
-			HocPhan hocPhan,
-			GiangVien giangVien,
-			HinhThucDay hinhThucDay,
-			String diaDiem,
-			List<LichHoc> danhSachLichHoc)
+	public LopHocPhan(Long id)
+	{
+		this.id = id;
+	}
+
+	public LopHocPhan(Long id, String maLop, HocPhan hocPhan, GiangVien giangVien, HinhThucDay hinhThucDay,
+			String diaDiem, List<LichHoc> danhSachLichHoc)
 	{
 		this.id = id;
 		this.maLop = maLop;

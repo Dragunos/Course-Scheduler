@@ -158,31 +158,55 @@ public class ScreenManager
 			setRoot(root);
 		}
 		catch(Exception e) {
-			throw new RuntimeException(e);
+		    e.printStackTrace();
 		}
 	}
 
-	public void showAuth()
+	public void showLogin()
 	{
-		if(isAuthenticated()) {
-			showHome();
-			return;
-		}
+	    if(isAuthenticated()) {
+	        showHome();
+	        return;
+	    }
 
-		try {
-			FXMLLoader loader = new FXMLLoader(
-					getClass().getResource("/fxml/auth.fxml"));
-			Parent root = loader.load();
+	    try {
+	        FXMLLoader loader =
+	                new FXMLLoader(getClass().getResource("/fxml/auth.fxml"));
+	        Parent root = loader.load();
 
-			AuthController controller = loader.getController();
-			controller.init(authUseCase, this);
+	        AuthController controller = loader.getController();
+	        controller.init(authUseCase, this);
+	        controller.showLoginPane();
 
-			stage.setTitle("Authentication");
-			setRoot(root);
-		}
-		catch(Exception e) {
-			throw new RuntimeException(e);
-		}
+	        stage.setTitle("Login");
+	        setRoot(root);
+	    }
+	    catch(Exception e) {
+	        e.printStackTrace();
+	    }
 	}
+	
+	public void showRegister()
+	{
+	    if(isAuthenticated()) {
+	        showHome();
+	        return;
+	    }
 
+	    try {
+	        FXMLLoader loader =
+	                new FXMLLoader(getClass().getResource("/fxml/auth.fxml"));
+	        Parent root = loader.load();
+
+	        AuthController controller = loader.getController();
+	        controller.init(authUseCase, this);
+	        controller.showRegisterPane();
+
+	        stage.setTitle("Register");
+	        setRoot(root);
+	    }
+	    catch(Exception e) {
+	        e.printStackTrace();
+	    }
+	}
 }

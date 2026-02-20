@@ -1,12 +1,13 @@
 package vn.edu.haui.scheduler.application.port.out;
 
 import java.util.Optional;
+import vn.edu.haui.scheduler.application.exception.DataAccessException;
 
 public interface VaiTroRepository
 {
-	Optional<Long> findIdByName(String roleName) throws Exception;
+	Optional<Long> findIdByTenVaiTro(String tenVaiTro) throws DataAccessException;
 
-	Optional<String> findNameById(Long id) throws Exception;
+	Optional<String> findTenById(Long id) throws DataAccessException;
 
-	long save(String roleName) throws Exception;
+	long save(String tenVaiTro) throws DataAccessException;
 }

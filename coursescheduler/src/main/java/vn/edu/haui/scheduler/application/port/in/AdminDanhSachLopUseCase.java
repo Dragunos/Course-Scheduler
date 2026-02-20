@@ -3,6 +3,7 @@ package vn.edu.haui.scheduler.application.port.in;
 import java.util.List;
 import vn.edu.haui.scheduler.application.dto.DanhSachLopDto;
 import vn.edu.haui.scheduler.application.dto.ImportDanhSachLopRequestDto;
+import vn.edu.haui.scheduler.application.dto.ImportDanhSachLopResultDto;
 import vn.edu.haui.scheduler.application.dto.UpdateDanhSachLopRequestDto;
 
 public interface AdminDanhSachLopUseCase
@@ -11,7 +12,7 @@ public interface AdminDanhSachLopUseCase
 
 	DanhSachLopDto getDanhSachLopById(Long danhSachLopId);
 
-	DanhSachLopDto importDanhSachLop(ImportDanhSachLopRequestDto request);
+	ImportDanhSachLopResultDto importDanhSachLop(ImportDanhSachLopRequestDto request);
 
 	DanhSachLopDto updateDanhSachLop(UpdateDanhSachLopRequestDto request);
 

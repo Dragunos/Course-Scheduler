@@ -10,7 +10,7 @@ import vn.edu.haui.scheduler.application.port.out.*;
 import vn.edu.haui.scheduler.infrastructure.io.exports.*;
 import vn.edu.haui.scheduler.infrastructure.io.imports.ExcelDanhSachLopImporter;
 import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.*;
-import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
+import vn.edu.haui.scheduler.infrastructure.persistence.config.*;
 import vn.edu.haui.scheduler.infrastructure.security.PasswordHasher;
 
 import vn.edu.haui.scheduler.ui.fx.ScreenManager;
@@ -23,12 +23,11 @@ public class MainApp extends Application
 	{
 		FxConfig.apply(stage);
 
-		AuthUseCase authUseCase = createAuthUseCase();
+		TransactionManagerImpl txManager = new TransactionManagerImpl(DataSourceProvider.getDataSource());
 
-		ScreenManager screenManager = new ScreenManager(stage, authUseCase);
-
-		ExcelDanhSachLopImporter importer = new ExcelDanhSachLopImporter();
-
+		// REPOSITORIES
+		NguoiDungRepository nguoiDungRepo = new JdbcNguoiDungRepository(txManager);
+		VaiTroRepository vaiTroRepo = new JdbcVaiTroRepository(txManager);
 		HocPhanRepository hocPhanRepo = new JdbcHocPhanRepository();
 		GiangVienRepository giangVienRepo = new JdbcGiangVienRepository();
 		LopHocPhanRepository lopRepo = new JdbcLopHocPhanRepository();
@@ -40,15 +39,22 @@ public class MainApp extends Application
 		YeuCauChiTietRepository yeuCauChiTietRepo = new JdbcYeuCauChiTietRepository();
 		RangBuocToiUuRepository rangBuocRepo = new JdbcRangBuocToiUuRepository();
 
-		CsvExporter csvExporter = new CsvExporter();
-		ExcelExporter excelExporter = new ExcelExporter();
-		PdfExporter pdfExporter = new PdfExporter("fonts/SEGOEUI.TTF");
-		IcsExporter icsExporter = new IcsExporter();
+		// IO
+		ExcelDanhSachLopImporter importer = new ExcelDanhSachLopImporter();
 
 		FileExporter fileExporter = new CompositeFileExporter(
-				csvExporter,
-				excelExporter,
-				pdfExporter);
+				new CsvExporter(),
+				new ExcelExporter(),
+				new PdfExporter("fonts/SEGOEUI.TTF"));
+
+		IcsExporter icsExporter = new IcsExporter();
+
+		// USE CASES
+		AuthUseCase authUseCase = new AuthService(
+				nguoiDungRepo,
+				vaiTroRepo,
+				new PasswordHasher(),
+				txManager);
 
 		ImportDanhSachLopUseCase importUc = new ImportDanhSachLopService(
 				importer,
@@ -57,17 +63,12 @@ public class MainApp extends Application
 				lopRepo,
 				lichRepo,
 				danhSachRepo,
-				tepRepo);
+				tepRepo,
+				txManager);
 
-		screenManager.setImportDanhSachLopUseCase(importUc);
+		ManageDanhSachLopUseCase quanLyUc = new ManageDanhSachLopService(danhSachRepo, txManager);
 
-		ManageDanhSachLopUseCase quanLyUc = new ManageDanhSachLopService(danhSachRepo);
-		screenManager.setQuanLyDanhSachLopUseCase(quanLyUc);
-
-		ExportDanhSachLopUseCase xuatUc = new ExportDanhSachLopService(
-				danhSachRepo,
-				fileExporter);
-		screenManager.setXuatDanhSachLopUseCase(xuatUc);
+		ExportDanhSachLopUseCase xuatUc = new ExportDanhSachLopService(danhSachRepo, fileExporter);
 
 		GenerateThoiKhoaBieuUseCase sinhUc = new GenerateThoiKhoaBieuService(
 				tkbRepo,
@@ -77,14 +78,12 @@ public class MainApp extends Application
 				lopRepo,
 				lichRepo,
 				rangBuocRepo);
-		screenManager.setSinhThoiKhoaBieuUseCase(sinhUc);
 
 		ManageThoiKhoaBieuUseCase quanLyTkbUc = new ManageThoiKhoaBieuService(
 				tkbRepo,
 				lopRepo,
 				lichRepo,
 				giangVienRepo);
-		screenManager.setQuanLyThoiKhoaBieuUseCase(quanLyTkbUc);
 
 		ExportThoiKhoaBieuUseCase xuatTkbUc = new ExportThoiKhoaBieuService(
 				tkbRepo,
@@ -94,25 +93,22 @@ public class MainApp extends Application
 				giangVienRepo,
 				fileExporter,
 				icsExporter);
+
+		AdminDanhSachLopUseCase quanTriUc = new AdminDanhSachLopService(danhSachRepo, importUc);
+
+		// UI
+		ScreenManager screenManager = new ScreenManager(stage, authUseCase);
+
+		screenManager.setImportDanhSachLopUseCase(importUc);
+		screenManager.setQuanLyDanhSachLopUseCase(quanLyUc);
+		screenManager.setXuatDanhSachLopUseCase(xuatUc);
+		screenManager.setSinhThoiKhoaBieuUseCase(sinhUc);
+		screenManager.setQuanLyThoiKhoaBieuUseCase(quanLyTkbUc);
 		screenManager.setXuatThoiKhoaBieuUseCase(xuatTkbUc);
-
-		AdminDanhSachLopUseCase quanTriUc =
-		        new AdminDanhSachLopService(
-		                danhSachRepo,
-		                importUc);
-
 		screenManager.setQuanTriDanhSachLopUseCase(quanTriUc);
-		
+
 		screenManager.init();
 		stage.show();
-	}
-
-	private AuthUseCase createAuthUseCase()
-	{
-		return new AuthService(
-				new JdbcNguoiDungRepository(),
-				new JdbcVaiTroRepository(),
-				new PasswordHasher());
 	}
 
 	@Override

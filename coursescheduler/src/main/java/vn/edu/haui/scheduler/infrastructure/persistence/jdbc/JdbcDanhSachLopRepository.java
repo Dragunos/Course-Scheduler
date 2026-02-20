@@ -112,7 +112,7 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 	@Override
 	public Optional<DanhSachLop> findByIdWithDetails(Long danhSachId)
 	{
-		String sql = """
+	    String sql = """ 
 				SELECT
 				    dsl.id,
 				    dsl.ten_danh_sach,
@@ -129,6 +129,7 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 				    lhp.dia_diem,
 
 				    hp.id AS hoc_phan_id,
+				    hp.ma_hoc_phan,
 				    hp.ten_hoc_phan,
 				    hp.so_tin_chi,
 
@@ -152,88 +153,116 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 				LEFT JOIN lich_hoc lh
 				    ON lhp.id = lh.lop_hoc_phan_id
 				WHERE dsl.id = ?
-				""";
+				ORDER BY ct.lop_hoc_phan_id, lh.id
+	            """;
 
-		try (Connection connection = DataSourceProvider.getDataSource().getConnection();
-				PreparedStatement ps = connection.prepareStatement(sql)) {
+	    try (Connection connection = DataSourceProvider.getDataSource().getConnection();
+	         PreparedStatement ps = connection.prepareStatement(sql)) {
 
-			ps.setLong(1, danhSachId);
+	        ps.setLong(1, danhSachId);
 
-			try (ResultSet rs = ps.executeQuery()) {
+	        try (ResultSet rs = ps.executeQuery()) {
 
-				if(!rs.next()) return Optional.empty();
+	            if (!rs.next()) return Optional.empty();
 
-				DanhSachLop danhSach = mapHeader(rs);
-				Map<Long, DanhSachLopChiTiet> chiTietMap = new LinkedHashMap<>();
+	            DanhSachLop header = mapHeader(rs);
 
-				do {
-					Long lopHocPhanId = rs.getObject("lop_hoc_phan_id", Long.class);
-					if(lopHocPhanId == null) continue;
+	            Map<Long, DanhSachLopChiTiet> chiTietMap = new LinkedHashMap<>();
+	            Map<Long, Map<Long, LichHoc>> lichIdentityMap = new HashMap<>();
 
-					DanhSachLopChiTiet chiTiet = chiTietMap.get(lopHocPhanId);
+	            do {
 
-					if(chiTiet == null) {
+	                Long lopHocPhanId = rs.getObject("lop_hoc_phan_id", Long.class);
+	                
+	                System.out.println(
+	                	    "GV_ID = " + rs.getObject("giang_vien_id") +
+	                	    " | TEN = " + rs.getString("ten_giang_vien")
+	                	);
+	                
+	                if (lopHocPhanId == null) continue;
 
-						HocPhan hocPhan = new HocPhan(
-								rs.getLong("hoc_phan_id"),
-								null,
-								rs.getString("ten_hoc_phan"),
-								rs.getInt("so_tin_chi"));
+	                DanhSachLopChiTiet chiTiet = chiTietMap.get(lopHocPhanId);
 
-						GiangVien giangVien = new GiangVien(
-								rs.getLong("giang_vien_id"),
-								rs.getString("ten_giang_vien"));
+	                if (chiTiet == null) {
 
-						String htd = rs.getString("hinh_thuc_day");
-						HinhThucDay hinhThuc = htd != null ? HinhThucDay.valueOf(htd)
-								: HinhThucDay.KHONG_XAC_DINH;
+	                    HocPhan hocPhan = new HocPhan(
+	                            rs.getLong("hoc_phan_id"),
+	                            rs.getString("ma_hoc_phan"),
+	                            rs.getString("ten_hoc_phan"),
+	                            rs.getInt("so_tin_chi"));
 
-						LopHocPhan lop = new LopHocPhan(
-								lopHocPhanId,
-								rs.getString("ma_lop"),
-								hocPhan,
-								giangVien,
-								hinhThuc,
-								rs.getString("dia_diem"),
-								new ArrayList<>());
+	                    GiangVien giangVien = new GiangVien(
+	                            rs.getLong("giang_vien_id"),
+	                            rs.getString("ten_giang_vien"));
 
-						chiTiet = new DanhSachLopChiTiet(
-								lop,
-								rs.getInt("bat_buoc") == 1);
+	                    String htd = rs.getString("hinh_thuc_day");
+	                    HinhThucDay hinhThuc = htd != null
+	                            ? HinhThucDay.valueOf(htd)
+	                            : HinhThucDay.KHONG_XAC_DINH;
 
-						chiTietMap.put(lopHocPhanId, chiTiet);
-					}
+	                    LopHocPhan lop = new LopHocPhan(
+	                            lopHocPhanId,
+	                            rs.getString("ma_lop"),
+	                            hocPhan,
+	                            giangVien,
+	                            hinhThuc,
+	                            rs.getString("dia_diem"),
+	                            new ArrayList<>());
 
-					Long lichId = rs.getObject("lich_id", Long.class);
-					if(lichId != null) {
-						LichHoc lich = new LichHoc(
-								lichId,
-								lopHocPhanId,
-								ThuTrongTuan.fromGiaTri(rs.getInt("thu")),
-								rs.getInt("tiet_bat_dau"),
-								rs.getInt("tiet_ket_thuc"));
+	                    chiTiet = new DanhSachLopChiTiet(
+	                            lop,
+	                            rs.getInt("bat_buoc") == 1);
 
-						chiTiet.getLopHocPhan().themLichHoc(lich);
-					}
+	                    chiTietMap.put(lopHocPhanId, chiTiet);
+	                    lichIdentityMap.put(lopHocPhanId, new LinkedHashMap<>());
+	                }
 
-				} while(rs.next());
+	                Long lichId = rs.getObject("lich_id", Long.class);
+	                if (lichId != null) {
 
-				return Optional.of(
-						new DanhSachLop(
-								danhSach.getId(),
-								danhSach.getTenDanhSach(),
-								danhSach.getNguoiTao(),
-								danhSach.isCongKhai(),
-								danhSach.getHocKy(),
-								danhSach.getNgayTao(),
-								new ArrayList<>(chiTietMap.values())));
+	                    Map<Long, LichHoc> lichMap = lichIdentityMap.get(lopHocPhanId);
 
-			}
+	                    if (!lichMap.containsKey(lichId)) {
 
-		}
-		catch(SQLException ex) {
-			throw new DataAccessException("Failed to findByIdWithDetails", ex);
-		}
+	                        LichHoc lich = new LichHoc(
+	                                lichId,
+	                                lopHocPhanId,
+	                                ThuTrongTuan.fromGiaTri(rs.getInt("thu")),
+	                                rs.getInt("tiet_bat_dau"),
+	                                rs.getInt("tiet_ket_thuc"));
+
+	                        lichMap.put(lichId, lich);
+	                    }
+	                }
+
+	            } while (rs.next());
+
+	            for (Map.Entry<Long, DanhSachLopChiTiet> entry : chiTietMap.entrySet()) {
+
+	                Long lopId = entry.getKey();
+	                LopHocPhan lop = entry.getValue().getLopHocPhan();
+
+	                Map<Long, LichHoc> lichMap = lichIdentityMap.get(lopId);
+	                if (lichMap != null) {
+	                    lop.getDanhSachLichHoc().addAll(lichMap.values());
+	                }
+	            }
+
+	            return Optional.of(
+	                    new DanhSachLop(
+	                            header.getId(),
+	                            header.getTenDanhSach(),
+	                            header.getNguoiTao(),
+	                            header.isCongKhai(),
+	                            header.getHocKy(),
+	                            header.getNgayTao(),
+	                            new ArrayList<>(chiTietMap.values()))
+	            );
+	        }
+	    }
+	    catch (SQLException ex) {
+	        throw new DataAccessException("Failed to findByIdWithDetails", ex);
+	    }
 	}
 
 	@Override
@@ -417,5 +446,24 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 				hocKy,
 				ngayTao,
 				new ArrayList<>());
+	}
+
+	@Override
+	public void save(DanhSachLop danhSach)
+	{
+		updateHeader(
+				danhSach.getId(),
+				danhSach.getTenDanhSach(),
+				danhSach.getHocKy() != null
+						? danhSach.getHocKy().getId()
+						: null);
+
+		deleteAllChiTiet(danhSach.getId());
+
+		for(DanhSachLopChiTiet ct : danhSach.getChiTietList()) {
+			addChiTiet(
+					danhSach.getId(),
+					ct.getLopHocPhan().getId());
+		}
 	}
 }

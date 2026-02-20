@@ -3,6 +3,9 @@ package vn.edu.haui.scheduler.infrastructure.persistence.config;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+
 import javax.sql.DataSource;
 
 public final class DataSourceProvider
@@ -33,6 +36,11 @@ public final class DataSourceProvider
 	public static DataSource getDataSource()
 	{
 		return dataSource;
+	}
+	
+	public static Connection getConnection() throws SQLException
+	{
+	    return dataSource.getConnection();
 	}
 
 	public static void shutdown()

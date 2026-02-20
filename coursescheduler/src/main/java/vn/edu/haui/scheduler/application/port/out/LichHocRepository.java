@@ -12,4 +12,6 @@ public interface LichHocRepository
 	List<LichHoc> findByLopHocPhanId(Long lopHocPhanId) throws Exception;
 
 	Map<Long, List<LichHoc>> findByLopHocPhanIds(List<Long> lopHocPhanIds) throws Exception;
+
+	void replaceAllByLopHocPhanId(Long lopHocPhanId, List<LichHoc> newList);
 }

@@ -12,17 +12,22 @@ public class ImportDanhSachLopRequestDto
 
 	private final boolean laCongKhai;
 
-	public ImportDanhSachLopRequestDto(String filePath,
+	private final String mimeType;
+
+	public ImportDanhSachLopRequestDto(
+			String filePath,
 			String tenDanhSach,
 			Long nguoiTaoId,
 			Long hocKyId,
-			boolean laCongKhai)
+			boolean laCongKhai,
+			String mimeType)
 	{
 		this.filePath = filePath;
 		this.tenDanhSach = tenDanhSach;
 		this.nguoiTaoId = nguoiTaoId;
 		this.hocKyId = hocKyId;
 		this.laCongKhai = laCongKhai;
+		this.mimeType = mimeType;
 	}
 
 	public String getFilePath()
@@ -48,5 +53,10 @@ public class ImportDanhSachLopRequestDto
 	public boolean isLaCongKhai()
 	{
 		return laCongKhai;
+	}
+
+	public String getMimeType()
+	{
+		return mimeType;
 	}
 }

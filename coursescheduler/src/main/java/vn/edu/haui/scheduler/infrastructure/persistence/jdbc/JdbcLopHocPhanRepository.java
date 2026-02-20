@@ -184,4 +184,41 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepository
 
 		return lop;
 	}
+
+	@Override
+	public void updateBasicInfo(Long id,
+	                            Long giangVienId,
+	                            HinhThucDay hinhThucDay,
+	                            String diaDiem)
+	{
+	    String sql = """
+	        UPDATE lop_hoc_phan
+	        SET giang_vien_id = ?,
+	            hinh_thuc_day = ?,
+	            dia_diem = ?
+	        WHERE id = ?
+	    """;
+
+	    try(Connection conn = DataSourceProvider.getDataSource().getConnection();
+	        PreparedStatement ps = conn.prepareStatement(sql))
+	    {
+	        if(giangVienId != null)
+	            ps.setLong(1, giangVienId);
+	        else
+	            ps.setNull(1, Types.BIGINT);
+
+	        if(hinhThucDay != null)
+	            ps.setString(2, hinhThucDay.name());
+	        else
+	            ps.setString(2, "KHONG_XAC_DINH");
+
+	        ps.setString(3, diaDiem);
+	        ps.setLong(4, id);
+
+	        ps.executeUpdate();
+	    }
+	    catch(SQLException e) {
+	        throw new RuntimeException(e);
+	    }
+	}
 }

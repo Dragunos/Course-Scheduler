@@ -5,7 +5,6 @@ import java.util.List;
 
 public class DanhSachLopChiTietDto
 {
-
 	private Long lopHocPhanId;
 
 	private String maLop;

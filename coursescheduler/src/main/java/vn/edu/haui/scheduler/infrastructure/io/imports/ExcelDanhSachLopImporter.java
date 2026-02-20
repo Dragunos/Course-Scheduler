@@ -6,56 +6,49 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.text.Normalizer;
 import java.util.*;
 
 public class ExcelDanhSachLopImporter
 {
 	private static final int ROWS_TO_SKIP = 3;
 
-	private static final int IDX_MA_HOC_PHAN = 3; // D
+	private final DataFormatter formatter = new DataFormatter();
 
-	private static final int IDX_TEN_HOC_PHAN = 5; // F
+	private final FormulaEvaluator evaluator;
 
-	private static final int IDX_SO_TIN_CHI = 15; // P
+	public ExcelDanhSachLopImporter()
+	{
+		this.evaluator = null;
+	}
 
-	private static final int IDX_MA_LOP = 2; // C
-
-	private static final int IDX_TEN_GV = 9; // J
-
-	private static final int IDX_HINH_THUC = 16; // Q
-
-	private static final int IDX_DIA_DIEM = 8; // I
-
-	private static final int IDX_THU = 7; // H
-
-	private static final int IDX_TIET_RAW = 6; // G
-
-	public List<ImportedLopHocPhanRow> importFrom(File file) throws IOException, InvalidFormatException
+	public ImportFileResult importFrom(File file) throws IOException, InvalidFormatException
 	{
 		List<ImportedLopHocPhanRow> rows = new ArrayList<>();
 		List<String> warnings = new ArrayList<>();
 
 		try (FileInputStream fis = new FileInputStream(file); Workbook wb = WorkbookFactory.create(fis)) {
 			Sheet sheet = wb.getSheetAt(0);
+			FormulaEvaluator ev = wb.getCreationHelper().createFormulaEvaluator();
 			int last = sheet.getLastRowNum();
 			for(int i = ROWS_TO_SKIP; i <= last; i++) {
 				Row r = sheet.getRow(i);
 				if(r == null) continue;
 
-				String maLop = cellToString(r, IDX_MA_LOP);
+				String maLop = cellToString(r, 2, ev);
 				if(isEmpty(maLop)) {
 					warnings.add("Hàng " + (i + 1) + ": maLop trống → bỏ qua");
 					continue;
 				}
 
-				String maHocPhan = cellToString(r, IDX_MA_HOC_PHAN);
-				String tenHocPhan = cellToString(r, IDX_TEN_HOC_PHAN);
-				Integer soTinChi = parseInteger(cellToString(r, IDX_SO_TIN_CHI));
-				String tenGiangVien = cellToString(r, IDX_TEN_GV);
-				String hinhThuc = cellToString(r, IDX_HINH_THUC);
-				String diaDiem = cellToString(r, IDX_DIA_DIEM);
-				String thuRaw = cellToString(r, IDX_THU);
-				String tietRaw = cellToString(r, IDX_TIET_RAW);
+				String maHocPhan = cellToString(r, 3, ev);
+				String tenHocPhan = cellToString(r, 5, ev);
+				Integer soTinChi = parseInteger(cellToString(r, 15, ev));
+				String tenGiangVien = cellToString(r, 9, ev);
+				String hinhThuc = cellToString(r, 16, ev);
+				String diaDiem = cellToString(r, 8, ev);
+				String thuRaw = cellToString(r, 7, ev);
+				String tietRaw = cellToString(r, 6, ev);
 
 				Integer thu = parseThu(thuRaw);
 				List<Integer> tietList = parseTietIntegers(tietRaw, warnings, i + 1);
@@ -64,13 +57,13 @@ public class ExcelDanhSachLopImporter
 				}
 
 				ImportedLopHocPhanRow imported = new ImportedLopHocPhanRow();
-				imported.maLop = maLop;
-				imported.maHocPhan = maHocPhan;
-				imported.tenHocPhan = tenHocPhan;
+				imported.maLop = normalize(maLop);
+				imported.maHocPhan = normalize(maHocPhan);
+				imported.tenHocPhan = normalize(tenHocPhan);
 				imported.soTinChi = soTinChi;
-				imported.tenGiangVien = tenGiangVien;
-				imported.hinhThucDay = hinhThuc;
-				imported.diaDiem = diaDiem;
+				imported.tenGiangVien = normalize(tenGiangVien);
+				imported.hinhThucDay = normalize(hinhThuc);
+				imported.diaDiem = normalize(diaDiem);
 
 				if(thu != null && !tietList.isEmpty()) {
 					List<ImportedLopHocPhanRow.Buoi> buois = convertTietListToBuoi(thu, tietList);
@@ -81,64 +74,62 @@ public class ExcelDanhSachLopImporter
 						warnings.add("Hàng " + (i + 1) + ": thu không hợp lệ ('" + thuRaw
 								+ "'), vẫn giữ nhưng thu=null (maLop=" + maLop + ")");
 					}
-					if(tietList.isEmpty()) {
-						// already warned above
-					}
 				}
 
 				rows.add(imported);
 			}
 		}
 
-		if(!warnings.isEmpty()) {
-			for(String w : warnings) {
-				System.out.println("[IMPORT WARNING] " + w);
-			}
-		}
-
-		return rows;
+		return new ImportFileResult(rows, warnings);
 	}
 
-	private static String cellToString(Row r, int idx)
+	private String cellToString(Row r, int idx, FormulaEvaluator ev)
 	{
 		if(r == null) return null;
 		Cell c = r.getCell(idx);
 		if(c == null) return null;
 		try {
-			if(c.getCellType() == CellType.STRING) {
-				String s = c.getStringCellValue();
-				return s == null ? null : s.trim();
-			}
-			if(c.getCellType() == CellType.NUMERIC) {
-				double d = c.getNumericCellValue();
-				if(d == Math.rint(d)) {
-					return String.valueOf((long) d);
-				}
-				else {
-					return String.valueOf(d);
-				}
-			}
-			if(c.getCellType() == CellType.BOOLEAN) {
-				return String.valueOf(c.getBooleanCellValue());
-			}
 			if(c.getCellType() == CellType.FORMULA) {
-				try {
-					return c.getStringCellValue().trim();
-				}
-				catch(Exception ex) {
-					double d = c.getNumericCellValue();
-					if(d == Math.rint(d)) {
-						return String.valueOf((long) d);
-					}
-					else {
+				CellValue evaluated = ev.evaluate(c);
+				if(evaluated == null) return null;
+				switch(evaluated.getCellType()) {
+					case STRING:
+						return safeTrim(evaluated.getStringValue());
+					case NUMERIC:
+						double d = evaluated.getNumberValue();
+						if(d == Math.rint(d)) return String.valueOf((long) d);
 						return String.valueOf(d);
-					}
+					case BOOLEAN:
+						return String.valueOf(evaluated.getBooleanValue());
+					default:
+						return null;
 				}
+			}
+			else {
+				String s = formatter.formatCellValue(c, ev);
+				return safeTrim(s);
 			}
 		}
 		catch(Exception ignored) {
+			return null;
 		}
-		return null;
+	}
+
+	private static String safeTrim(String s)
+	{
+		if(s == null) return null;
+		String t = s.trim().replace('\u00A0', ' ');
+		if(t.isEmpty()) return null;
+		return t;
+	}
+
+	private static String normalize(String s)
+	{
+		if(s == null) return null;
+		String t = s.trim();
+		t = Normalizer.normalize(t, Normalizer.Form.NFKC);
+		t = t.replaceAll("\\s+", " ");
+		return t.isEmpty() ? null : t;
 	}
 
 	private static boolean isEmpty(String s)
@@ -245,4 +236,13 @@ public class ExcelDanhSachLopImporter
 		result.add(new ImportedLopHocPhanRow.Buoi(thu, start, prev));
 		return result;
 	}
+	
+	public static class ImportFileResult {
+        public final List<ImportedLopHocPhanRow> rows;
+        public final List<String> warnings;
+        public ImportFileResult(List<ImportedLopHocPhanRow> rows, List<String> warnings) {
+            this.rows = rows;
+            this.warnings = warnings;
+        }
+    }
 }

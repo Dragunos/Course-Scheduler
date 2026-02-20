@@ -11,7 +11,7 @@
     <HBox styleClass="auth-top-bar">
         <StackPane.alignment>TOP_LEFT</StackPane.alignment>
 
-        <Button text="←"
+        <Button text="← Quay Lại"
                 onAction="#onBackToHome"
                 styleClass="back-button"/>
     </HBox>
@@ -23,15 +23,15 @@
           maxWidth="400"
           styleClass="form-container">
 
-        <Label text="Sign in" styleClass="title"/>
-        <TextField fx:id="loginUsernameField" promptText="Username"/>
-        <PasswordField fx:id="loginPasswordField" promptText="Password"/>
+        <Label text="Đăng Nhập" styleClass="title"/>
+        <TextField fx:id="loginUsernameField" promptText="Tên đăng nhập"/>
+        <PasswordField fx:id="loginPasswordField" promptText="Mật khẩu"/>
         <Label fx:id="loginMessageLabel" styleClass="message"/>
         <Button fx:id="loginButton"
-                text="SIGN IN"
+                text="ĐĂNG NHẬP"
                 onAction="#onLoginClicked"
                 styleClass="primary-button"/>
-        <Hyperlink text="Create new account"
+        <Hyperlink text="Tạo tài khoản mới"
                    onAction="#showRegister"/>
     </VBox>
 
@@ -44,16 +44,16 @@
           opacity="0"
           styleClass="form-container">
 
-        <Label text="Create Account" styleClass="title"/>
-        <TextField fx:id="registerUsernameField" promptText="Username"/>
-        <PasswordField fx:id="registerPasswordField" promptText="Password"/>
-        <PasswordField fx:id="confirmPasswordField" promptText="Confirm password"/>
+        <Label text="Tạo tài khoản" styleClass="title"/>
+        <TextField fx:id="registerUsernameField" promptText="Tên đăng nhập"/>
+        <PasswordField fx:id="registerPasswordField" promptText="Mật khẩu"/>
+        <PasswordField fx:id="confirmPasswordField" promptText="Xác nhận Mật khẩu"/>
         <Label fx:id="registerMessageLabel" styleClass="message"/>
         <Button fx:id="registerButton"
-                text="SIGN UP"
+                text="ĐĂNG KÝ"
                 onAction="#onRegisterClicked"
                 styleClass="primary-button"/>
-        <Hyperlink text="Back to login"
+        <Hyperlink text="Quay lại Đăng nhập"
                    onAction="#showLogin"/>
     </VBox>
 

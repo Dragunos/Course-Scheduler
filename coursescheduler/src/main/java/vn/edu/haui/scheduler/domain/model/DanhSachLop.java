@@ -7,22 +7,19 @@ public class DanhSachLop
 {
 	private Long id;
 
-	private final String tenDanhSach;
+	private String tenDanhSach;
 
 	private final NguoiDung nguoiTao;
 
 	private final boolean congKhai;
 
-	private final HocKy hocKy;
+	private HocKy hocKy;
 
 	private final LocalDateTime ngayTao;
 
 	private final List<DanhSachLopChiTiet> chiTietList;
 
-	public DanhSachLop(String tenDanhSach,
-			NguoiDung nguoiTao,
-			boolean congKhai,
-			HocKy hocKy)
+	public DanhSachLop(String tenDanhSach, NguoiDung nguoiTao, boolean congKhai, HocKy hocKy)
 	{
 		if(tenDanhSach == null || tenDanhSach.isBlank())
 			throw new IllegalArgumentException("Ten danh sach khong duoc rong");
@@ -35,13 +32,8 @@ public class DanhSachLop
 		this.chiTietList = new ArrayList<>();
 	}
 
-	public DanhSachLop(Long id,
-			String tenDanhSach,
-			NguoiDung nguoiTao,
-			boolean congKhai,
-			HocKy hocKy,
-			LocalDateTime ngayTao,
-			List<DanhSachLopChiTiet> chiTietList)
+	public DanhSachLop(Long id, String tenDanhSach, NguoiDung nguoiTao, boolean congKhai, HocKy hocKy,
+			LocalDateTime ngayTao, List<DanhSachLopChiTiet> chiTietList)
 	{
 		this.id = id;
 		this.tenDanhSach = tenDanhSach;
@@ -49,27 +41,7 @@ public class DanhSachLop
 		this.congKhai = congKhai;
 		this.hocKy = hocKy;
 		this.ngayTao = ngayTao;
-		this.chiTietList = chiTietList == null
-				? new ArrayList<>()
-				: new ArrayList<>(chiTietList);
-	}
-
-	public void themLop(LopHocPhan lop, boolean batBuoc)
-	{
-		Objects.requireNonNull(lop);
-
-		boolean daTonTai = chiTietList.stream()
-				.anyMatch(ct -> ct.getLopHocPhan().getId().equals(lop.getId()));
-
-		if(daTonTai)
-			throw new IllegalStateException("Lop da ton tai");
-
-		chiTietList.add(new DanhSachLopChiTiet(lop, batBuoc));
-	}
-
-	public List<DanhSachLopChiTiet> getChiTietList()
-	{
-		return Collections.unmodifiableList(chiTietList);
+		this.chiTietList = chiTietList == null ? new ArrayList<>() : new ArrayList<>(chiTietList);
 	}
 
 	public Long getId()
@@ -80,6 +52,14 @@ public class DanhSachLop
 	public String getTenDanhSach()
 	{
 		return tenDanhSach;
+	}
+	
+	public void doiTenDanhSach(String tenMoi)
+	{
+		if(tenMoi == null || tenMoi.isBlank())
+			throw new IllegalArgumentException();
+
+		this.tenDanhSach = tenMoi.trim();
 	}
 
 	public NguoiDung getNguoiTao()
@@ -96,9 +76,58 @@ public class DanhSachLop
 	{
 		return hocKy;
 	}
+	
+	public void doiHocKy(Long hocKyId)
+	{
+		if(hocKyId == null) {
+			this.hocKy = null;
+			return;
+		}
+
+		this.hocKy = new HocKy(hocKyId, "UNKNOWN", "UNKNOWN");
+	}
 
 	public LocalDateTime getNgayTao()
 	{
 		return ngayTao;
+	}
+
+	public void themLopHocPhan(Long lopHocPhanId)
+	{
+		Objects.requireNonNull(lopHocPhanId);
+
+		boolean daTonTai = chiTietList.stream()
+				.anyMatch(ct -> ct.getLopHocPhan().getId().equals(lopHocPhanId));
+
+		if(daTonTai)
+			return;
+
+		LopHocPhan lopStub = new LopHocPhan(lopHocPhanId);
+
+		chiTietList.add(new DanhSachLopChiTiet(lopStub, false));
+	}
+
+	public void themLop(LopHocPhan lop, boolean batBuoc)
+	{
+		Objects.requireNonNull(lop);
+
+		boolean daTonTai = chiTietList.stream().anyMatch(ct -> ct.getLopHocPhan().getId().equals(lop.getId()));
+
+		if(daTonTai)
+			throw new IllegalStateException("Lop da ton tai");
+
+		chiTietList.add(new DanhSachLopChiTiet(lop, batBuoc));
+	}
+
+	public void xoaLopHocPhan(Long lopHocPhanId)
+	{
+		Objects.requireNonNull(lopHocPhanId);
+
+		chiTietList.removeIf(ct -> ct.getLopHocPhan().getId().equals(lopHocPhanId));
+	}
+
+	public List<DanhSachLopChiTiet> getChiTietList()
+	{
+		return Collections.unmodifiableList(chiTietList);
 	}
 }

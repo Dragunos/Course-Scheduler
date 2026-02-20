@@ -237,7 +237,8 @@ public class AdminDanhSachLopPaneHandler
 					"Danh sách hệ thống",
 					user.getId(),
 					null,
-					true);
+					true,
+					"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
 			screenManager
 					.getQuanTriDanhSachLopUseCase()

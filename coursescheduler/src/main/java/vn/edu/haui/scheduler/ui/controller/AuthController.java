@@ -117,7 +117,8 @@ public class AuthController
 			screenManager.setCurrentUser(user);
 			screenManager.showHome();
 		}
-		catch(Exception ignored) {
+		catch(Exception e) {
+		    e.printStackTrace();
 		}
 	}
 
@@ -128,7 +129,8 @@ public class AuthController
 			viewModel.register();
 			showLogin();
 		}
-		catch(Exception ignored) {
+		catch(Exception e) {
+		    e.printStackTrace();
 		}
 	}
 
@@ -139,6 +141,15 @@ public class AuthController
 		viewModel.clear();
 		switchPane(loginPane, registerPane, true);
 	}
+	
+	public void showRegisterPane()
+	{
+	    registerPane.setVisible(true);
+	    registerPane.setOpacity(1);
+
+	    loginPane.setVisible(false);
+	    loginPane.setOpacity(0);
+	}
 
 	@FXML
 	private void showLogin()
@@ -146,6 +157,15 @@ public class AuthController
 		if(!canAnimate()) return;
 		viewModel.clear();
 		switchPane(registerPane, loginPane, false);
+	}
+	
+	public void showLoginPane()
+	{
+	    loginPane.setVisible(true);
+	    loginPane.setOpacity(1);
+
+	    registerPane.setVisible(false);
+	    registerPane.setOpacity(0);
 	}
 	
 	@FXML
