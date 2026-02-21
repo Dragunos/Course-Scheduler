@@ -1,4 +1,4 @@
-package vn.edu.haui.scheduler.infrastructure.persistence.jdbc;
+package vn.edu.haui.scheduler.infrastructure.persistence.jdbc.temp;
 
 import vn.edu.haui.scheduler.application.port.out.LichHocRepository;
 import vn.edu.haui.scheduler.domain.enums.ThuTrongTuan;

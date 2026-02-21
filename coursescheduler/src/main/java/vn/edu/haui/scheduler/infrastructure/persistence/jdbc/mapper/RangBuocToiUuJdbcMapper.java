@@ -27,6 +27,7 @@ public class RangBuocToiUuJdbcMapper
 				rs.getString("value"),
 				rs.getInt("la_cung") == 1,
 				JdbcMapperUtil.getDouble(rs, "trong_so"),
+				rs.getString("ghi_chu"),
 				nguoiTao,
 				JdbcMapperUtil.getLocalDateTime(rs, "ngay_tao"));
 	}

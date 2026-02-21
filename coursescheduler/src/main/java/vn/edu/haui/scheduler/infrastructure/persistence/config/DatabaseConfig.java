@@ -6,7 +6,6 @@ import java.nio.file.Paths;
 
 public final class DatabaseConfig
 {
-
 	private static final String APP_DIR_NAME = ".coursescheduler";
 
 	private static final String DB_NAME = "coursescheduler.db";

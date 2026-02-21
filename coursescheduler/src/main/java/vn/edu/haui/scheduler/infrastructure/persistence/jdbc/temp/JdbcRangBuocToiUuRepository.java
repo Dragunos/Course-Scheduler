@@ -1,4 +1,4 @@
-package vn.edu.haui.scheduler.infrastructure.persistence.jdbc;
+package vn.edu.haui.scheduler.infrastructure.persistence.jdbc.temp;
 
 import vn.edu.haui.scheduler.application.dto.RangBuocToiUuDto;
 import vn.edu.haui.scheduler.application.port.out.RangBuocToiUuRepository;

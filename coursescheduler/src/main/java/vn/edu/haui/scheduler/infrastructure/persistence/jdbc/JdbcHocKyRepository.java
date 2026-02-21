@@ -3,97 +3,100 @@ package vn.edu.haui.scheduler.infrastructure.persistence.jdbc;
 import vn.edu.haui.scheduler.application.exception.DataAccessException;
 import vn.edu.haui.scheduler.application.exception.EntityNotFoundException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
-import vn.edu.haui.scheduler.application.port.out.GiangVienRepository;
-import vn.edu.haui.scheduler.domain.model.GiangVien;
+import vn.edu.haui.scheduler.application.port.out.HocKyRepository;
+import vn.edu.haui.scheduler.domain.model.HocKy;
 import vn.edu.haui.scheduler.infrastructure.persistence.config.TransactionManagerImpl;
-import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper.GiangVienJdbcMapper;
+import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper.HocKyJdbcMapper;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class JdbcGiangVienRepository implements GiangVienRepository
+public class JdbcHocKyRepository implements HocKyRepository
 {
 	private final TransactionManagerImpl transactionManager;
 
-	public JdbcGiangVienRepository(TransactionManagerImpl transactionManager)
+	public JdbcHocKyRepository(TransactionManagerImpl transactionManager)
 	{
 		this.transactionManager = transactionManager;
 	}
 
 	@Override
-	public GiangVien save(GiangVien giangVien)
+	public HocKy save(HocKy hocKy)
 	{
-		if(giangVien == null)
-			throw new ValidationException("GiangVien must not be null");
+		if(hocKy == null)
+			throw new ValidationException("HocKy must not be null");
 
-		if(giangVien.isPersisted())
-			return update(giangVien);
+		if(hocKy.isPersisted())
+			return update(hocKy);
 
-		return insert(giangVien);
+		return insert(hocKy);
 	}
 
-	private GiangVien insert(GiangVien giangVien)
+	private HocKy insert(HocKy hocKy)
 	{
 		String sql = """
-				INSERT INTO giang_vien (ten_giang_vien)
-				VALUES (?)
+				INSERT INTO hoc_ky (ten_hoc_ky, nam_hoc)
+				VALUES (?, ?)
 				""";
 
 		try (Connection conn = transactionManager.getRequiredConnection();
 				PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-			ps.setString(1, giangVien.getTenGiangVien());
+			ps.setString(1, hocKy.getTenHocKy());
+			ps.setString(2, hocKy.getNamHoc());
 
 			ps.executeUpdate();
 
 			try (ResultSet rs = ps.getGeneratedKeys()) {
 				if(rs.next()) {
 					Long id = rs.getLong(1);
-					return GiangVien.reconstruct(
+					return HocKy.reconstruct(
 							id,
-							giangVien.getTenGiangVien());
+							hocKy.getTenHocKy(),
+							hocKy.getNamHoc());
 				}
 			}
 
-			throw new DataAccessException("Failed to retrieve generated id for GiangVien", null);
+			throw new DataAccessException("Failed to retrieve generated id for HocKy", null);
 		}
 		catch(SQLException e) {
-			throw new DataAccessException("Error inserting GiangVien", e);
+			throw new DataAccessException("Error inserting HocKy", e);
 		}
 	}
 
-	private GiangVien update(GiangVien giangVien)
+	private HocKy update(HocKy hocKy)
 	{
 		String sql = """
-				UPDATE giang_vien
-				SET ten_giang_vien = ?
+				UPDATE hoc_ky
+				SET ten_hoc_ky = ?, nam_hoc = ?
 				WHERE id = ?
 				""";
 
 		try (Connection conn = transactionManager.getRequiredConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
-			ps.setString(1, giangVien.getTenGiangVien());
-			ps.setLong(2, giangVien.getId());
+			ps.setString(1, hocKy.getTenHocKy());
+			ps.setString(2, hocKy.getNamHoc());
+			ps.setLong(3, hocKy.getId());
 
 			int affected = ps.executeUpdate();
 
 			if(affected == 0)
-				throw new EntityNotFoundException("GiangVien", giangVien.getId());
+				throw new EntityNotFoundException("HocKy", hocKy.getId());
 
-			return giangVien;
+			return hocKy;
 		}
 		catch(SQLException e) {
-			throw new DataAccessException("Error updating GiangVien", e);
+			throw new DataAccessException("Error updating HocKy", e);
 		}
 	}
 
 	@Override
-	public Optional<GiangVien> findById(Long id)
+	public Optional<HocKy> findById(Long id)
 	{
 		String sql = """
-				SELECT id, ten_giang_vien
-				FROM giang_vien
+				SELECT id, ten_hoc_ky, nam_hoc
+				FROM hoc_ky
 				WHERE id = ?
 				""";
 
@@ -103,70 +106,71 @@ public class JdbcGiangVienRepository implements GiangVienRepository
 
 			try (ResultSet rs = ps.executeQuery()) {
 				if(rs.next())
-					return Optional.of(GiangVienJdbcMapper.toDomain(rs));
+					return Optional.of(HocKyJdbcMapper.toDomain(rs));
 
 				return Optional.empty();
 			}
 		}
 		catch(Exception e) {
-			throw new DataAccessException("Error finding GiangVien by id", e);
+			throw new DataAccessException("Error finding HocKy by id", e);
 		}
 	}
 
 	@Override
-	public Optional<GiangVien> findByTen(String tenGiangVien)
+	public Optional<HocKy> findByTenAndNam(String tenHocKy, String namHoc)
 	{
 		String sql = """
-				SELECT id, ten_giang_vien
-				FROM giang_vien
-				WHERE ten_giang_vien = ?
+				SELECT id, ten_hoc_ky, nam_hoc
+				FROM hoc_ky
+				WHERE ten_hoc_ky = ? AND nam_hoc = ?
 				""";
 
 		try (Connection conn = transactionManager.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
-			ps.setString(1, tenGiangVien);
+			ps.setString(1, tenHocKy);
+			ps.setString(2, namHoc);
 
 			try (ResultSet rs = ps.executeQuery()) {
 				if(rs.next())
-					return Optional.of(GiangVienJdbcMapper.toDomain(rs));
+					return Optional.of(HocKyJdbcMapper.toDomain(rs));
 
 				return Optional.empty();
 			}
 		}
 		catch(Exception e) {
-			throw new DataAccessException("Error finding GiangVien by ten", e);
+			throw new DataAccessException("Error finding HocKy by ten and nam", e);
 		}
 	}
 
 	@Override
-	public List<GiangVien> findAll()
+	public List<HocKy> findAll()
 	{
 		String sql = """
-				SELECT id, ten_giang_vien
-				FROM giang_vien
-				ORDER BY ten_giang_vien ASC
+				SELECT id, ten_hoc_ky, nam_hoc
+				FROM hoc_ky
+				ORDER BY nam_hoc DESC, ten_hoc_ky DESC
 				""";
 
-		List<GiangVien> result = new ArrayList<>();
+		List<HocKy> result = new ArrayList<>();
 
 		try (Connection conn = transactionManager.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql);
 				ResultSet rs = ps.executeQuery()) {
 			while(rs.next()) {
-				result.add(GiangVienJdbcMapper.toDomain(rs));
+				result.add(HocKyJdbcMapper.toDomain(rs));
 			}
 
 			return result;
 		}
 		catch(Exception e) {
-			throw new DataAccessException("Error finding all GiangVien", e);
+			throw new DataAccessException("Error finding all HocKy", e);
 		}
 	}
 
 	@Override
 	public void deleteById(Long id)
 	{
-		String sql = "DELETE FROM giang_vien WHERE id = ?";
+		String sql = "DELETE FROM hoc_ky WHERE id = ?";
 
 		try (Connection conn = transactionManager.getRequiredConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -175,10 +179,10 @@ public class JdbcGiangVienRepository implements GiangVienRepository
 			int affected = ps.executeUpdate();
 
 			if(affected == 0)
-				throw new EntityNotFoundException("GiangVien", id);
+				throw new EntityNotFoundException("HocKy", id);
 		}
 		catch(SQLException e) {
-			throw new DataAccessException("Error deleting GiangVien", e);
+			throw new DataAccessException("Error deleting HocKy", e);
 		}
 	}
 }

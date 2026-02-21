@@ -27,6 +27,8 @@ public class RangBuocToiUu
 
 	private final double trongSo;
 
+	private final String ghiChu;
+
 	private final NguoiDung nguoiTao;
 
 	private final LocalDateTime ngayTao;
@@ -43,6 +45,7 @@ public class RangBuocToiUu
 			String value,
 			boolean laCung,
 			double trongSo,
+			String ghiChu,
 			NguoiDung nguoiTao,
 			LocalDateTime ngayTao)
 	{
@@ -59,6 +62,7 @@ public class RangBuocToiUu
 		this.value = value;
 		this.laCung = laCung;
 		this.trongSo = trongSo;
+		this.ghiChu = ghiChu;
 		this.nguoiTao = nguoiTao;
 		this.ngayTao = ngayTao;
 	}
@@ -68,6 +72,7 @@ public class RangBuocToiUu
 			String loaiRangBuoc,
 			boolean laCung,
 			double trongSo,
+			String ghiChu,
 			NguoiDung nguoiTao)
 	{
 		return new RangBuocToiUu(
@@ -82,6 +87,7 @@ public class RangBuocToiUu
 				null,
 				laCung,
 				trongSo,
+				ghiChu,
 				nguoiTao,
 				LocalDateTime.now());
 	}
@@ -98,6 +104,7 @@ public class RangBuocToiUu
 			String value,
 			boolean laCung,
 			double trongSo,
+			String ghiChu,
 			NguoiDung nguoiTao,
 			LocalDateTime ngayTao)
 	{
@@ -116,6 +123,7 @@ public class RangBuocToiUu
 				value,
 				laCung,
 				trongSo,
+				ghiChu,
 				nguoiTao,
 				ngayTao);
 	}
@@ -142,6 +150,11 @@ public class RangBuocToiUu
 	public boolean apDungChoYeuCau(YeuCau yc)
 	{
 		return yeuCau != null && yeuCau.equals(yc);
+	}
+
+	public boolean apDungChoThoiKhoaBieu(ThoiKhoaBieu tkb)
+	{
+		return thoiKhoaBieu != null && thoiKhoaBieu.equals(tkb);
 	}
 
 	public Long getId()
@@ -184,6 +197,11 @@ public class RangBuocToiUu
 		return operator;
 	}
 
+	public String getValue()
+	{
+		return value;
+	}
+
 	public boolean isLaCung()
 	{
 		return laCung;
@@ -194,6 +212,11 @@ public class RangBuocToiUu
 		return trongSo;
 	}
 
+	public String getGhiChu()
+	{
+		return ghiChu;
+	}
+
 	public NguoiDung getNguoiTao()
 	{
 		return nguoiTao;
@@ -202,11 +225,6 @@ public class RangBuocToiUu
 	public LocalDateTime getNgayTao()
 	{
 		return ngayTao;
-	}
-
-	public String getValue()
-	{
-		return value;
 	}
 
 	public boolean isPersisted()

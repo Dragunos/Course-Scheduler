@@ -10,7 +10,6 @@ import javax.sql.DataSource;
 
 public final class DataSourceProvider
 {
-
 	private static final HikariDataSource dataSource;
 
 	static {
@@ -37,10 +36,10 @@ public final class DataSourceProvider
 	{
 		return dataSource;
 	}
-	
+
 	public static Connection getConnection() throws SQLException
 	{
-	    return dataSource.getConnection();
+		return dataSource.getConnection();
 	}
 
 	public static void shutdown()

@@ -1,15 +1,22 @@
 package vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper;
 
+import vn.edu.haui.scheduler.application.exception.DataAccessException;
 import vn.edu.haui.scheduler.domain.model.HocKy;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class HocKyJdbcMapper
 {
-	public static HocKy toDomain(ResultSet rs) throws Exception
+	public static HocKy toDomain(ResultSet rs)
 	{
-		return HocKy.reconstruct(
-				rs.getLong("id"),
-				rs.getString("ten_hoc_ky"),
-				rs.getString("nam_hoc"));
+		try {
+			return HocKy.reconstruct(
+					rs.getLong("id"),
+					rs.getString("ten_hoc_ky"),
+					rs.getString("nam_hoc"));
+		}
+		catch(SQLException e) {
+			throw new DataAccessException("Error mapping HocKy", e);
+		}
 	}
 }

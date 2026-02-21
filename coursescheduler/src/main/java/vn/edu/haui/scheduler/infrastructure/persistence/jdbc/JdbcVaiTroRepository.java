@@ -1,141 +1,176 @@
 package vn.edu.haui.scheduler.infrastructure.persistence.jdbc;
 
-import vn.edu.haui.scheduler.application.port.out.VaiTroRepository;
 import vn.edu.haui.scheduler.application.exception.DataAccessException;
-import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
+import vn.edu.haui.scheduler.application.exception.EntityNotFoundException;
+import vn.edu.haui.scheduler.application.exception.ValidationException;
+import vn.edu.haui.scheduler.application.port.out.VaiTroRepository;
+import vn.edu.haui.scheduler.domain.model.VaiTro;
 import vn.edu.haui.scheduler.infrastructure.persistence.config.TransactionManagerImpl;
+import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper.VaiTroJdbcMapper;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class JdbcVaiTroRepository implements VaiTroRepository
 {
-	private final TransactionManagerImpl txManager;
+	private final TransactionManagerImpl transactionManager;
 
-	public JdbcVaiTroRepository(TransactionManagerImpl txManager)
+	public JdbcVaiTroRepository(TransactionManagerImpl transactionManager)
 	{
-		this.txManager = txManager;
+		this.transactionManager = transactionManager;
 	}
 
 	@Override
-	public Optional<Long> findIdByTenVaiTro(String tenVaiTro) throws DataAccessException
+	public VaiTro save(VaiTro vaiTro)
 	{
-
-		String sql = "SELECT id FROM vai_tro WHERE ten_vai_tro = ?";
-
-		Connection connection = txManager.getExistingConnection();
-		boolean isNewConnection = false;
-
-		try {
-
-			if(connection == null) {
-				connection = DataSourceProvider.getConnection();
-				isNewConnection = true;
-			}
-
-			try (PreparedStatement ps = connection.prepareStatement(sql)) {
-
-				ps.setString(1, tenVaiTro);
-
-				try (ResultSet rs = ps.executeQuery()) {
-					if(rs.next())
-						return Optional.of(rs.getLong("id"));
-
-					return Optional.empty();
-				}
-			}
+		if(vaiTro == null) {
+			throw new ValidationException("VaiTro must not be null");
 		}
-		catch(Exception ex) {
-			throw new DataAccessException("Error when finding vai_tro id", ex);
+
+		if(vaiTro.isPersisted()) {
+			return update(vaiTro);
 		}
-		finally {
-			if(isNewConnection) {
-				try {
-					connection.close();
-				}
-				catch(Exception ignored) {
-				}
-			}
-		}
+
+		return insert(vaiTro);
 	}
 
-	@Override
-	public Optional<String> findTenById(Long id) throws DataAccessException
-	{
-
-		String sql = "SELECT ten_vai_tro FROM vai_tro WHERE id = ?";
-
-		Connection connection = txManager.getExistingConnection();
-		boolean isNewConnection = false;
-
-		try {
-
-			if(connection == null) {
-				connection = DataSourceProvider.getConnection();
-				isNewConnection = true;
-			}
-
-			try (PreparedStatement ps = connection.prepareStatement(sql)) {
-
-				ps.setLong(1, id);
-
-				try (ResultSet rs = ps.executeQuery()) {
-					if(rs.next())
-						return Optional.of(rs.getString("ten_vai_tro"));
-
-					return Optional.empty();
-				}
-			}
-		}
-		catch(Exception ex) {
-			throw new DataAccessException("Error when finding ten_vai_tro", ex);
-		}
-		finally {
-			if(isNewConnection) {
-				try {
-					connection.close();
-				}
-				catch(Exception ignored) {
-				}
-			}
-		}
-	}
-
-	@Override
-	public long save(String tenVaiTro) throws DataAccessException
+	private VaiTro insert(VaiTro vaiTro)
 	{
 		String sql = "INSERT INTO vai_tro (ten_vai_tro) VALUES (?)";
 
-		try {
+		try (Connection conn = transactionManager.getRequiredConnection();
+				PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-			Connection connection = txManager.getRequiredConnection();
+			ps.setString(1, vaiTro.getTenVaiTro());
+			ps.executeUpdate();
 
-			try (
-					PreparedStatement ps = connection.prepareStatement(
-							sql,
-							Statement.RETURN_GENERATED_KEYS)) {
-
-				ps.setString(1, tenVaiTro);
-
-				int affected = ps.executeUpdate();
-
-				if(affected == 0)
-					throw new DataAccessException("Insert role failed");
-
-				try (ResultSet keys = ps.getGeneratedKeys()) {
-
-					if(keys.next())
-						return keys.getLong(1);
+			try (ResultSet rs = ps.getGeneratedKeys()) {
+				if(rs.next()) {
+					Long id = rs.getLong(1);
+					return VaiTro.reconstruct(id, vaiTro.getTenVaiTro());
 				}
-
-				throw new DataAccessException("No ID returned");
 			}
+
+			throw new DataAccessException("Failed to retrieve generated id for VaiTro", null);
+
 		}
-		catch(Exception ex) {
-			throw new DataAccessException("Error when saving vai_tro", ex);
+		catch(SQLException e) {
+			throw new DataAccessException("Error inserting VaiTro", e);
+		}
+	}
+
+	private VaiTro update(VaiTro vaiTro)
+	{
+		String sql = "UPDATE vai_tro SET ten_vai_tro = ? WHERE id = ?";
+
+		try (Connection conn = transactionManager.getRequiredConnection();
+				PreparedStatement ps = conn.prepareStatement(sql)) {
+
+			ps.setString(1, vaiTro.getTenVaiTro());
+			ps.setLong(2, vaiTro.getId());
+
+			int affected = ps.executeUpdate();
+			if(affected == 0) {
+				throw new EntityNotFoundException("VaiTro", vaiTro.getId());
+			}
+
+			return vaiTro;
+
+		}
+		catch(SQLException e) {
+			throw new DataAccessException("Error updating VaiTro", e);
+		}
+	}
+
+	@Override
+	public Optional<VaiTro> findById(Long id)
+	{
+		String sql = "SELECT id, ten_vai_tro FROM vai_tro WHERE id = ?";
+
+		try (Connection conn = transactionManager.getConnection();
+				PreparedStatement ps = conn.prepareStatement(sql)) {
+
+			ps.setLong(1, id);
+
+			try (ResultSet rs = ps.executeQuery()) {
+				if(rs.next()) {
+					return Optional.of(VaiTroJdbcMapper.toDomain(rs));
+				}
+				return Optional.empty();
+			}
+
+		}
+		catch(SQLException e) {
+			throw new DataAccessException("Error finding VaiTro by id", e);
+		}
+	}
+
+	@Override
+	public Optional<VaiTro> findByTen(String tenVaiTro)
+	{
+		String sql = "SELECT id, ten_vai_tro FROM vai_tro WHERE ten_vai_tro = ?";
+
+		try (Connection conn = transactionManager.getConnection();
+				PreparedStatement ps = conn.prepareStatement(sql)) {
+
+			ps.setString(1, tenVaiTro);
+
+			try (ResultSet rs = ps.executeQuery()) {
+				if(rs.next()) {
+					return Optional.of(VaiTroJdbcMapper.toDomain(rs));
+				}
+				return Optional.empty();
+			}
+
+		}
+		catch(SQLException e) {
+			throw new DataAccessException("Error finding VaiTro by ten", e);
+		}
+	}
+
+	@Override
+	public List<VaiTro> findAll()
+	{
+		String sql = "SELECT id, ten_vai_tro FROM vai_tro";
+
+		List<VaiTro> result = new ArrayList<>();
+
+		try (Connection conn = transactionManager.getConnection();
+				PreparedStatement ps = conn.prepareStatement(sql);
+				ResultSet rs = ps.executeQuery()) {
+
+			while(rs.next()) {
+				result.add(VaiTroJdbcMapper.toDomain(rs));
+			}
+
+			return result;
+
+		}
+		catch(SQLException e) {
+			throw new DataAccessException("Error finding all VaiTro", e);
+		}
+	}
+
+	@Override
+	public void deleteById(Long id)
+	{
+		String sql = "DELETE FROM vai_tro WHERE id = ?";
+
+		try (Connection conn = transactionManager.getRequiredConnection();
+				PreparedStatement ps = conn.prepareStatement(sql)) {
+
+			ps.setLong(1, id);
+			int affected = ps.executeUpdate();
+
+			if(affected == 0) {
+				throw new EntityNotFoundException("VaiTro", id);
+			}
+
+		}
+		catch(SQLException e) {
+			throw new DataAccessException("Error deleting VaiTro", e);
 		}
 	}
 }

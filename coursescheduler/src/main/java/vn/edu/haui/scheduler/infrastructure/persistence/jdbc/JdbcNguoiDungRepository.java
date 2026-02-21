@@ -1,129 +1,245 @@
 package vn.edu.haui.scheduler.infrastructure.persistence.jdbc;
 
+import vn.edu.haui.scheduler.application.exception.DataAccessException;
+import vn.edu.haui.scheduler.application.exception.EntityNotFoundException;
+import vn.edu.haui.scheduler.application.exception.ValidationException;
 import vn.edu.haui.scheduler.application.port.out.NguoiDungRepository;
 import vn.edu.haui.scheduler.domain.model.NguoiDung;
-import vn.edu.haui.scheduler.application.exception.DataAccessException;
-import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 import vn.edu.haui.scheduler.infrastructure.persistence.config.TransactionManagerImpl;
+import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper.NguoiDungJdbcMapper;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.sql.Types;
-import java.time.LocalDateTime;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class JdbcNguoiDungRepository implements NguoiDungRepository
 {
-	private final TransactionManagerImpl txManager;
+	private final TransactionManagerImpl transactionManager;
 
-	public JdbcNguoiDungRepository(TransactionManagerImpl txManager)
+	public JdbcNguoiDungRepository(TransactionManagerImpl transactionManager)
 	{
-		this.txManager = txManager;
+		this.transactionManager = transactionManager;
 	}
 
 	@Override
-	public Optional<NguoiDung> findByTenDangNhap(String tenDangNhap) throws DataAccessException
+	public NguoiDung save(NguoiDung nguoiDung)
+	{
+		if(nguoiDung == null) {
+			throw new ValidationException("NguoiDung must not be null");
+		}
+
+		if(nguoiDung.isPersisted()) {
+			return update(nguoiDung);
+		}
+
+		return insert(nguoiDung);
+	}
+
+	private NguoiDung insert(NguoiDung nguoiDung)
 	{
 		String sql = """
-				SELECT id, ten_dang_nhap, mat_khau_hash, role_id, ngay_tao
-				FROM nguoi_dung
-				WHERE ten_dang_nhap = ?
+				INSERT INTO nguoi_dung
+				(ten_dang_nhap, mat_khau_hash, role_id, ngay_tao)
+				VALUES (?, ?, ?, ?)
 				""";
 
-		Connection connection = txManager.getExistingConnection();
-		boolean isNewConnection = false;
+		try (Connection conn = transactionManager.getRequiredConnection();
+				PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-		try {
+			ps.setString(1, nguoiDung.getTenDangNhap());
+			ps.setString(2, nguoiDung.getMatKhauHash());
+			ps.setLong(3, nguoiDung.getVaiTro().getId());
+			ps.setTimestamp(4, Timestamp.valueOf(nguoiDung.getNgayTao()));
 
-			if(connection == null) {
-				connection = DataSourceProvider.getConnection();
-				isNewConnection = true;
-			}
+			ps.executeUpdate();
 
-			try (PreparedStatement ps = connection.prepareStatement(sql)) {
-
-				ps.setString(1, tenDangNhap);
-
-				try (ResultSet rs = ps.executeQuery()) {
-
-					if(rs.next()) {
-
-						Object roleObj = rs.getObject("role_id");
-						Long vaiTroId = roleObj == null ? null : ((Number) roleObj).longValue();
-
-						Timestamp ts = rs.getTimestamp("ngay_tao");
-						LocalDateTime ngayTao = ts == null ? null : ts.toLocalDateTime();
-
-						return Optional.of(new NguoiDung(
-								rs.getLong("id"),
-								rs.getString("ten_dang_nhap"),
-								rs.getString("mat_khau_hash"),
-								vaiTroId,
-								ngayTao));
-					}
-
-					return Optional.empty();
+			try (ResultSet rs = ps.getGeneratedKeys()) {
+				if(rs.next()) {
+					Long id = rs.getLong(1);
+					return NguoiDung.reconstruct(
+							id,
+							nguoiDung.getTenDangNhap(),
+							nguoiDung.getMatKhauHash(),
+							nguoiDung.getVaiTro(),
+							nguoiDung.getNgayTao());
 				}
 			}
+
+			throw new DataAccessException("Failed to retrieve generated id for NguoiDung", null);
+
 		}
-		catch(Exception ex) {
-			throw new DataAccessException("Error when finding nguoi_dung", ex);
+		catch(SQLException e) {
+			throw new DataAccessException("Error inserting NguoiDung", e);
 		}
-		finally {
-			if(isNewConnection) {
-				try {
-					connection.close();
-				}
-				catch(Exception ignored) {
-				}
+	}
+
+	private NguoiDung update(NguoiDung nguoiDung)
+	{
+		String sql = """
+				UPDATE nguoi_dung
+				SET mat_khau_hash = ?, role_id = ?
+				WHERE id = ?
+				""";
+
+		try (Connection conn = transactionManager.getRequiredConnection();
+				PreparedStatement ps = conn.prepareStatement(sql)) {
+
+			ps.setString(1, nguoiDung.getMatKhauHash());
+			ps.setLong(2, nguoiDung.getVaiTro().getId());
+			ps.setLong(3, nguoiDung.getId());
+
+			int affected = ps.executeUpdate();
+
+			if(affected == 0) {
+				throw new EntityNotFoundException("NguoiDung", nguoiDung.getId());
 			}
+
+			return nguoiDung;
+
+		}
+		catch(SQLException e) {
+			throw new DataAccessException("Error updating NguoiDung", e);
 		}
 	}
 
 	@Override
-	public long save(NguoiDung user) throws DataAccessException
+	public Optional<NguoiDung> findById(Long id)
 	{
 		String sql = """
-				INSERT INTO nguoi_dung (ten_dang_nhap, mat_khau_hash, role_id)
-				VALUES (?, ?, ?)
+				SELECT nd.id,
+				       nd.ten_dang_nhap,
+				       nd.mat_khau_hash,
+				       nd.ngay_tao,
+				       vt.id AS vai_tro_id,
+				       vt.ten_vai_tro
+				FROM nguoi_dung nd
+				LEFT JOIN vai_tro vt ON nd.role_id = vt.id
+				WHERE nd.id = ?
 				""";
 
-		try {
+		try (Connection conn = transactionManager.getConnection();
+				PreparedStatement ps = conn.prepareStatement(sql)) {
 
-			Connection connection = txManager.getRequiredConnection();
+			ps.setLong(1, id);
 
-			try (
-					PreparedStatement ps = connection.prepareStatement(
-							sql,
-							Statement.RETURN_GENERATED_KEYS)) {
-
-				ps.setString(1, user.getTenDangNhap());
-				ps.setString(2, user.getMatKhauHash());
-
-				if(user.getVaiTroId() == null)
-					ps.setNull(3, Types.BIGINT);
-				else
-					ps.setObject(3, user.getVaiTroId(), Types.BIGINT);
-
-				int affected = ps.executeUpdate();
-
-				if(affected == 0)
-					throw new DataAccessException("Insert failed");
-
-				try (ResultSet keys = ps.getGeneratedKeys()) {
-
-					if(keys.next())
-						return keys.getLong(1);
+			try (ResultSet rs = ps.executeQuery()) {
+				if(rs.next()) {
+					return Optional.of(NguoiDungJdbcMapper.toDomain(rs));
 				}
-
-				throw new DataAccessException("No ID returned");
+				return Optional.empty();
 			}
+
 		}
-		catch(Exception ex) {
-			throw new DataAccessException("Error when saving nguoi_dung", ex);
+		catch(Exception e) {
+			throw new DataAccessException("Error finding NguoiDung by id", e);
+		}
+	}
+
+	@Override
+	public Optional<NguoiDung> findByUsername(String username)
+	{
+		String sql = """
+				SELECT nd.id,
+				       nd.ten_dang_nhap,
+				       nd.mat_khau_hash,
+				       nd.ngay_tao,
+				       vt.id AS vai_tro_id,
+				       vt.ten_vai_tro
+				FROM nguoi_dung nd
+				LEFT JOIN vai_tro vt ON nd.role_id = vt.id
+				WHERE nd.ten_dang_nhap = ?
+				""";
+
+		try (Connection conn = transactionManager.getConnection();
+				PreparedStatement ps = conn.prepareStatement(sql)) {
+
+			ps.setString(1, username);
+
+			try (ResultSet rs = ps.executeQuery()) {
+				if(rs.next()) {
+					return Optional.of(NguoiDungJdbcMapper.toDomain(rs));
+				}
+				return Optional.empty();
+			}
+
+		}
+		catch(Exception e) {
+			throw new DataAccessException("Error finding NguoiDung by username", e);
+		}
+	}
+
+	@Override
+	public List<NguoiDung> findAll()
+	{
+		String sql = """
+				SELECT nd.id,
+				       nd.ten_dang_nhap,
+				       nd.mat_khau_hash,
+				       nd.ngay_tao,
+				       vt.id AS vai_tro_id,
+				       vt.ten_vai_tro
+				FROM nguoi_dung nd
+				LEFT JOIN vai_tro vt ON nd.role_id = vt.id
+				""";
+
+		List<NguoiDung> result = new ArrayList<>();
+
+		try (Connection conn = transactionManager.getConnection();
+				PreparedStatement ps = conn.prepareStatement(sql);
+				ResultSet rs = ps.executeQuery()) {
+
+			while(rs.next()) {
+				result.add(NguoiDungJdbcMapper.toDomain(rs));
+			}
+
+			return result;
+
+		}
+		catch(Exception e) {
+			throw new DataAccessException("Error finding all NguoiDung", e);
+		}
+	}
+
+	@Override
+	public void deleteById(Long id)
+	{
+		String sql = "DELETE FROM nguoi_dung WHERE id = ?";
+
+		try (Connection conn = transactionManager.getRequiredConnection();
+				PreparedStatement ps = conn.prepareStatement(sql)) {
+
+			ps.setLong(1, id);
+
+			int affected = ps.executeUpdate();
+
+			if(affected == 0) {
+				throw new EntityNotFoundException("NguoiDung", id);
+			}
+
+		}
+		catch(SQLException e) {
+			throw new DataAccessException("Error deleting NguoiDung", e);
+		}
+	}
+
+	@Override
+	public boolean existsByUsername(String username)
+	{
+		String sql = "SELECT 1 FROM nguoi_dung WHERE ten_dang_nhap = ?";
+
+		try (Connection conn = transactionManager.getConnection();
+				PreparedStatement ps = conn.prepareStatement(sql)) {
+
+			ps.setString(1, username);
+
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next();
+			}
+
+		}
+		catch(SQLException e) {
+			throw new DataAccessException("Error checking username existence", e);
 		}
 	}
 }

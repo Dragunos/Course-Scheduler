@@ -1,89 +1,130 @@
 package vn.edu.haui.scheduler.infrastructure.persistence.jdbc;
 
+import vn.edu.haui.scheduler.application.exception.DataAccessException;
+import vn.edu.haui.scheduler.application.exception.EntityNotFoundException;
+import vn.edu.haui.scheduler.application.exception.ValidationException;
 import vn.edu.haui.scheduler.application.port.out.LopHocPhanRepository;
-import vn.edu.haui.scheduler.domain.enums.HinhThucDay;
 import vn.edu.haui.scheduler.domain.model.GiangVien;
 import vn.edu.haui.scheduler.domain.model.HocPhan;
+import vn.edu.haui.scheduler.domain.model.LichHoc;
 import vn.edu.haui.scheduler.domain.model.LopHocPhan;
-import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
+import vn.edu.haui.scheduler.infrastructure.persistence.config.TransactionManagerImpl;
+import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper.GiangVienJdbcMapper;
+import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper.HocPhanJdbcMapper;
+import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper.LichHocJdbcMapper;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class JdbcLopHocPhanRepository implements LopHocPhanRepository
 {
+	private final TransactionManagerImpl transactionManager;
 
-	@Override
-	public Optional<Long> findIdByMaAndHocPhanId(String maLop, Long hocPhanId)
+	public JdbcLopHocPhanRepository(TransactionManagerImpl transactionManager)
 	{
-		String sql = "SELECT id FROM lop_hoc_phan WHERE ma_lop = ? AND hoc_phan_id = ?";
-
-		try (Connection conn = DataSourceProvider.getDataSource().getConnection();
-				PreparedStatement ps = conn.prepareStatement(sql)) {
-
-			ps.setString(1, maLop);
-			ps.setLong(2, hocPhanId);
-
-			try (ResultSet rs = ps.executeQuery()) {
-				if(rs.next()) return Optional.of(rs.getLong("id"));
-			}
-
-			return Optional.empty();
-
-		}
-		catch(SQLException e) {
-			throw new RuntimeException("Error finding LopHocPhan ID", e);
-		}
+		this.transactionManager = transactionManager;
 	}
 
 	@Override
-	public Long save(LopHocPhan lop)
+	public LopHocPhan save(LopHocPhan lopHocPhan)
+	{
+		if(lopHocPhan == null)
+			throw new ValidationException("LopHocPhan must not be null");
+
+		if(lopHocPhan.getId() == null)
+			return insert(lopHocPhan);
+
+		return update(lopHocPhan);
+	}
+
+	private LopHocPhan insert(LopHocPhan lopHocPhan)
 	{
 		String sql = """
 				INSERT INTO lop_hoc_phan
 				(ma_lop, hoc_phan_id, giang_vien_id, hinh_thuc_day, dia_diem)
-				VALUES (?,?,?,?,?)
+				VALUES (?, ?, ?, ?, ?)
 				""";
 
-		try (Connection conn = DataSourceProvider.getDataSource().getConnection();
+		try (Connection conn = transactionManager.getRequiredConnection();
 				PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-			ps.setString(1, lop.getMaLop());
+			ps.setString(1, lopHocPhan.getMaLop());
+			ps.setLong(2, lopHocPhan.getHocPhan().getId());
 
-			if(lop.getHocPhan() != null && lop.getHocPhan().getId() != null)
-				ps.setLong(2, lop.getHocPhan().getId());
-			else
-				ps.setNull(2, Types.BIGINT);
-
-			if(lop.getGiangVien() != null && lop.getGiangVien().getId() != null)
-				ps.setLong(3, lop.getGiangVien().getId());
+			if(lopHocPhan.getGiangVien() != null)
+				ps.setLong(3, lopHocPhan.getGiangVien().getId());
 			else
 				ps.setNull(3, Types.BIGINT);
 
-			if(lop.getHinhThucDay() != null)
-				ps.setString(4, lop.getHinhThucDay().name());
-			else
-				ps.setNull(4, Types.VARCHAR);
+			ps.setString(4, lopHocPhan.getHinhThucDay());
+			ps.setString(5, lopHocPhan.getDiaDiem());
 
-			ps.setString(5, lop.getDiaDiem());
+			ps.executeUpdate();
 
-			int affected = ps.executeUpdate();
-			if(affected == 0) {
-				throw new RuntimeException("Insert lop_hoc_phan failed");
-			}
+			Long generatedId;
 
 			try (ResultSet rs = ps.getGeneratedKeys()) {
-				if(rs.next()) return rs.getLong(1);
+				if(!rs.next())
+					throw new DataAccessException("Failed to retrieve LopHocPhan id", null);
+				generatedId = rs.getLong(1);
 			}
 
-			throw new RuntimeException("No ID returned after insert");
+			insertLichHoc(conn, generatedId, lopHocPhan.getLichHocList());
+
+			return LopHocPhan.reconstruct(
+					generatedId,
+					lopHocPhan.getMaLop(),
+					lopHocPhan.getHocPhan(),
+					lopHocPhan.getGiangVien(),
+					lopHocPhan.getHinhThucDay(),
+					lopHocPhan.getDiaDiem(),
+					lopHocPhan.getLichHocList());
 
 		}
 		catch(SQLException e) {
-			throw new RuntimeException("Error saving LopHocPhan", e);
+			throw new DataAccessException("Error inserting LopHocPhan", e);
+		}
+	}
+
+	private LopHocPhan update(LopHocPhan lopHocPhan)
+	{
+		String sql = """
+				UPDATE lop_hoc_phan
+				SET ma_lop = ?, hoc_phan_id = ?, giang_vien_id = ?,
+				    hinh_thuc_day = ?, dia_diem = ?
+				WHERE id = ?
+				""";
+
+		try (Connection conn = transactionManager.getRequiredConnection();
+				PreparedStatement ps = conn.prepareStatement(sql)) {
+
+			ps.setString(1, lopHocPhan.getMaLop());
+			ps.setLong(2, lopHocPhan.getHocPhan().getId());
+
+			if(lopHocPhan.getGiangVien() != null)
+				ps.setLong(3, lopHocPhan.getGiangVien().getId());
+			else
+				ps.setNull(3, Types.BIGINT);
+
+			ps.setString(4, lopHocPhan.getHinhThucDay());
+			ps.setString(5, lopHocPhan.getDiaDiem());
+			ps.setLong(6, lopHocPhan.getId());
+
+			int affected = ps.executeUpdate();
+
+			if(affected == 0)
+				throw new EntityNotFoundException("LopHocPhan", lopHocPhan.getId());
+
+			deleteAllLichHoc(conn, lopHocPhan.getId());
+			insertLichHoc(conn, lopHocPhan.getId(), lopHocPhan.getLichHocList());
+
+			return lopHocPhan;
+
+		}
+		catch(SQLException e) {
+			throw new DataAccessException("Error updating LopHocPhan", e);
 		}
 	}
 
@@ -91,134 +132,185 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepository
 	public Optional<LopHocPhan> findById(Long id)
 	{
 		String sql = """
-				SELECT id, ma_lop, hoc_phan_id,
-				       giang_vien_id, hinh_thuc_day, dia_diem
-				FROM lop_hoc_phan
-				WHERE id = ?
+				SELECT lhp.id,
+				       lhp.ma_lop,
+				       lhp.hinh_thuc_day,
+				       lhp.dia_diem,
+				       hp.id AS hoc_phan_id,
+				       hp.ma_hoc_phan,
+				       hp.ten_hoc_phan,
+				       hp.so_tin_chi,
+				       gv.id AS giang_vien_id,
+				       gv.ten_giang_vien
+				FROM lop_hoc_phan lhp
+				JOIN hoc_phan hp ON lhp.hoc_phan_id = hp.id
+				LEFT JOIN giang_vien gv ON lhp.giang_vien_id = gv.id
+				WHERE lhp.id = ?
 				""";
 
-		try (Connection conn = DataSourceProvider.getDataSource().getConnection();
+		try (Connection conn = transactionManager.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 
 			ps.setLong(1, id);
 
 			try (ResultSet rs = ps.executeQuery()) {
-				if(rs.next()) {
-					return Optional.of(mapRow(rs));
-				}
+				if(!rs.next())
+					return Optional.empty();
+
+				return Optional.of(loadAggregate(conn, rs));
 			}
 
-			return Optional.empty();
-
 		}
-		catch(SQLException e) {
-			throw new RuntimeException("Error finding LopHocPhan by id", e);
+		catch(Exception e) {
+			throw new DataAccessException("Error finding LopHocPhan by id", e);
 		}
 	}
 
 	@Override
-	public List<LopHocPhan> findByIds(List<Long> ids)
+	public List<LopHocPhan> findByHocPhanId(Long hocPhanId)
 	{
-		if(ids == null || ids.isEmpty()) return List.of();
-
-		String placeholders = ids.stream()
-				.map(i -> "?")
-				.collect(Collectors.joining(","));
-
-		String sql = """
-				SELECT id, ma_lop, hoc_phan_id,
-				       giang_vien_id, hinh_thuc_day, dia_diem
-				FROM lop_hoc_phan
-				WHERE id IN (%s)
-				""".formatted(placeholders);
+		String sql = "SELECT id FROM lop_hoc_phan WHERE hoc_phan_id = ?";
 
 		List<LopHocPhan> result = new ArrayList<>();
 
-		try (Connection conn = DataSourceProvider.getDataSource().getConnection();
+		try (Connection conn = transactionManager.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 
-			for(int i = 0; i < ids.size(); i++)
-				ps.setLong(i + 1, ids.get(i));
+			ps.setLong(1, hocPhanId);
 
 			try (ResultSet rs = ps.executeQuery()) {
 				while(rs.next()) {
-					result.add(mapRow(rs));
+					findById(rs.getLong("id")).ifPresent(result::add);
 				}
 			}
 
 			return result;
 
 		}
-		catch(SQLException e) {
-			throw new RuntimeException("Error finding LopHocPhan list", e);
+		catch(Exception e) {
+			throw new DataAccessException("Error finding LopHocPhan by HocPhanId", e);
 		}
-	}
-
-	private LopHocPhan mapRow(ResultSet rs) throws SQLException
-	{
-		LopHocPhan lop = new LopHocPhan();
-
-		lop.setId(rs.getLong("id"));
-		lop.setMaLop(rs.getString("ma_lop"));
-
-		Long hocPhanId = rs.getLong("hoc_phan_id");
-		if(!rs.wasNull()) {
-			HocPhan hp = new HocPhan();
-			hp.setId(hocPhanId);
-			lop.setHocPhan(hp);
-		}
-
-		Object gvObj = rs.getObject("giang_vien_id");
-		if(gvObj != null) {
-			Long gvId = rs.getLong("giang_vien_id");
-			GiangVien gv = new GiangVien();
-			gv.setId(gvId);
-			lop.setGiangVien(gv);
-		}
-
-		String hinhThuc = rs.getString("hinh_thuc_day");
-		if(hinhThuc != null)
-			lop.setHinhThucDay(HinhThucDay.valueOf(hinhThuc));
-
-		lop.setDiaDiem(rs.getString("dia_diem"));
-
-		return lop;
 	}
 
 	@Override
-	public void updateBasicInfo(Long id,
-	                            Long giangVienId,
-	                            HinhThucDay hinhThucDay,
-	                            String diaDiem)
+	public List<LopHocPhan> findAll()
 	{
-	    String sql = """
-	        UPDATE lop_hoc_phan
-	        SET giang_vien_id = ?,
-	            hinh_thuc_day = ?,
-	            dia_diem = ?
-	        WHERE id = ?
-	    """;
+		String sql = "SELECT id FROM lop_hoc_phan";
 
-	    try(Connection conn = DataSourceProvider.getDataSource().getConnection();
-	        PreparedStatement ps = conn.prepareStatement(sql))
-	    {
-	        if(giangVienId != null)
-	            ps.setLong(1, giangVienId);
-	        else
-	            ps.setNull(1, Types.BIGINT);
+		List<LopHocPhan> result = new ArrayList<>();
 
-	        if(hinhThucDay != null)
-	            ps.setString(2, hinhThucDay.name());
-	        else
-	            ps.setString(2, "KHONG_XAC_DINH");
+		try (Connection conn = transactionManager.getConnection();
+				PreparedStatement ps = conn.prepareStatement(sql);
+				ResultSet rs = ps.executeQuery()) {
 
-	        ps.setString(3, diaDiem);
-	        ps.setLong(4, id);
+			while(rs.next()) {
+				findById(rs.getLong("id")).ifPresent(result::add);
+			}
 
-	        ps.executeUpdate();
-	    }
-	    catch(SQLException e) {
-	        throw new RuntimeException(e);
-	    }
+			return result;
+
+		}
+		catch(Exception e) {
+			throw new DataAccessException("Error finding all LopHocPhan", e);
+		}
+	}
+
+	@Override
+	public void deleteById(Long id)
+	{
+		String sql = "DELETE FROM lop_hoc_phan WHERE id = ?";
+
+		try (Connection conn = transactionManager.getRequiredConnection();
+				PreparedStatement ps = conn.prepareStatement(sql)) {
+
+			ps.setLong(1, id);
+
+			int affected = ps.executeUpdate();
+
+			if(affected == 0)
+				throw new EntityNotFoundException("LopHocPhan", id);
+
+		}
+		catch(SQLException e) {
+			throw new DataAccessException("Error deleting LopHocPhan", e);
+		}
+	}
+
+	private LopHocPhan loadAggregate(Connection conn, ResultSet rs) throws Exception
+	{
+		Long id = rs.getLong("id");
+
+		HocPhan hocPhan = HocPhanJdbcMapper.toDomain(rs);
+
+		GiangVien giangVien = null;
+		if(rs.getObject("giang_vien_id") != null) {
+			giangVien = GiangVienJdbcMapper.toDomain(rs);
+		}
+
+		List<LichHoc> lichHocList = loadLichHoc(conn, id);
+
+		return LopHocPhan.reconstruct(
+				id,
+				rs.getString("ma_lop"),
+				hocPhan,
+				giangVien,
+				rs.getString("hinh_thuc_day"),
+				rs.getString("dia_diem"),
+				lichHocList);
+	}
+
+	private List<LichHoc> loadLichHoc(Connection conn, Long lopHocPhanId) throws Exception
+	{
+		String sql = "SELECT * FROM lich_hoc WHERE lop_hoc_phan_id = ?";
+
+		List<LichHoc> result = new ArrayList<>();
+
+		try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+			ps.setLong(1, lopHocPhanId);
+
+			try (ResultSet rs = ps.executeQuery()) {
+				while(rs.next()) {
+					result.add(LichHocJdbcMapper.toDomain(rs));
+				}
+			}
+		}
+
+		return result;
+	}
+
+	private void insertLichHoc(Connection conn, Long lopHocPhanId, List<LichHoc> lichHocList)
+			throws SQLException
+	{
+		if(lichHocList == null || lichHocList.isEmpty())
+			return;
+
+		String sql = """
+				INSERT INTO lich_hoc
+				(lop_hoc_phan_id, thu, tiet_bat_dau, tiet_ket_thuc)
+				VALUES (?, ?, ?, ?)
+				""";
+
+		try (PreparedStatement ps = conn.prepareStatement(sql)) {
+			for(LichHoc lich : lichHocList) {
+				ps.setLong(1, lopHocPhanId);
+				ps.setInt(2, lich.getThu());
+				ps.setInt(3, lich.getTietBatDau());
+				ps.setInt(4, lich.getTietKetThuc());
+				ps.addBatch();
+			}
+			ps.executeBatch();
+		}
+	}
+
+	private void deleteAllLichHoc(Connection conn, Long lopHocPhanId)
+			throws SQLException
+	{
+		String sql = "DELETE FROM lich_hoc WHERE lop_hoc_phan_id = ?";
+
+		try (PreparedStatement ps = conn.prepareStatement(sql)) {
+			ps.setLong(1, lopHocPhanId);
+			ps.executeUpdate();
+		}
 	}
 }
