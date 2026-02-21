@@ -1,45 +1,105 @@
 package vn.edu.haui.scheduler.domain.model;
 
-import vn.edu.haui.scheduler.domain.enums.ThuTrongTuan;
+import java.util.Objects;
 
 public class LichHoc
 {
-	private Long id;
+	private final Long id;
 
-	private Long lopHocPhanId;
+	// persistence navigation hint only
+	private final Long lopHocPhanId;
 
-	private ThuTrongTuan thu;
+	private final int thu;
 
-	private KhoangTiet khoangTiet;
+	private final int tietBatDau;
 
-	public LichHoc()
+	private final int tietKetThuc;
+
+	private LichHoc(
+			Long id,
+			Long lopHocPhanId,
+			int thu,
+			int tietBatDau,
+			int tietKetThuc)
 	{
-	}
+		validateInvariant(thu, tietBatDau, tietKetThuc);
 
-	public LichHoc(Long id, Long lopHocPhanId, ThuTrongTuan thu, KhoangTiet khoangTiet)
-	{
 		this.id = id;
 		this.lopHocPhanId = lopHocPhanId;
 		this.thu = thu;
-		this.khoangTiet = khoangTiet;
+		this.tietBatDau = tietBatDau;
+		this.tietKetThuc = tietKetThuc;
 	}
 
-	public LichHoc(Long id, Long lopHocPhanId, ThuTrongTuan thu, int tietBatDau, int tietKetThuc)
+	// --- Creation (Domain Entry Point) ---
+	public static LichHoc create(
+			Long lopHocPhanId,
+			int thu,
+			int tietBatDau,
+			int tietKetThuc)
 	{
-		this.id = id;
-		this.lopHocPhanId = lopHocPhanId;
-		this.thu = thu;
-		this.khoangTiet = new KhoangTiet(tietBatDau, tietKetThuc);
+		return new LichHoc(
+				null,
+				lopHocPhanId,
+				thu,
+				tietBatDau,
+				tietKetThuc);
 	}
 
+	// --- Reconstruction from persistence ---
+	public static LichHoc reconstruct(
+			Long id,
+			Long lopHocPhanId,
+			int thu,
+			int tietBatDau,
+			int tietKetThuc)
+	{
+		if(id == null)
+			throw new IllegalStateException("Persisted LichHoc must have id");
+
+		return new LichHoc(
+				id,
+				lopHocPhanId,
+				thu,
+				tietBatDau,
+				tietKetThuc);
+	}
+
+	// --- Invariant ---
+	private static void validateInvariant(
+			int thu,
+			int tietBatDau,
+			int tietKetThuc)
+	{
+		if(thu < 2 || thu > 8)
+			throw new IllegalArgumentException("Thu khong hop le");
+
+		if(tietBatDau <= 0 || tietKetThuc <= 0)
+			throw new IllegalArgumentException("Tiet khong hop le");
+
+		if(tietBatDau > tietKetThuc)
+			throw new IllegalArgumentException("Tiet bat dau phai <= tiet ket thuc");
+	}
+
+	// --- Business Behavior ---
+	public boolean trungLich(LichHoc other)
+	{
+		if(!this.thuEquals(other))
+			return false;
+
+		return !(this.tietKetThuc < other.tietBatDau ||
+				other.tietKetThuc < this.tietBatDau);
+	}
+
+	private boolean thuEquals(LichHoc other)
+	{
+		return this.thu == other.thu;
+	}
+
+	// --- Getter ---
 	public Long getId()
 	{
 		return id;
-	}
-
-	public void setId(Long id)
-	{
-		this.id = id;
 	}
 
 	public Long getLopHocPhanId()
@@ -47,54 +107,19 @@ public class LichHoc
 		return lopHocPhanId;
 	}
 
-	public void setLopHocPhanId(Long lopHocPhanId)
-	{
-		this.lopHocPhanId = lopHocPhanId;
-	}
-
-	public ThuTrongTuan getThu()
+	public int getThu()
 	{
 		return thu;
 	}
 
-	public void setThu(ThuTrongTuan thu)
+	public int getTietBatDau()
 	{
-		this.thu = thu;
+		return tietBatDau;
 	}
 
-	public KhoangTiet getKhoangTiet()
+	public int getTietKetThuc()
 	{
-		return khoangTiet;
-	}
-
-	public Integer getTietBatDau()
-	{
-		return khoangTiet != null ? khoangTiet.getTietBatDau() : null;
-	}
-
-	public Integer getTietKetThuc()
-	{
-		return khoangTiet != null ? khoangTiet.getTietKetThuc() : null;
-	}
-
-	public void setTietBatDau(int tietBatDau)
-	{
-		if(this.khoangTiet == null) {
-			this.khoangTiet = new KhoangTiet(tietBatDau, tietBatDau);
-		}
-		else {
-			this.khoangTiet = new KhoangTiet(tietBatDau, this.khoangTiet.getTietKetThuc());
-		}
-	}
-
-	public void setTietKetThuc(int tietKetThuc)
-	{
-		if(this.khoangTiet == null) {
-			this.khoangTiet = new KhoangTiet(tietKetThuc, tietKetThuc);
-		}
-		else {
-			this.khoangTiet = new KhoangTiet(this.khoangTiet.getTietBatDau(), tietKetThuc);
-		}
+		return tietKetThuc;
 	}
 
 	@Override
@@ -102,24 +127,14 @@ public class LichHoc
 	{
 		if(this == o) return true;
 		if(!(o instanceof LichHoc)) return false;
-		LichHoc other = (LichHoc) o;
-		return id != null && id.equals(other.id);
+
+		LichHoc that = (LichHoc) o;
+		return id != null && id.equals(that.id);
 	}
 
 	@Override
 	public int hashCode()
 	{
-		return id != null ? id.hashCode() : 0;
-	}
-
-	@Override
-	public String toString()
-	{
-		return "LichHoc{" +
-				"id=" + id +
-				", lopHocPhanId=" + lopHocPhanId +
-				", thu=" + thu +
-				", khoangTiet=" + khoangTiet +
-				'}';
+		return Objects.hashCode(id);
 	}
 }

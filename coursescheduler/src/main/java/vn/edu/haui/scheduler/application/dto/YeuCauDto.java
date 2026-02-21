@@ -14,14 +14,13 @@ public class YeuCauDto
 
 	private LocalDateTime ngayTao;
 
+	public YeuCauDto()
+	{
+	}
+
 	public Long getId()
 	{
 		return id;
-	}
-
-	public void setId(Long id)
-	{
-		this.id = id;
 	}
 
 	public Long getNguoiTaoId()
@@ -29,19 +28,9 @@ public class YeuCauDto
 		return nguoiTaoId;
 	}
 
-	public void setNguoiTaoId(Long nguoiTaoId)
-	{
-		this.nguoiTaoId = nguoiTaoId;
-	}
-
 	public Long getDanhSachLopId()
 	{
 		return danhSachLopId;
-	}
-
-	public void setDanhSachLopId(Long danhSachLopId)
-	{
-		this.danhSachLopId = danhSachLopId;
 	}
 
 	public String getTenYeuCau()
@@ -49,14 +38,29 @@ public class YeuCauDto
 		return tenYeuCau;
 	}
 
-	public void setTenYeuCau(String tenYeuCau)
-	{
-		this.tenYeuCau = tenYeuCau;
-	}
-
 	public LocalDateTime getNgayTao()
 	{
 		return ngayTao;
+	}
+
+	public void setId(Long id)
+	{
+		this.id = id;
+	}
+
+	public void setNguoiTaoId(Long nguoiTaoId)
+	{
+		this.nguoiTaoId = nguoiTaoId;
+	}
+
+	public void setDanhSachLopId(Long danhSachLopId)
+	{
+		this.danhSachLopId = danhSachLopId;
+	}
+
+	public void setTenYeuCau(String tenYeuCau)
+	{
+		this.tenYeuCau = tenYeuCau;
 	}
 
 	public void setNgayTao(LocalDateTime ngayTao)

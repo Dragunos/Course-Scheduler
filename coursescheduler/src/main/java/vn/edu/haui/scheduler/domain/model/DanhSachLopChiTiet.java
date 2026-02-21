@@ -1,17 +1,27 @@
 package vn.edu.haui.scheduler.domain.model;
 
-import java.util.Objects;
-
 public class DanhSachLopChiTiet
 {
-	private LopHocPhan lopHocPhan;
+	private final LopHocPhan lopHocPhan;
 
-	private boolean batBuoc;
+	private final boolean batBuoc;
 
-	public DanhSachLopChiTiet(LopHocPhan lopHocPhan, boolean batBuoc)
+	private DanhSachLopChiTiet(
+			LopHocPhan lopHocPhan,
+			boolean batBuoc)
 	{
-		this.lopHocPhan = Objects.requireNonNull(lopHocPhan);
-		this.batBuoc = batBuoc; 
+		if(lopHocPhan == null)
+			throw new IllegalArgumentException("LopHocPhan khong duoc null");
+
+		this.lopHocPhan = lopHocPhan;
+		this.batBuoc = batBuoc;
+	}
+
+	public static DanhSachLopChiTiet create(
+			LopHocPhan lopHocPhan,
+			boolean batBuoc)
+	{
+		return new DanhSachLopChiTiet(lopHocPhan, batBuoc);
 	}
 
 	public LopHocPhan getLopHocPhan()
@@ -22,10 +32,5 @@ public class DanhSachLopChiTiet
 	public boolean isBatBuoc()
 	{
 		return batBuoc;
-	}
-
-	public void setBatBuoc(boolean batBuoc)
-	{
-		this.batBuoc = batBuoc;
 	}
 }

@@ -131,8 +131,7 @@ public class GenerateThoiKhoaBieuPaneHandler
 			try {
 				Long userId = screenManager.getCurrentUser().getId();
 
-				long yeuCauId = useCase.createYeuCau(userId, selected.getId(),
-						"Yêu cầu từ UI " + System.currentTimeMillis());
+				long yeuCauId = useCase.createYeuCau(userId, selected.getId());
 
 				List<ThoiKhoaBieuDto> solutions = useCase.generateThoiKhoaBieu(yeuCauId, topK, timeLimit);
 

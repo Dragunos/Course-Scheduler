@@ -1,24 +1,19 @@
 package vn.edu.haui.scheduler.application.port.out;
 
+import vn.edu.haui.scheduler.domain.model.LopHocPhan;
+
 import java.util.List;
 import java.util.Optional;
 
-import vn.edu.haui.scheduler.domain.enums.HinhThucDay;
-import vn.edu.haui.scheduler.domain.model.LopHocPhan;
-
 public interface LopHocPhanRepository
 {
-	Optional<Long> findIdByMaAndHocPhanId(String maLop, Long hocPhanId);
-
-	Long save(LopHocPhan lop);
+	LopHocPhan save(LopHocPhan lopHocPhan);
 
 	Optional<LopHocPhan> findById(Long id);
 
-	List<LopHocPhan> findByIds(List<Long> ids);
+	List<LopHocPhan> findByHocPhanId(Long hocPhanId);
 
-	void updateBasicInfo(
-			Long id,
-			Long giangVienId,
-			HinhThucDay hinhThucDay,
-			String diaDiem);
+	List<LopHocPhan> findAll();
+
+	void deleteById(Long id);
 }

@@ -1,5 +1,6 @@
 package vn.edu.haui.scheduler.application.dto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class ThoiKhoaBieuDto
@@ -8,11 +9,15 @@ public class ThoiKhoaBieuDto
 
 	private Long nguoiDungId;
 
+	private Long danhSachLopId;
+
 	private String tenPhuongAn;
 
 	private Double diemDanhGia;
 
-	private List<LopHocPhanDto> danhSachLopHocPhan;
+	private LocalDateTime ngayTao;
+
+	private List<Long> lopHocPhanIdList;
 
 	public ThoiKhoaBieuDto()
 	{
@@ -23,19 +28,14 @@ public class ThoiKhoaBieuDto
 		return id;
 	}
 
-	public void setId(Long id)
-	{
-		this.id = id;
-	}
-
 	public Long getNguoiDungId()
 	{
 		return nguoiDungId;
 	}
 
-	public void setNguoiDungId(Long nguoiDungId)
+	public Long getDanhSachLopId()
 	{
-		this.nguoiDungId = nguoiDungId;
+		return danhSachLopId;
 	}
 
 	public String getTenPhuongAn()
@@ -43,14 +43,39 @@ public class ThoiKhoaBieuDto
 		return tenPhuongAn;
 	}
 
-	public void setTenPhuongAn(String tenPhuongAn)
-	{
-		this.tenPhuongAn = tenPhuongAn;
-	}
-
 	public Double getDiemDanhGia()
 	{
 		return diemDanhGia;
+	}
+
+	public LocalDateTime getNgayTao()
+	{
+		return ngayTao;
+	}
+
+	public List<Long> getLopHocPhanIdList()
+	{
+		return lopHocPhanIdList;
+	}
+
+	public void setId(Long id)
+	{
+		this.id = id;
+	}
+
+	public void setNguoiDungId(Long nguoiDungId)
+	{
+		this.nguoiDungId = nguoiDungId;
+	}
+
+	public void setDanhSachLopId(Long danhSachLopId)
+	{
+		this.danhSachLopId = danhSachLopId;
+	}
+
+	public void setTenPhuongAn(String tenPhuongAn)
+	{
+		this.tenPhuongAn = tenPhuongAn;
 	}
 
 	public void setDiemDanhGia(Double diemDanhGia)
@@ -58,13 +83,13 @@ public class ThoiKhoaBieuDto
 		this.diemDanhGia = diemDanhGia;
 	}
 
-	public List<LopHocPhanDto> getDanhSachLopHocPhan()
+	public void setNgayTao(LocalDateTime ngayTao)
 	{
-		return danhSachLopHocPhan;
+		this.ngayTao = ngayTao;
 	}
 
-	public void setDanhSachLopHocPhan(List<LopHocPhanDto> danhSachLopHocPhan)
+	public void setLopHocPhanIdList(List<Long> lopHocPhanIdList)
 	{
-		this.danhSachLopHocPhan = danhSachLopHocPhan;
+		this.lopHocPhanIdList = lopHocPhanIdList;
 	}
 }

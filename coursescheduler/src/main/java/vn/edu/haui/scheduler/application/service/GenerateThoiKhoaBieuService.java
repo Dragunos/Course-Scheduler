@@ -1,225 +1,96 @@
 package vn.edu.haui.scheduler.application.service;
 
-import vn.edu.haui.scheduler.application.dto.*;
+import vn.edu.haui.scheduler.application.dto.ThoiKhoaBieuDto;
 import vn.edu.haui.scheduler.application.port.in.GenerateThoiKhoaBieuUseCase;
-import vn.edu.haui.scheduler.application.port.out.*;
-import vn.edu.haui.scheduler.domain.constraint.RangBuocToiUu;
-import vn.edu.haui.scheduler.domain.enums.*;
-import vn.edu.haui.scheduler.domain.model.*;
-import vn.edu.haui.scheduler.domain.optimizer.BacktrackingOptimizer;
+import vn.edu.haui.scheduler.application.port.out.DanhSachLopRepository;
+import vn.edu.haui.scheduler.application.port.out.LopHocPhanRepository;
+import vn.edu.haui.scheduler.domain.model.LopHocPhan;
+import vn.edu.haui.scheduler.domain.optimizer.Optimizer;
+import vn.edu.haui.scheduler.domain.optimizer.PhuongAnThoiKhoaBieu;
+import vn.edu.haui.scheduler.application.service.mapper.ThoiKhoaBieuMapper;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
-public class GenerateThoiKhoaBieuService implements GenerateThoiKhoaBieuUseCase
-{
-	private final ThoiKhoaBieuRepository thoiKhoaBieuRepo;
+public class GenerateThoiKhoaBieuService implements GenerateThoiKhoaBieuUseCase {
 
-	private final YeuCauRepository yeuCauRepo;
+    private final DanhSachLopRepository danhSachLopRepository;
+    private final LopHocPhanRepository lopHocPhanRepository;
 
-	private final YeuCauChiTietRepository yeuCauChiTietRepo;
+    public GenerateThoiKhoaBieuService(DanhSachLopRepository danhSachLopRepository,
+                                       LopHocPhanRepository lopHocPhanRepository) {
+        this.danhSachLopRepository = danhSachLopRepository;
+        this.lopHocPhanRepository = lopHocPhanRepository;
+    }
 
-	private final DanhSachLopRepository danhSachRepo;
+    @Override
+    public long createYeuCau(long nguoiDungId, long danhSachLopId) throws Exception {
+        // Trong scope này, tạo một "YeuCau" mới từ danh sách lớp
+        // Giả sử repository có phương thức insertYeuCau trả về ID mới
+        return danhSachLopRepository.createYeuCau(nguoiDungId, danhSachLopId);
+    }
 
-	private final LopHocPhanRepository lopRepo;
+    @Override
+    public List<ThoiKhoaBieuDto> generateThoiKhoaBieu(long yeuCauId, int topK, long timeLimitMillis) throws Exception {
+        // 1. Lấy danh sách lớp học phần từ danh sách lớp
+        List<LopHocPhan> allLopHocPhan = lopHocPhanRepository.findByYeuCauId(yeuCauId);
 
-	private final LichHocRepository lichRepo;
+        // 2. Xác định các ràng buộc cứng / mềm
+        Set<String> requiredHocPhanCodes = lopHocPhanRepository.findRequiredHocPhanCodesByYeuCau(yeuCauId);
+        Set<String> preferredLopIds = lopHocPhanRepository.findPreferredLopIdsByYeuCau(yeuCauId);
+        Set<Integer> avoidThu = lopHocPhanRepository.findAvoidThuByYeuCau(yeuCauId);
+        Set<Integer> avoidTiet = lopHocPhanRepository.findAvoidTietByYeuCau(yeuCauId);
+        Set<?> avoidHinhThuc = lopHocPhanRepository.findAvoidHinhThucByYeuCau(yeuCauId);
 
-	private final RangBuocToiUuRepository rangBuocRepo;
+        // 3. Chạy Optimizer
+        Optimizer optimizer = new Optimizer(allLopHocPhan,
+                requiredHocPhanCodes,
+                preferredLopIds,
+                (Set) avoidHinhThuc,
+                avoidTiet,
+                avoidThu,
+                topK,
+                timeLimitMillis);
 
-	public GenerateThoiKhoaBieuService(
-			ThoiKhoaBieuRepository thoiKhoaBieuRepo,
-			YeuCauRepository yeuCauRepo,
-			YeuCauChiTietRepository yeuCauChiTietRepo,
-			DanhSachLopRepository danhSachRepo,
-			LopHocPhanRepository lopRepo,
-			LichHocRepository lichRepo,
-			RangBuocToiUuRepository rangBuocRepo)
-	{
-		this.thoiKhoaBieuRepo = thoiKhoaBieuRepo;
-		this.yeuCauRepo = yeuCauRepo;
-		this.yeuCauChiTietRepo = yeuCauChiTietRepo;
-		this.danhSachRepo = danhSachRepo;
-		this.lopRepo = lopRepo;
-		this.lichRepo = lichRepo;
-		this.rangBuocRepo = rangBuocRepo;
-	}
+        List<PhuongAnThoiKhoaBieu> phuongAns = optimizer.optimize();
 
-	@Override
-	public long createYeuCau(long nguoiDungId,
-			long danhSachLopId,
-			String tenYeuCau) throws Exception
-	{
-		return yeuCauRepo.save(nguoiDungId, danhSachLopId, tenYeuCau);
-	}
+        // 4. Map sang DTO
+        return phuongAns.stream()
+                .map(ThoiKhoaBieuMapper::toDto)
+                .collect(Collectors.toList());
+    }
 
-	@Override
-	public List<ThoiKhoaBieuDto> generateThoiKhoaBieu(
-			long yeuCauId,
-			int topK,
-			long timeLimitMillis) throws Exception
-	{
-		YeuCau yeuCau = yeuCauRepo.findById(yeuCauId)
-				.orElseThrow(() -> new RuntimeException("Không tìm thấy yêu cầu"));
+    @Override
+    public long saveThoiKhoaBieu(long nguoiDungId, long danhSachLopId, String tenPhuongAn,
+                                  double diemDanhGia, List<Long> lopHocPhanIds) throws Exception {
+        // Lưu ThoiKhoaBieu vào DB (repository)
+        return lopHocPhanRepository.saveThoiKhoaBieu(nguoiDungId, danhSachLopId, tenPhuongAn, diemDanhGia, lopHocPhanIds);
+    }
 
-		DanhSachLop danhSach = danhSachRepo
-				.findByIdWithDetails(yeuCau.getDanhSachLopId())
-				.orElseThrow(() -> new RuntimeException("Không tìm thấy danh sách lớp"));
+    @Override
+    public List<ThoiKhoaBieuDto> regenerateThoiKhoaBieu(long thoiKhoaBieuId, int topK, long timeLimitMillis) throws Exception {
+        // Lấy danh sách lớp từ phương án đã lưu
+        List<LopHocPhan> allLopHocPhan = lopHocPhanRepository.findByThoiKhoaBieuId(thoiKhoaBieuId);
 
-		List<LopHocPhan> allLops = loadFullLopHocPhan(danhSach);
+        Set<String> requiredHocPhanCodes = lopHocPhanRepository.findRequiredHocPhanCodesByThoiKhoaBieu(thoiKhoaBieuId);
+        Set<String> preferredLopIds = lopHocPhanRepository.findPreferredLopIdsByThoiKhoaBieu(thoiKhoaBieuId);
+        Set<Integer> avoidThu = lopHocPhanRepository.findAvoidThuByThoiKhoaBieu(thoiKhoaBieuId);
+        Set<Integer> avoidTiet = lopHocPhanRepository.findAvoidTietByThoiKhoaBieu(thoiKhoaBieuId);
+        Set<?> avoidHinhThuc = lopHocPhanRepository.findAvoidHinhThucByThoiKhoaBieu(thoiKhoaBieuId);
 
-		Map<Long, LopHocPhan> lopMap = allLops.stream()
-				.collect(Collectors.toMap(LopHocPhan::getId, l -> l));
+        Optimizer optimizer = new Optimizer(allLopHocPhan,
+                requiredHocPhanCodes,
+                preferredLopIds,
+                (Set) avoidHinhThuc,
+                avoidTiet,
+                avoidThu,
+                topK,
+                timeLimitMillis);
 
-		List<List<Long>> groups = groupByHocPhan(allLops);
+        List<PhuongAnThoiKhoaBieu> phuongAns = optimizer.optimize();
 
-		List<RangBuocToiUu> constraints = new ArrayList<>();
-
-		List<YeuCauChiTiet> chiTietList = yeuCauChiTietRepo.findByYeuCauId(yeuCauId);
-
-		constraints.addAll(convertChiTietToConstraint(chiTietList));
-
-		List<RangBuocToiUuDto> dtoList = rangBuocRepo.findByYeuCauId(yeuCauId);
-
-		for(RangBuocToiUuDto dto : dtoList)
-			constraints.add(mapToDomain(dto));
-
-		BacktrackingOptimizer optimizer = new BacktrackingOptimizer(topK, timeLimitMillis);
-
-		List<BacktrackingOptimizer.PhuongAn> result = optimizer.solve(groups, constraints);
-
-		return mapToDto(result, lopMap);
-	}
-
-	private List<LopHocPhan> loadFullLopHocPhan(DanhSachLop danhSach) throws Exception
-	{
-		List<Long> ids = danhSach.getChiTietList()
-				.stream()
-				.map(ct -> ct.getLopHocPhan().getId())
-				.collect(Collectors.toList());
-
-		List<LopHocPhan> lops = lopRepo.findByIds(ids);
-
-		Map<Long, List<LichHoc>> lichMap = lichRepo.findByLopHocPhanIds(ids);
-
-		for(LopHocPhan lop : lops)
-			lop.setDanhSachLichHoc(lichMap.get(lop.getId()));
-
-		return lops;
-	}
-
-	private List<List<Long>> groupByHocPhan(List<LopHocPhan> list)
-	{
-		Map<Long, List<Long>> map = list.stream()
-				.collect(Collectors.groupingBy(
-						l -> l.getHocPhan().getId(),
-						Collectors.mapping(LopHocPhan::getId, Collectors.toList())));
-
-		return new ArrayList<>(map.values());
-	}
-
-	private List<RangBuocToiUu> convertChiTietToConstraint(
-			List<YeuCauChiTiet> chiTietList)
-	{
-		List<RangBuocToiUu> result = new ArrayList<>();
-
-		for(YeuCauChiTiet ct : chiTietList) {
-			if(ct.getLoaiChiDinh() == LoaiChiDinh.REQUIRE) {
-				result.add(RangBuocToiUu.requireSection(
-						ct.getLopHocPhanId()));
-			}
-			else if(ct.getLoaiChiDinh() == LoaiChiDinh.EXCLUDE) {
-				result.add(RangBuocToiUu.excludeSection(
-						ct.getLopHocPhanId()));
-			}
-		}
-
-		return result;
-	}
-
-	@Override
-	public long saveThoiKhoaBieu(
-			long nguoiDungId,
-			long danhSachLopId,
-			String ten,
-			double diem,
-			List<Long> lopIds) throws Exception
-	{
-		long id = thoiKhoaBieuRepo.save(
-				nguoiDungId,
-				danhSachLopId,
-				ten,
-				diem);
-
-		thoiKhoaBieuRepo.saveChiTiet(id, lopIds);
-
-		return id;
-	}
-
-	@Override
-	public List<ThoiKhoaBieuDto> regenerateThoiKhoaBieu(
-			long thoiKhoaBieuId,
-			int topK,
-			long timeLimitMillis) throws Exception
-	{
-		long yeuCauId = yeuCauRepo.createFromThoiKhoaBieu(thoiKhoaBieuId);
-
-		return generateThoiKhoaBieu(yeuCauId, topK, timeLimitMillis);
-	}
-
-	private RangBuocToiUu mapToDomain(RangBuocToiUuDto dto)
-	{
-		LoaiRangBuoc loai = LoaiRangBuoc.valueOf(dto.getLoaiRangBuoc());
-
-		TargetType targetType = dto.getTargetType() != null
-				? TargetType.valueOf(dto.getTargetType())
-				: TargetType.NONE;
-
-		ToanTuSoSanh operator = dto.getOperator() != null
-				? ToanTuSoSanh.valueOf(dto.getOperator())
-				: null;
-
-		return new RangBuocToiUu(
-				loai,
-				dto.isLaCung(),
-				dto.getTrongSo(),
-				targetType,
-				dto.getTargetValue(),
-				dto.getAttribute(),
-				operator,
-				dto.getValue());
-	}
-
-	private List<ThoiKhoaBieuDto> mapToDto(
-			List<BacktrackingOptimizer.PhuongAn> list,
-			Map<Long, LopHocPhan> lopMap)
-	{
-		List<ThoiKhoaBieuDto> result = new ArrayList<>();
-
-		for(BacktrackingOptimizer.PhuongAn pa : list) {
-
-			ThoiKhoaBieuDto dto = new ThoiKhoaBieuDto();
-			dto.setDiemDanhGia(pa.diem);
-
-			List<LopHocPhanDto> lopDtos = new ArrayList<>();
-
-			for(Long id : pa.lopIds) {
-
-				LopHocPhan lop = lopMap.get(id);
-
-				LopHocPhanDto d = new LopHocPhanDto();
-				d.setId(lop.getId());
-				d.setMaLop(lop.getMaLop());
-
-				lopDtos.add(d);
-			}
-
-			dto.setDanhSachLopHocPhan(lopDtos);
-			result.add(dto);
-		}
-
-		return result;
-	}
+        return phuongAns.stream()
+                .map(ThoiKhoaBieuMapper::toDto)
+                .collect(Collectors.toList());
+    }
 }

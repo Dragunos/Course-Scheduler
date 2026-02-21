@@ -1,19 +1,14 @@
 package vn.edu.haui.scheduler.application.exception;
 
-public class DataAccessException extends RuntimeException
+public class DataAccessException extends TechnicalException
 {
-	public DataAccessException(Throwable cause)
-	{
-		super(cause);
-	}
-
 	public DataAccessException(String message, Throwable cause)
 	{
-		super(message, cause);
+		super("DATA_ACCESS_ERROR", message, cause);
 	}
 
-	public DataAccessException(String message)
+	public DataAccessException(Throwable cause)
 	{
-		super(message);
+		super("DATA_ACCESS_ERROR", "Database operation failed.", cause);
 	}
 }

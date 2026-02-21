@@ -1,12 +1,21 @@
 package vn.edu.haui.scheduler.application.port.out;
 
-import java.util.Optional;
 import vn.edu.haui.scheduler.domain.model.NguoiDung;
-import vn.edu.haui.scheduler.application.exception.DataAccessException;
+
+import java.util.List;
+import java.util.Optional;
 
 public interface NguoiDungRepository
 {
-	Optional<NguoiDung> findByTenDangNhap(String tenDangNhap) throws DataAccessException;
+	NguoiDung save(NguoiDung nguoiDung);
 
-	long save(NguoiDung nguoiDung) throws DataAccessException;
+	Optional<NguoiDung> findById(Long id);
+
+	Optional<NguoiDung> findByUsername(String username);
+
+	List<NguoiDung> findAll();
+
+	void deleteById(Long id);
+
+	boolean existsByUsername(String username);
 }

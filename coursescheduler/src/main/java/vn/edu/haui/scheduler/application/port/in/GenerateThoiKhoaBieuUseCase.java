@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface GenerateThoiKhoaBieuUseCase
 {
-	long createYeuCau(long nguoiDungId, long danhSachLopId, String tenYeuCau) throws Exception;
+	long createYeuCau(long nguoiDungId, long danhSachLopId) throws Exception;
 
 	List<ThoiKhoaBieuDto> generateThoiKhoaBieu(long yeuCauId, int topK, long timeLimitMillis) throws Exception;
 

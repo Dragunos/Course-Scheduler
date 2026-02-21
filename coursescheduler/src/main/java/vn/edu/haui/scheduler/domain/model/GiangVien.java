@@ -1,19 +1,31 @@
 package vn.edu.haui.scheduler.domain.model;
 
+import java.util.Objects;
+
 public class GiangVien
 {
-	private Long id;
+	private final Long id;
 
-	private String tenGiangVien;
+	private final String tenGiangVien;
 
-	public GiangVien()
+	private GiangVien(Long id, String ten)
 	{
+		if(ten == null || ten.isBlank())
+			throw new IllegalArgumentException("Ten giang vien khong hop le");
+
+		this.id = id;
+		this.tenGiangVien = ten;
 	}
 
-	public GiangVien(Long id, String tenGiangVien)
+	public static GiangVien create(String ten)
 	{
-		this.id = id;
-		this.tenGiangVien = tenGiangVien;
+		return new GiangVien(null, ten);
+	}
+
+	public static GiangVien reconstruct(Long id, String ten)
+	{
+		if(id == null) throw new IllegalStateException("Persisted GiangVien must have id");
+		return new GiangVien(id, ten);
 	}
 
 	public Long getId()
@@ -21,27 +33,28 @@ public class GiangVien
 		return id;
 	}
 
-	public void setId(Long id)
-	{
-		this.id = id;
-	}
-
 	public String getTenGiangVien()
 	{
 		return tenGiangVien;
 	}
 
-	public void setTenGiangVien(String tenGiangVien)
+	public boolean isPersisted()
 	{
-		this.tenGiangVien = tenGiangVien;
+		return id != null;
 	}
 
 	@Override
-	public String toString()
+	public boolean equals(Object o)
 	{
-		return "GiangVien{" +
-				"id=" + id +
-				", tenGiangVien='" + tenGiangVien + '\'' +
-				'}';
+		if(this == o) return true;
+		if(!(o instanceof GiangVien)) return false;
+		GiangVien that = (GiangVien) o;
+		return id != null && id.equals(that.id);
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return Objects.hashCode(id);
 	}
 }

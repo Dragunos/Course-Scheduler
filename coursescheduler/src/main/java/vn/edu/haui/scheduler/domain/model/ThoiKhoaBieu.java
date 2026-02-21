@@ -1,45 +1,116 @@
 package vn.edu.haui.scheduler.domain.model;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.Set;
+import java.util.*;
 
 public class ThoiKhoaBieu
 {
-	private Long id;
+	private final Long id;
 
-	private Long nguoiDungId;
+	private final NguoiDung nguoiDung;
 
-	private Long danhSachLopId;
+	private final DanhSachLop danhSachLop;
 
 	private String tenPhuongAn;
 
 	private Double diemDanhGia;
 
-	private LocalDateTime ngayTao;
+	private final LocalDateTime ngayTao;
 
-	private Set<LopHocPhan> cacLopDuocChon;
+	private final Set<LopHocPhan> cacLop = new HashSet<>();
 
-	public ThoiKhoaBieu()
-	{
-	}
-
-	public ThoiKhoaBieu(
+	private ThoiKhoaBieu(
 			Long id,
-			Long nguoiDungId,
-			Long danhSachLopId,
+			NguoiDung nguoiDung,
+			DanhSachLop danhSachLop,
 			String tenPhuongAn,
 			Double diemDanhGia,
-			LocalDateTime ngayTao,
-			Set<LopHocPhan> cacLopDuocChon)
+			LocalDateTime ngayTao)
 	{
+		validateInvariant(nguoiDung, danhSachLop, tenPhuongAn, ngayTao);
+
 		this.id = id;
-		this.nguoiDungId = nguoiDungId;
-		this.danhSachLopId = danhSachLopId;
+		this.nguoiDung = nguoiDung;
+		this.danhSachLop = danhSachLop;
 		this.tenPhuongAn = tenPhuongAn;
 		this.diemDanhGia = diemDanhGia;
 		this.ngayTao = ngayTao;
-		setCacLopDuocChon(cacLopDuocChon);
+	}
+
+	public static ThoiKhoaBieu create(
+			NguoiDung nguoiDung,
+			DanhSachLop danhSachLop,
+			String tenPhuongAn)
+	{
+		return new ThoiKhoaBieu(
+				null,
+				nguoiDung,
+				danhSachLop,
+				tenPhuongAn,
+				null,
+				LocalDateTime.now());
+	}
+
+	public static ThoiKhoaBieu reconstruct(
+			Long id,
+			NguoiDung nguoiDung,
+			DanhSachLop danhSachLop,
+			String tenPhuongAn,
+			Double diemDanhGia,
+			LocalDateTime ngayTao,
+			Set<LopHocPhan> cacLop)
+	{
+		if(id == null)
+			throw new IllegalStateException(
+					"Persisted ThoiKhoaBieu must have id");
+
+		ThoiKhoaBieu tkb = new ThoiKhoaBieu(
+				id,
+				nguoiDung,
+				danhSachLop,
+				tenPhuongAn,
+				diemDanhGia,
+				ngayTao);
+
+		if(cacLop != null)
+			tkb.cacLop.addAll(cacLop);
+
+		return tkb;
+	}
+
+	private static void validateInvariant(
+			NguoiDung nguoiDung,
+			DanhSachLop danhSachLop,
+			String tenPhuongAn,
+			LocalDateTime ngayTao)
+	{
+		if(nguoiDung == null)
+			throw new IllegalArgumentException("Nguoi dung null");
+
+		if(danhSachLop == null)
+			throw new IllegalArgumentException("Danh sach lop null");
+
+		if(tenPhuongAn == null || tenPhuongAn.isBlank())
+			throw new IllegalArgumentException("Ten phuong an khong hop le");
+
+		if(ngayTao == null)
+			throw new IllegalArgumentException("Ngay tao null");
+	}
+
+	public void themLop(LopHocPhan lop)
+	{
+		if(!danhSachLop.chuaLop(lop))
+			throw new IllegalStateException("Lop khong thuoc danh sach");
+
+		cacLop.add(lop);
+	}
+
+	public void chamDiem(double diem)
+	{
+		if(diem < 0)
+			throw new IllegalArgumentException("Diem khong hop le");
+
+		this.diemDanhGia = diem;
 	}
 
 	public Long getId()
@@ -47,29 +118,14 @@ public class ThoiKhoaBieu
 		return id;
 	}
 
-	public void setId(Long id)
+	public NguoiDung getNguoiDung()
 	{
-		this.id = id;
+		return nguoiDung;
 	}
 
-	public Long getNguoiDungId()
+	public DanhSachLop getDanhSachLop()
 	{
-		return nguoiDungId;
-	}
-
-	public void setNguoiDungId(Long nguoiDungId)
-	{
-		this.nguoiDungId = nguoiDungId;
-	}
-
-	public Long getDanhSachLopId()
-	{
-		return danhSachLopId;
-	}
-
-	public void setDanhSachLopId(Long danhSachLopId)
-	{
-		this.danhSachLopId = danhSachLopId;
+		return danhSachLop;
 	}
 
 	public String getTenPhuongAn()
@@ -77,19 +133,9 @@ public class ThoiKhoaBieu
 		return tenPhuongAn;
 	}
 
-	public void setTenPhuongAn(String tenPhuongAn)
-	{
-		this.tenPhuongAn = tenPhuongAn;
-	}
-
 	public Double getDiemDanhGia()
 	{
 		return diemDanhGia;
-	}
-
-	public void setDiemDanhGia(Double diemDanhGia)
-	{
-		this.diemDanhGia = diemDanhGia;
 	}
 
 	public LocalDateTime getNgayTao()
@@ -97,23 +143,13 @@ public class ThoiKhoaBieu
 		return ngayTao;
 	}
 
-	public void setNgayTao(LocalDateTime ngayTao)
+	public Set<LopHocPhan> getCacLop()
 	{
-		this.ngayTao = ngayTao;
+		return cacLop;
 	}
 
-	public Set<LopHocPhan> getCacLopDuocChon()
+	public boolean isPersisted()
 	{
-		if(cacLopDuocChon == null) {
-			return Collections.emptySet();
-		}
-		return cacLopDuocChon;
-	}
-
-	public void setCacLopDuocChon(Set<LopHocPhan> cacLopDuocChon)
-	{
-		this.cacLopDuocChon = (cacLopDuocChon == null)
-				? Collections.emptySet()
-				: Collections.unmodifiableSet(Set.copyOf(cacLopDuocChon));
+		return id != null;
 	}
 }

@@ -4,40 +4,34 @@ import java.util.Objects;
 
 public class HocKy
 {
+	private final Long id;
 
-	private Long id;
+	private final String tenHocKy;
 
-	private String tenHocKy;
+	private final String namHoc;
 
-	private String namHoc;
-
-	public HocKy(String tenHocKy, String namHoc)
+	private HocKy(Long id, String tenHocKy, String namHoc)
 	{
-		this.tenHocKy = validateTenHocKy(tenHocKy);
-		this.namHoc = validateNamHoc(namHoc);
-	}
+		if(tenHocKy == null || tenHocKy.isBlank())
+			throw new IllegalArgumentException("Ten hoc ky khong hop le");
 
-	public HocKy(Long id, String tenHocKy, String namHoc)
-	{
+		if(namHoc == null || namHoc.isBlank())
+			throw new IllegalArgumentException("Nam hoc khong hop le");
+
 		this.id = id;
-		this.tenHocKy = validateTenHocKy(tenHocKy);
-		this.namHoc = validateNamHoc(namHoc);
+		this.tenHocKy = tenHocKy;
+		this.namHoc = namHoc;
 	}
 
-	private String validateTenHocKy(String tenHocKy)
+	public static HocKy create(String ten, String nam)
 	{
-		if(tenHocKy == null || tenHocKy.isBlank()) {
-			throw new IllegalArgumentException("Ten hoc ky khong duoc de trong");
-		}
-		return tenHocKy.trim();
+		return new HocKy(null, ten, nam);
 	}
 
-	private String validateNamHoc(String namHoc)
+	public static HocKy reconstruct(Long id, String ten, String nam)
 	{
-		if(namHoc == null || namHoc.isBlank()) {
-			throw new IllegalArgumentException("Nam hoc khong duoc de trong");
-		}
-		return namHoc.trim();
+		if(id == null) throw new IllegalStateException("Persisted HocKy must have id");
+		return new HocKy(id, ten, nam);
 	}
 
 	public Long getId()
@@ -55,14 +49,9 @@ public class HocKy
 		return namHoc;
 	}
 
-	public void doiTenHocKy(String tenHocKy)
+	public boolean isPersisted()
 	{
-		this.tenHocKy = validateTenHocKy(tenHocKy);
-	}
-
-	public void doiNamHoc(String namHoc)
-	{
-		this.namHoc = validateNamHoc(namHoc);
+		return id != null;
 	}
 
 	@Override
@@ -71,27 +60,12 @@ public class HocKy
 		if(this == o) return true;
 		if(!(o instanceof HocKy)) return false;
 		HocKy that = (HocKy) o;
-
-		if(id != null && that.id != null) {
-			return id.equals(that.id);
-		}
-
-		return tenHocKy.equals(that.tenHocKy)
-				&& namHoc.equals(that.namHoc);
+		return id != null && id.equals(that.id);
 	}
 
 	@Override
 	public int hashCode()
 	{
-		if(id != null) {
-			return id.hashCode();
-		}
-		return Objects.hash(tenHocKy, namHoc);
-	}
-
-	@Override
-	public String toString()
-	{
-		return tenHocKy + " - " + namHoc;
+		return Objects.hashCode(id);
 	}
 }

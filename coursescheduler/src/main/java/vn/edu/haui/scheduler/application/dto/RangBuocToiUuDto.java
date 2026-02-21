@@ -1,5 +1,7 @@
 package vn.edu.haui.scheduler.application.dto;
 
+import java.time.LocalDateTime;
+
 public class RangBuocToiUuDto
 {
 	private Long id;
@@ -20,22 +22,23 @@ public class RangBuocToiUuDto
 
 	private String value;
 
-	private boolean laCung;
+	private Boolean laCung;
 
-	private double trongSo;
+	private Double trongSo;
 
 	private String ghiChu;
 
 	private Long nguoiTaoId;
 
+	private LocalDateTime ngayTao;
+
+	public RangBuocToiUuDto()
+	{
+	}
+
 	public Long getId()
 	{
 		return id;
-	}
-
-	public void setId(Long id)
-	{
-		this.id = id;
 	}
 
 	public Long getThoiKhoaBieuId()
@@ -43,19 +46,9 @@ public class RangBuocToiUuDto
 		return thoiKhoaBieuId;
 	}
 
-	public void setThoiKhoaBieuId(Long thoiKhoaBieuId)
-	{
-		this.thoiKhoaBieuId = thoiKhoaBieuId;
-	}
-
 	public Long getYeuCauId()
 	{
 		return yeuCauId;
-	}
-
-	public void setYeuCauId(Long yeuCauId)
-	{
-		this.yeuCauId = yeuCauId;
 	}
 
 	public String getLoaiRangBuoc()
@@ -63,19 +56,9 @@ public class RangBuocToiUuDto
 		return loaiRangBuoc;
 	}
 
-	public void setLoaiRangBuoc(String loaiRangBuoc)
-	{
-		this.loaiRangBuoc = loaiRangBuoc;
-	}
-
 	public String getTargetType()
 	{
 		return targetType;
-	}
-
-	public void setTargetType(String targetType)
-	{
-		this.targetType = targetType;
 	}
 
 	public String getTargetValue()
@@ -83,19 +66,9 @@ public class RangBuocToiUuDto
 		return targetValue;
 	}
 
-	public void setTargetValue(String targetValue)
-	{
-		this.targetValue = targetValue;
-	}
-
 	public String getAttribute()
 	{
 		return attribute;
-	}
-
-	public void setAttribute(String attribute)
-	{
-		this.attribute = attribute;
 	}
 
 	public String getOperator()
@@ -103,39 +76,19 @@ public class RangBuocToiUuDto
 		return operator;
 	}
 
-	public void setOperator(String operator)
-	{
-		this.operator = operator;
-	}
-
 	public String getValue()
 	{
 		return value;
 	}
 
-	public void setValue(String value)
-	{
-		this.value = value;
-	}
-
-	public boolean isLaCung()
+	public Boolean getLaCung()
 	{
 		return laCung;
 	}
 
-	public void setLaCung(boolean laCung)
-	{
-		this.laCung = laCung;
-	}
-
-	public double getTrongSo()
+	public Double getTrongSo()
 	{
 		return trongSo;
-	}
-
-	public void setTrongSo(double trongSo)
-	{
-		this.trongSo = trongSo;
 	}
 
 	public String getGhiChu()
@@ -143,18 +96,83 @@ public class RangBuocToiUuDto
 		return ghiChu;
 	}
 
-	public void setGhiChu(String ghiChu)
-	{
-		this.ghiChu = ghiChu;
-	}
-
 	public Long getNguoiTaoId()
 	{
 		return nguoiTaoId;
 	}
 
+	public LocalDateTime getNgayTao()
+	{
+		return ngayTao;
+	}
+
+	public void setId(Long id)
+	{
+		this.id = id;
+	}
+
+	public void setThoiKhoaBieuId(Long thoiKhoaBieuId)
+	{
+		this.thoiKhoaBieuId = thoiKhoaBieuId;
+	}
+
+	public void setYeuCauId(Long yeuCauId)
+	{
+		this.yeuCauId = yeuCauId;
+	}
+
+	public void setLoaiRangBuoc(String loaiRangBuoc)
+	{
+		this.loaiRangBuoc = loaiRangBuoc;
+	}
+
+	public void setTargetType(String targetType)
+	{
+		this.targetType = targetType;
+	}
+
+	public void setTargetValue(String targetValue)
+	{
+		this.targetValue = targetValue;
+	}
+
+	public void setAttribute(String attribute)
+	{
+		this.attribute = attribute;
+	}
+
+	public void setOperator(String operator)
+	{
+		this.operator = operator;
+	}
+
+	public void setValue(String value)
+	{
+		this.value = value;
+	}
+
+	public void setLaCung(Boolean laCung)
+	{
+		this.laCung = laCung;
+	}
+
+	public void setTrongSo(Double trongSo)
+	{
+		this.trongSo = trongSo;
+	}
+
+	public void setGhiChu(String ghiChu)
+	{
+		this.ghiChu = ghiChu;
+	}
+
 	public void setNguoiTaoId(Long nguoiTaoId)
 	{
 		this.nguoiTaoId = nguoiTaoId;
+	}
+
+	public void setNgayTao(LocalDateTime ngayTao)
+	{
+		this.ngayTao = ngayTao;
 	}
 }

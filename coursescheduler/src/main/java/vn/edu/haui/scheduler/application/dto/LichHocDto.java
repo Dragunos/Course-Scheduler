@@ -1,10 +1,12 @@
 package vn.edu.haui.scheduler.application.dto;
 
-import vn.edu.haui.scheduler.domain.enums.ThuTrongTuan;
-
 public class LichHocDto
 {
-	private ThuTrongTuan thu;
+	private Long id;
+
+	private Long lopHocPhanId;
+
+	private Integer thu;
 
 	private Integer tietBatDau;
 
@@ -14,21 +16,32 @@ public class LichHocDto
 	{
 	}
 
-	public LichHocDto(ThuTrongTuan thu, Integer tietBatDau, Integer tietKetThuc)
+	public LichHocDto(Long id,
+			Long lopHocPhanId,
+			Integer thu,
+			Integer tietBatDau,
+			Integer tietKetThuc)
 	{
+		this.id = id;
+		this.lopHocPhanId = lopHocPhanId;
 		this.thu = thu;
-		setTietBatDau(tietBatDau);
-		setTietKetThuc(tietKetThuc);
+		this.tietBatDau = tietBatDau;
+		this.tietKetThuc = tietKetThuc;
 	}
 
-	public ThuTrongTuan getThu()
+	public Long getId()
+	{
+		return id;
+	}
+
+	public Long getLopHocPhanId()
+	{
+		return lopHocPhanId;
+	}
+
+	public Integer getThu()
 	{
 		return thu;
-	}
-
-	public void setThu(ThuTrongTuan thu)
-	{
-		this.thu = thu;
 	}
 
 	public Integer getTietBatDau()
@@ -36,34 +49,33 @@ public class LichHocDto
 		return tietBatDau;
 	}
 
-	public void setTietBatDau(Integer tietBatDau)
-	{
-		this.tietBatDau = tietBatDau;
-		if(this.tietKetThuc != null && this.tietBatDau != null && this.tietBatDau > this.tietKetThuc) {
-			throw new IllegalArgumentException("tietBatDau must be <= tietKetThuc");
-		}
-	}
-
 	public Integer getTietKetThuc()
 	{
 		return tietKetThuc;
 	}
 
+	public void setId(Long id)
+	{
+		this.id = id;
+	}
+
+	public void setLopHocPhanId(Long lopHocPhanId)
+	{
+		this.lopHocPhanId = lopHocPhanId;
+	}
+
+	public void setThu(Integer thu)
+	{
+		this.thu = thu;
+	}
+
+	public void setTietBatDau(Integer tietBatDau)
+	{
+		this.tietBatDau = tietBatDau;
+	}
+
 	public void setTietKetThuc(Integer tietKetThuc)
 	{
 		this.tietKetThuc = tietKetThuc;
-		if(this.tietBatDau != null && this.tietKetThuc != null && this.tietBatDau > this.tietKetThuc) {
-			throw new IllegalArgumentException("tietBatDau must be <= tietKetThuc");
-		}
-	}
-
-	@Override
-	public String toString()
-	{
-		return "LichHocDto{" +
-				"thu=" + thu +
-				", tietBatDau=" + tietBatDau +
-				", tietKetThuc=" + tietKetThuc +
-				'}';
 	}
 }

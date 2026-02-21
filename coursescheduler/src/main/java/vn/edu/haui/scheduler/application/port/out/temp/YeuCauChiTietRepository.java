@@ -1,4 +1,4 @@
-package vn.edu.haui.scheduler.application.port.out;
+package vn.edu.haui.scheduler.application.port.out.temp;
 
 import vn.edu.haui.scheduler.domain.model.YeuCauChiTiet;
 

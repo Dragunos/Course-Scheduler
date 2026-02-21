@@ -1,4 +1,4 @@
-package vn.edu.haui.scheduler.application.dto;
+package vn.edu.haui.scheduler.application.dto.temp;
 
 public class ImportDanhSachLopRequestDto
 {

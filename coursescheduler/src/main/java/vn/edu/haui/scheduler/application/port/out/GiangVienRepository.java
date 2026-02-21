@@ -1,17 +1,19 @@
 package vn.edu.haui.scheduler.application.port.out;
 
+import vn.edu.haui.scheduler.domain.model.GiangVien;
+
 import java.util.List;
 import java.util.Optional;
 
-import vn.edu.haui.scheduler.domain.model.GiangVien;
-
 public interface GiangVienRepository
 {
-	Optional<Long> findIdByTen(String tenGiangVien);
-
-	Long save(GiangVien giangVien);
+	GiangVien save(GiangVien giangVien);
 
 	Optional<GiangVien> findById(Long id);
 
-	List<GiangVien> findByIds(List<Long> ids);
+	Optional<GiangVien> findByTen(String tenGiangVien);
+
+	List<GiangVien> findAll();
+
+	void deleteById(Long id);
 }

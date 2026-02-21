@@ -1,49 +1,111 @@
 package vn.edu.haui.scheduler.domain.model;
 
-import vn.edu.haui.scheduler.domain.enums.HinhThucDay;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class LopHocPhan
 {
-	private Long id;
+	private final Long id;
 
-	private String maLop;
+	private final String maLop;
 
-	private HocPhan hocPhan;
+	private final HocPhan hocPhan;
 
-	private GiangVien giangVien;
+	private final GiangVien giangVien;
 
-	private HinhThucDay hinhThucDay;
+	private final String hinhThucDay;
 
-	private String diaDiem;
+	private final String diaDiem;
 
-	private List<LichHoc> danhSachLichHoc;
+	private final List<LichHoc> lichHocList = new ArrayList<>();
 
-	public LopHocPhan()
+	private LopHocPhan(
+			Long id,
+			String maLop,
+			HocPhan hocPhan,
+			GiangVien giangVien,
+			String hinhThucDay,
+			String diaDiem,
+			List<LichHoc> lichHoc)
 	{
-		this.danhSachLichHoc = new ArrayList<>();
-	}
+		validateInvariant(maLop, hocPhan, hinhThucDay);
 
-	public LopHocPhan(Long id)
-	{
-		this.id = id;
-	}
-
-	public LopHocPhan(Long id, String maLop, HocPhan hocPhan, GiangVien giangVien, HinhThucDay hinhThucDay,
-			String diaDiem, List<LichHoc> danhSachLichHoc)
-	{
 		this.id = id;
 		this.maLop = maLop;
 		this.hocPhan = hocPhan;
 		this.giangVien = giangVien;
 		this.hinhThucDay = hinhThucDay;
 		this.diaDiem = diaDiem;
-		this.danhSachLichHoc = (danhSachLichHoc == null)
-				? new ArrayList<>()
-				: new ArrayList<>(danhSachLichHoc);
+
+		if(lichHoc != null)
+			this.lichHocList.addAll(lichHoc);
+	}
+
+	public static LopHocPhan create(
+			String maLop,
+			HocPhan hocPhan,
+			GiangVien giangVien,
+			String hinhThucDay,
+			String diaDiem)
+	{
+		return new LopHocPhan(
+				null,
+				maLop,
+				hocPhan,
+				giangVien,
+				hinhThucDay,
+				diaDiem,
+				Collections.emptyList());
+	}
+
+	public static LopHocPhan reconstruct(
+			Long id,
+			String maLop,
+			HocPhan hocPhan,
+			GiangVien giangVien,
+			String hinhThucDay,
+			String diaDiem,
+			List<LichHoc> lichHoc)
+	{
+		if(id == null)
+			throw new IllegalStateException("Persisted LopHocPhan must have id");
+
+		return new LopHocPhan(
+				id,
+				maLop,
+				hocPhan,
+				giangVien,
+				hinhThucDay,
+				diaDiem,
+				lichHoc);
+	}
+
+	private static void validateInvariant(
+			String maLop,
+			HocPhan hocPhan,
+			String hinhThucDay)
+	{
+		if(maLop == null || maLop.isBlank())
+			throw new IllegalArgumentException("Ma lop khong hop le");
+
+		if(hocPhan == null)
+			throw new IllegalArgumentException("HocPhan khong duoc null");
+
+		if(hinhThucDay == null || hinhThucDay.isBlank())
+			throw new IllegalArgumentException("Hinh thuc day khong hop le");
+	}
+
+	public void themLichHoc(LichHoc lichMoi)
+	{
+		for(LichHoc l : lichHocList) {
+			if(l.trungLich(lichMoi))
+				throw new IllegalStateException("Trung lich trong cung LopHocPhan");
+		}
+		lichHocList.add(lichMoi);
+	}
+
+	public List<LichHoc> getLichHocList()
+	{
+		return Collections.unmodifiableList(lichHocList);
 	}
 
 	public Long getId()
@@ -66,7 +128,7 @@ public class LopHocPhan
 		return giangVien;
 	}
 
-	public HinhThucDay getHinhThucDay()
+	public String getHinhThucDay()
 	{
 		return hinhThucDay;
 	}
@@ -74,65 +136,5 @@ public class LopHocPhan
 	public String getDiaDiem()
 	{
 		return diaDiem;
-	}
-
-	public List<LichHoc> getDanhSachLichHoc()
-	{
-		return danhSachLichHoc;
-	}
-
-	public void setId(Long id)
-	{
-		this.id = id;
-	}
-
-	public void setMaLop(String maLop)
-	{
-		this.maLop = maLop;
-	}
-
-	public void setHocPhan(HocPhan hocPhan)
-	{
-		this.hocPhan = hocPhan;
-	}
-
-	public void setGiangVien(GiangVien giangVien)
-	{
-		this.giangVien = giangVien;
-	}
-
-	public void setHinhThucDay(HinhThucDay hinhThucDay)
-	{
-		this.hinhThucDay = hinhThucDay;
-	}
-
-	public void setDiaDiem(String diaDiem)
-	{
-		this.diaDiem = diaDiem;
-	}
-
-	public void setDanhSachLichHoc(List<LichHoc> danhSachLichHoc)
-	{
-		this.danhSachLichHoc = danhSachLichHoc;
-	}
-
-	public void themLichHoc(LichHoc lichHoc)
-	{
-		this.danhSachLichHoc.add(Objects.requireNonNull(lichHoc));
-	}
-
-	@Override
-	public boolean equals(Object o)
-	{
-		if(this == o) return true;
-		if(!(o instanceof LopHocPhan)) return false;
-		LopHocPhan that = (LopHocPhan) o;
-		return Objects.equals(id, that.id);
-	}
-
-	@Override
-	public int hashCode()
-	{
-		return Objects.hash(id);
 	}
 }

@@ -7,14 +7,13 @@ import java.util.Optional;
 
 public interface YeuCauRepository
 {
-	long save(long nguoiTaoId, long danhSachLopId, String tenYeuCau) throws Exception;
+	YeuCau save(YeuCau yeuCau);
 
-	Optional<YeuCau> findById(long id) throws Exception;
+	Optional<YeuCau> findById(Long id);
 
-	List<YeuCau> findByNguoiTaoId(long nguoiTaoId) throws Exception;
+	List<YeuCau> findByNguoiTaoId(Long nguoiTaoId);
 
-	void deleteById(long id) throws Exception;
+	List<YeuCau> findByDanhSachLopId(Long danhSachLopId);
 
-	long createFromThoiKhoaBieu(long thoiKhoaBieuId) throws Exception;
-
+	void deleteById(Long id);
 }

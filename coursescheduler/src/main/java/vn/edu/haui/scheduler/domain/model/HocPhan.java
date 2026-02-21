@@ -1,25 +1,94 @@
 package vn.edu.haui.scheduler.domain.model;
 
+import java.util.Objects;
+
 public class HocPhan
 {
-	private Long id;
+	private final Long id;
 
-	private String maHocPhan;
+	private final String maHocPhan;
 
 	private String tenHocPhan;
 
-	private Integer soTinChi;
+	private int soTinChi;
 
-	public HocPhan()
+	private HocPhan(
+			Long id,
+			String maHocPhan,
+			String tenHocPhan,
+			int soTinChi)
 	{
-	}
+		validateInvariant(maHocPhan, tenHocPhan, soTinChi);
 
-	public HocPhan(Long id, String maHocPhan, String tenHocPhan, Integer soTinChi)
-	{
 		this.id = id;
 		this.maHocPhan = maHocPhan;
 		this.tenHocPhan = tenHocPhan;
 		this.soTinChi = soTinChi;
+	}
+
+	public static HocPhan create(
+			String maHocPhan,
+			String tenHocPhan,
+			int soTinChi)
+	{
+		return new HocPhan(
+				null,
+				maHocPhan,
+				tenHocPhan,
+				soTinChi);
+	}
+
+	public static HocPhan reconstruct(
+			Long id,
+			String maHocPhan,
+			String tenHocPhan,
+			int soTinChi)
+	{
+		if(id == null) {
+			throw new IllegalStateException("Persisted HocPhan must have id");
+		}
+
+		return new HocPhan(
+				id,
+				maHocPhan,
+				tenHocPhan,
+				soTinChi);
+	}
+
+	private static void validateInvariant(
+			String maHocPhan,
+			String tenHocPhan,
+			int soTinChi)
+	{
+		if(maHocPhan == null || maHocPhan.isBlank()) {
+			throw new IllegalArgumentException("Ma hoc phan khong hop le");
+		}
+
+		if(tenHocPhan == null || tenHocPhan.isBlank()) {
+			throw new IllegalArgumentException("Ten hoc phan khong hop le");
+		}
+
+		if(soTinChi < 0) {
+			throw new IllegalArgumentException("So tin chi khong hop le");
+		}
+	}
+
+	public void doiTen(String tenMoi)
+	{
+		if(tenMoi == null || tenMoi.isBlank()) {
+			throw new IllegalArgumentException("Ten hoc phan moi khong hop le");
+		}
+
+		this.tenHocPhan = tenMoi;
+	}
+
+	public void capNhatSoTinChi(int soTinChiMoi)
+	{
+		if(soTinChiMoi < 0) {
+			throw new IllegalArgumentException("So tin chi moi khong hop le");
+		}
+
+		this.soTinChi = soTinChiMoi;
 	}
 
 	public Long getId()
@@ -27,19 +96,9 @@ public class HocPhan
 		return id;
 	}
 
-	public void setId(Long id)
-	{
-		this.id = id;
-	}
-
 	public String getMaHocPhan()
 	{
 		return maHocPhan;
-	}
-
-	public void setMaHocPhan(String maHocPhan)
-	{
-		this.maHocPhan = maHocPhan;
 	}
 
 	public String getTenHocPhan()
@@ -47,29 +106,28 @@ public class HocPhan
 		return tenHocPhan;
 	}
 
-	public void setTenHocPhan(String tenHocPhan)
-	{
-		this.tenHocPhan = tenHocPhan;
-	}
-
-	public Integer getSoTinChi()
+	public int getSoTinChi()
 	{
 		return soTinChi;
 	}
 
-	public void setSoTinChi(Integer soTinChi)
+	public boolean isPersisted()
 	{
-		this.soTinChi = soTinChi;
+		return id != null;
 	}
 
 	@Override
-	public String toString()
+	public boolean equals(Object o)
 	{
-		return "HocPhan{" +
-				"id=" + id +
-				", maHocPhan='" + maHocPhan + '\'' +
-				", tenHocPhan='" + tenHocPhan + '\'' +
-				", soTinChi=" + soTinChi +
-				'}';
+		if(this == o) return true;
+		if(!(o instanceof HocPhan)) return false;
+		HocPhan that = (HocPhan) o;
+		return id != null && id.equals(that.id);
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return Objects.hashCode(id);
 	}
 }

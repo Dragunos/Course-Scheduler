@@ -1,16 +1,16 @@
-package vn.edu.haui.scheduler.application.dto;
+package vn.edu.haui.scheduler.application.dto.temp;
 
-public class LoginRequestDto
+public class RegisterRequestDto
 {
 	private String tenDangNhap;
 
 	private String matKhau;
 
-	public LoginRequestDto()
+	public RegisterRequestDto()
 	{
 	}
 
-	public LoginRequestDto(String tenDangNhap, String matKhau)
+	public RegisterRequestDto(String tenDangNhap, String matKhau)
 	{
 		this.tenDangNhap = tenDangNhap;
 		this.matKhau = matKhau;

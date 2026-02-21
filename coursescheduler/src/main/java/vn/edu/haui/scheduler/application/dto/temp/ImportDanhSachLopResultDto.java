@@ -1,6 +1,8 @@
-package vn.edu.haui.scheduler.application.dto;
+package vn.edu.haui.scheduler.application.dto.temp;
 
 import java.util.List;
+
+import vn.edu.haui.scheduler.application.dto.DanhSachLopDto;
 
 public class ImportDanhSachLopResultDto
 {
