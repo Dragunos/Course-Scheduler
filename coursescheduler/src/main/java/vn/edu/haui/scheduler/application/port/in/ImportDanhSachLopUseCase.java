@@ -1,9 +1,12 @@
 package vn.edu.haui.scheduler.application.port.in;
 
-import vn.edu.haui.scheduler.application.dto.ImportDanhSachLopResultDto;
-import vn.edu.haui.scheduler.application.dto.ImportDanhSachLopRequestDto;
+import vn.edu.haui.scheduler.application.dto.DanhSachLopDto;
+import vn.edu.haui.scheduler.application.dto.TepTaiLenDto;
 
 public interface ImportDanhSachLopUseCase
 {
-	ImportDanhSachLopResultDto importDanhSachLop(ImportDanhSachLopRequestDto request);
+	DanhSachLopDto importFromExcel(Long nguoiTaoId,
+			String tenDanhSach,
+			Long hocKyId,
+			TepTaiLenDto tepTaiLenDto);
 }

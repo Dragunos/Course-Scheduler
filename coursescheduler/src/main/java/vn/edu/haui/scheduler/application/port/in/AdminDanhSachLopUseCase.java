@@ -2,19 +2,16 @@ package vn.edu.haui.scheduler.application.port.in;
 
 import java.util.List;
 import vn.edu.haui.scheduler.application.dto.DanhSachLopDto;
-import vn.edu.haui.scheduler.application.dto.ImportDanhSachLopRequestDto;
-import vn.edu.haui.scheduler.application.dto.ImportDanhSachLopResultDto;
-import vn.edu.haui.scheduler.application.dto.UpdateDanhSachLopRequestDto;
+import vn.edu.haui.scheduler.application.dto.TepTaiLenDto;
 
 public interface AdminDanhSachLopUseCase
 {
-	List<DanhSachLopDto> getAllDanhSachCongKhai();
+	List<DanhSachLopDto> findAllPublic();
 
-	DanhSachLopDto getDanhSachLopById(Long danhSachLopId);
+	DanhSachLopDto importPublic(Long adminId,
+			String tenDanhSach,
+			Long hocKyId,
+			TepTaiLenDto tepTaiLenDto);
 
-	ImportDanhSachLopResultDto importDanhSachLop(ImportDanhSachLopRequestDto request);
-
-	DanhSachLopDto updateDanhSachLop(UpdateDanhSachLopRequestDto request);
-
-	void deleteDanhSachLop(Long danhSachLopId);
+	void deletePublic(Long adminId, Long danhSachLopId);
 }

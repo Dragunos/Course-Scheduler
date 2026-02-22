@@ -5,11 +5,13 @@ import vn.edu.haui.scheduler.application.dto.ThoiKhoaBieuDto;
 
 public interface ManageThoiKhoaBieuUseCase
 {
-	List<ThoiKhoaBieuDto> getAllThoiKhoaBieuByNguoiDungId(long nguoiDungId) throws Exception;
+	List<ThoiKhoaBieuDto> findAllByUser(Long nguoiDungId);
 
-	ThoiKhoaBieuDto getThoiKhoaBieuById(long thoiKhoaBieuId, long nguoiDungId) throws Exception;
+	ThoiKhoaBieuDto findDetail(Long nguoiDungId, Long thoiKhoaBieuId);
 
-	ThoiKhoaBieuDto updateTenThoiKhoaBieu(long thoiKhoaBieuId, long nguoiDungId, String tenMoi) throws Exception;
+	ThoiKhoaBieuDto rename(Long nguoiDungId,
+			Long thoiKhoaBieuId,
+			String newName);
 
-	void deleteThoiKhoaBieu(long thoiKhoaBieuId, long nguoiDungId) throws Exception;
+	void delete(Long nguoiDungId, Long thoiKhoaBieuId);
 }

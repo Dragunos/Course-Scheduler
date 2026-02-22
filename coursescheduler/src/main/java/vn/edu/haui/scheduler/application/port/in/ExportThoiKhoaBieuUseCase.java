@@ -1,10 +1,9 @@
 package vn.edu.haui.scheduler.application.port.in;
 
-import vn.edu.haui.scheduler.application.exception.DataAccessException;
-import vn.edu.haui.scheduler.application.exception.ValidationException;
-
 public interface ExportThoiKhoaBieuUseCase
 {
-	void exportThoiKhoaBieu(Long nguoiDungId, Long thoiKhoaBieuId, String duongDanFile, String dinhDang)
-			throws ValidationException, DataAccessException;
+	void export(Long nguoiDungId,
+			Long thoiKhoaBieuId,
+			String format,
+			String outputPath);
 }

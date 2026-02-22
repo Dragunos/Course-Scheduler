@@ -1,396 +1,167 @@
 package vn.edu.haui.scheduler.application.service;
 
-import vn.edu.haui.scheduler.application.port.in.ImportDanhSachLopUseCase;
-import vn.edu.haui.scheduler.application.dto.DanhSachLopDto;
-import vn.edu.haui.scheduler.application.dto.ImportDanhSachLopRequestDto;
-import vn.edu.haui.scheduler.application.dto.ImportDanhSachLopResultDto;
-import vn.edu.haui.scheduler.application.exception.DataAccessException;
-import vn.edu.haui.scheduler.domain.model.DanhSachLop;
-import vn.edu.haui.scheduler.domain.model.GiangVien;
-import vn.edu.haui.scheduler.domain.model.HocPhan;
-import vn.edu.haui.scheduler.domain.model.LopHocPhan;
-import vn.edu.haui.scheduler.domain.model.LichHoc;
-import vn.edu.haui.scheduler.domain.enums.HinhThucDay;
-import vn.edu.haui.scheduler.domain.enums.ThuTrongTuan;
-import vn.edu.haui.scheduler.infrastructure.io.imports.ExcelDanhSachLopImporter;
-import vn.edu.haui.scheduler.infrastructure.io.imports.ImportedLopHocPhanRow;
-import vn.edu.haui.scheduler.infrastructure.persistence.config.TransactionManager;
-import vn.edu.haui.scheduler.application.port.out.*;
+import java.util.List;
 
-import java.io.File;
-import java.util.*;
+import vn.edu.haui.scheduler.application.dto.DanhSachLopDto;
+import vn.edu.haui.scheduler.application.dto.TepTaiLenDto;
+import vn.edu.haui.scheduler.application.exception.EntityNotFoundException;
+import vn.edu.haui.scheduler.application.exception.ImportDanhSachLopException;
+import vn.edu.haui.scheduler.application.exception.ValidationException;
+import vn.edu.haui.scheduler.application.port.in.ImportDanhSachLopUseCase;
+import vn.edu.haui.scheduler.application.port.out.*;
+import vn.edu.haui.scheduler.application.service.mapper.DanhSachLopMapper;
+import vn.edu.haui.scheduler.domain.model.*;
+import vn.edu.haui.scheduler.infrastructure.io.imports.ExcelDanhSachLopImporter;
+import vn.edu.haui.scheduler.infrastructure.io.imports.ImportedLopHocPhanRaw;
+import vn.edu.haui.scheduler.infrastructure.persistence.config.TransactionManager;
 
 public class ImportDanhSachLopService implements ImportDanhSachLopUseCase
 {
 	private final ExcelDanhSachLopImporter importer;
 
-	private final HocPhanRepository hocPhanRepo;
+	private final DanhSachLopRepository danhSachLopRepository;
 
-	private final GiangVienRepository giangVienRepo;
+	private final HocPhanRepository hocPhanRepository;
 
-	private final LopHocPhanRepository lopRepo;
+	private final GiangVienRepository giangVienRepository;
 
-	private final LichHocRepository lichRepo;
+	private final LopHocPhanRepository lopHocPhanRepository;
 
-	private final DanhSachLopRepository danhSachRepo;
+	private final NguoiDungRepository nguoiDungRepository;
 
-	private final TepTaiLenRepository tepRepo;
+	private final HocKyRepository hocKyRepository;
 
-	private final TransactionManager txManager;
+	private final TepTaiLenRepository tepTaiLenRepository;
+
+	private final TransactionManager transactionManager;
 
 	public ImportDanhSachLopService(
 			ExcelDanhSachLopImporter importer,
-			HocPhanRepository hocPhanRepo,
-			GiangVienRepository giangVienRepo,
-			LopHocPhanRepository lopRepo,
-			LichHocRepository lichRepo,
-			DanhSachLopRepository danhSachRepo,
-			TepTaiLenRepository tepRepo,
-			TransactionManager txManager)
+			DanhSachLopRepository danhSachLopRepository,
+			HocPhanRepository hocPhanRepository,
+			GiangVienRepository giangVienRepository,
+			LopHocPhanRepository lopHocPhanRepository,
+			NguoiDungRepository nguoiDungRepository,
+			HocKyRepository hocKyRepository,
+			TepTaiLenRepository tepTaiLenRepository,
+			TransactionManager transactionManager)
 	{
 		this.importer = importer;
-		this.hocPhanRepo = hocPhanRepo;
-		this.giangVienRepo = giangVienRepo;
-		this.lopRepo = lopRepo;
-		this.lichRepo = lichRepo;
-		this.danhSachRepo = danhSachRepo;
-		this.tepRepo = tepRepo;
-		this.txManager = txManager;
+		this.danhSachLopRepository = danhSachLopRepository;
+		this.hocPhanRepository = hocPhanRepository;
+		this.giangVienRepository = giangVienRepository;
+		this.lopHocPhanRepository = lopHocPhanRepository;
+		this.nguoiDungRepository = nguoiDungRepository;
+		this.hocKyRepository = hocKyRepository;
+		this.tepTaiLenRepository = tepTaiLenRepository;
+		this.transactionManager = transactionManager;
 	}
 
 	@Override
-	public ImportDanhSachLopResultDto importDanhSachLop(ImportDanhSachLopRequestDto request)
+	public DanhSachLopDto importFromExcel(
+			Long nguoiTaoId,
+			String tenDanhSach,
+			Long hocKyId,
+			TepTaiLenDto tepTaiLenDto)
 	{
-		File f = new File(request.getFilePath());
-		if(!f.exists()) throw new IllegalArgumentException("File not found: " + request.getFilePath());
+		if(nguoiTaoId == null)
+			throw new ValidationException("NguoiTaoId must not be null");
 
-		ExcelDanhSachLopImporter.ImportFileResult importResult;
+		if(tenDanhSach == null || tenDanhSach.isBlank())
+			throw new ValidationException("TenDanhSach must not be blank");
+
+		if(tepTaiLenDto == null)
+			throw new ValidationException("TepTaiLen must not be null");
+
+		NguoiDung nguoiTao = nguoiDungRepository
+				.findById(nguoiTaoId)
+				.orElseThrow(() -> new EntityNotFoundException("NguoiDung", nguoiTaoId));
+
+		HocKy hocKy = null;
+		if(hocKyId != null) {
+			hocKy = hocKyRepository
+					.findById(hocKyId)
+					.orElseThrow(() -> new EntityNotFoundException("HocKy", hocKyId));
+		}
+
+		transactionManager.begin();
 		try {
-			importResult = importer.importFrom(f);
-		}
-		catch(Exception ex) {
-			ex.printStackTrace();
-			throw new DataAccessException("Failed to read file: " + ex.getMessage(), ex);
-		}
+			TepTaiLen tepTaiLen = TepTaiLen.create(
+					nguoiTao,
+					tepTaiLenDto.getTenTepGoc(),
+					tepTaiLenDto.getLoaiTep(),
+					tepTaiLenDto.getDuongDan(),
+					tepTaiLenDto.getStorageType(),
+					tepTaiLenDto.getFileBlob(),
+					tepTaiLenDto.getChecksum(),
+					tepTaiLenDto.getKichThuoc());
 
-		Map<String, ImportedLopAggregate> map = new LinkedHashMap<>();
-		for(ImportedLopHocPhanRow r : importResult.rows) {
-			ImportedLopAggregate agg = map.computeIfAbsent(r.maLop, k -> new ImportedLopAggregate(r));
-			agg.merge(r);
-		}
+			tepTaiLenRepository.save(tepTaiLen);
 
-		Long danhSachId = null;
-		try {
-			txManager.begin();
+			ExcelDanhSachLopImporter.ImportFileResult result = importer.read(tepTaiLen);
+			List<ImportedLopHocPhanRaw> rawList = result.rows;
 
-			tepRepo.saveMetadata(
-					request.getNguoiTaoId(),
-					f,
-					request.getMimeType() == null ? "application/octet-stream" : request.getMimeType());
+			DanhSachLop danhSach = DanhSachLop.create(
+					tenDanhSach.trim(),
+					nguoiTao,
+					false,
+					hocKy);
 
-			danhSachId = danhSachRepo.save(
-					request.getTenDanhSach(),
-					request.getNguoiTaoId(),
-					request.isLaCongKhai(),
-					request.getHocKyId());
+			for(ImportedLopHocPhanRaw raw : rawList) {
 
-			// Cache để tránh lookup nhiều lần
-			Map<String, Long> cacheHocPhan = new HashMap<>();
-			Map<String, Long> cacheGiangVien = new HashMap<>();
+				HocPhan hocPhan = hocPhanRepository
+						.findByMaHocPhan(raw.maHocPhan())
+						.orElseGet(() -> {
+							HocPhan newHp = HocPhan.create(
+									raw.maHocPhan(),
+									raw.tenHocPhan(),
+									raw.soTinChi());
+							return hocPhanRepository.save(newHp);
+						});
 
-			for(ImportedLopAggregate agg : map.values()) {
-				Long hocPhanId = resolveHocPhanCached(agg, cacheHocPhan);
-				Long giangVienId = resolveGiangVienCached(agg, cacheGiangVien);
-				Long lopId = resolveLopHocPhan(agg, hocPhanId, giangVienId);
-				List<LichHoc> lichHocList = convertAndDedupeBuoi(lopId, agg.getBuoiList());
+				GiangVien giangVien = null;
+				if(raw.tenGiangVien() != null && !raw.tenGiangVien().isBlank()) {
+					giangVien = giangVienRepository
+							.findByTen(raw.tenGiangVien())
+							.orElseGet(() -> {
+								GiangVien gv = GiangVien.create(raw.tenGiangVien());
+								return giangVienRepository.save(gv);
+							});
+				}
 
-				lichRepo.replaceAllByLopHocPhanId(
-						lopId,
-						lichHocList);
+				LopHocPhan lop = LopHocPhan.create(
+						raw.maLop(),
+						hocPhan,
+						giangVien,
+						raw.hinhThucDay(),
+						raw.diaDiem());
 
-				danhSachRepo.addChiTiet(danhSachId, lopId);
+				raw.lichHocList().forEach(lh -> {
+					LichHoc lichHoc = LichHoc.create(
+							null,
+							lh.thu(),
+							lh.tietBatDau(),
+							lh.tietKetThuc());
+
+					lop.themLichHoc(lichHoc);
+				});
+
+				LopHocPhan savedLop = lopHocPhanRepository.save(lop);
+
+				danhSach.themLop(savedLop, false);
 			}
 
-			txManager.commit();
+			DanhSachLop saved = danhSachLopRepository.save(danhSach);
+
+			transactionManager.commit();
+
+			return DanhSachLopMapper.toDto(saved);
 		}
-		catch(Exception ex) {
-			ex.printStackTrace();
-			try {
-				txManager.rollback();
-			}
-			catch(Exception ignore) {
-				ignore.printStackTrace();
-			}
-			throw new DataAccessException("Import failed: " + ex.getMessage(), ex);
+		catch(Exception e) {
+			transactionManager.rollback();
+			throw new ImportDanhSachLopException(
+					"Error importing DanhSachLop",
+					e);
 		}
-
-		DanhSachLopDto dto = danhSachRepo.findByIdWithDetails(danhSachId)
-				.map(this::toDto)
-				.orElseThrow(() -> new DataAccessException("Cannot load created list"));
-
-		ImportDanhSachLopResultDto result = new ImportDanhSachLopResultDto();
-		result.setDanhSach(dto);
-		result.setWarnings(importResult.warnings);
-		return result;
-	}
-
-	private Long resolveHocPhan(ImportedLopAggregate agg)
-	{
-		if(agg.maHocPhan != null) {
-			Optional<Long> idOpt = hocPhanRepo.findIdByMaHocPhan(agg.maHocPhan);
-			if(idOpt.isPresent()) return idOpt.get();
-		}
-
-		HocPhan hp = new HocPhan();
-		hp.setMaHocPhan(agg.maHocPhan);
-		hp.setTenHocPhan(
-				agg.tenHocPhan != null ? agg.tenHocPhan : "");
-		hp.setSoTinChi(agg.soTinChi);
-
-		return hocPhanRepo.save(hp);
-	}
-
-	private Long resolveGiangVien(ImportedLopAggregate agg)
-	{
-		if(agg.tenGiangVien != null &&
-				!agg.tenGiangVien.isEmpty()) {
-
-			Optional<Long> idOpt = giangVienRepo.findIdByTen(agg.tenGiangVien);
-
-			if(idOpt.isPresent())
-				return idOpt.get();
-
-			GiangVien gv = new GiangVien();
-			gv.setTenGiangVien(agg.tenGiangVien);
-
-			return giangVienRepo.save(gv);
-		}
-		return null;
-	}
-
-	private Long resolveLopHocPhan(
-			ImportedLopAggregate agg,
-			Long hocPhanId,
-			Long giangVienId)
-	{
-		Optional<Long> idOpt = lopRepo.findIdByMaAndHocPhanId(
-				agg.maLop,
-				hocPhanId);
-
-		if(idOpt.isPresent()) {
-
-			Long id = idOpt.get();
-
-			lopRepo.updateBasicInfo(
-					id,
-					giangVienId,
-					parseHinhThuc(
-							agg.hinhThucDay,
-							agg.diaDiem),
-					agg.diaDiem);
-
-			return id;
-		}
-
-		LopHocPhan lop = new LopHocPhan();
-		lop.setMaLop(agg.maLop);
-
-		HocPhan hocPhan = new HocPhan();
-		hocPhan.setId(hocPhanId);
-		lop.setHocPhan(hocPhan);
-
-		GiangVien giangVien = new GiangVien();
-		giangVien.setId(giangVienId);
-		lop.setGiangVien(giangVien);
-
-		lop.setHinhThucDay(
-				parseHinhThuc(
-						agg.hinhThucDay,
-						agg.diaDiem));
-
-		lop.setDiaDiem(agg.diaDiem);
-
-		return lopRepo.save(lop);
-	}
-
-	private Long resolveHocPhanCached(ImportedLopAggregate agg, Map<String, Long> cache)
-	{
-		String ma = agg.maHocPhan;
-		if(ma != null && cache.containsKey(ma)) return cache.get(ma);
-		Long id = resolveHocPhan(agg);
-		if(ma != null && id != null) cache.put(ma, id);
-		return id;
-	}
-
-	private Long resolveGiangVienCached(ImportedLopAggregate agg, Map<String, Long> cache)
-	{
-		String ten = agg.tenGiangVien;
-		if(ten != null && cache.containsKey(ten)) return cache.get(ten);
-		Long id = resolveGiangVien(agg);
-		if(ten != null && id != null) cache.put(ten, id);
-		return id;
-	}
-
-	private List<LichHoc> convertAndDedupeBuoi(
-			Long lopId,
-			List<ImportedLopHocPhanRow.Buoi> src)
-	{
-		Set<String> seen = new HashSet<>();
-		List<LichHoc> result = new ArrayList<>();
-
-		for(ImportedLopHocPhanRow.Buoi b : src) {
-
-			String key = b.thu + "-" +
-					b.tietBatDau + "-" +
-					b.tietKetThuc;
-
-			if(seen.contains(key)) continue;
-
-			seen.add(key);
-
-			LichHoc lich = new LichHoc(
-					null,
-					lopId,
-					ThuTrongTuan.fromGiaTri(b.thu),
-					b.tietBatDau,
-					b.tietKetThuc);
-
-			result.add(lich);
-		}
-		return result;
-	}
-
-	private String normalizeText(String input)
-	{
-		if(input == null) return null;
-
-		String v = input.trim().toUpperCase();
-
-		v = java.text.Normalizer.normalize(
-				v,
-				java.text.Normalizer.Form.NFKD);
-
-		v = v.replaceAll("\\p{M}", "");
-		v = v.replaceAll("[^A-Z0-9 ]", "");
-		v = v.replaceAll("\\s+", " ").trim();
-
-		return v.isEmpty() ? null : v;
-	}
-
-	private HinhThucDay parseHinhThuc(String raw, String diaDiem)
-	{
-		String hinhThucNorm = normalizeText(raw);
-		String diaDiemNorm = normalizeText(diaDiem);
-
-		// --------- RULE 1 ----------
-		if(hinhThucNorm != null &&
-				hinhThucNorm.contains("ONLINE")) {
-			return HinhThucDay.ONLINE;
-		}
-
-		// --------- RULE 2 ----------
-		if(diaDiemNorm != null &&
-				diaDiemNorm.equals("PH ONLINE")) {
-			return HinhThucDay.ONLINE;
-		}
-
-		// --------- RULE 3 ----------
-		return HinhThucDay.TRUC_TIEP;
-	}
-
-	private static class ImportedLopAggregate
-	{
-		public final String maLop;
-
-		public String maHocPhan;
-
-		public String tenHocPhan;
-
-		public Integer soTinChi;
-
-		public String tenGiangVien;
-
-		public String hinhThucDay;
-
-		public String diaDiem;
-
-		private final List<ImportedLopHocPhanRow.Buoi> buoiList = new ArrayList<>();
-
-		public ImportedLopAggregate(ImportedLopHocPhanRow r)
-		{
-			this.maLop = r.maLop;
-			this.maHocPhan = r.maHocPhan;
-			this.tenHocPhan = r.tenHocPhan;
-			this.soTinChi = r.soTinChi;
-			this.tenGiangVien = r.tenGiangVien;
-			this.hinhThucDay = r.hinhThucDay;
-			this.diaDiem = r.diaDiem;
-
-			if(r.buoiList != null)
-				this.buoiList.addAll(r.buoiList);
-		}
-
-		public void merge(ImportedLopHocPhanRow r)
-		{
-			if(this.maHocPhan == null &&
-					r.maHocPhan != null)
-				this.maHocPhan = r.maHocPhan;
-
-			if((this.tenHocPhan == null ||
-					this.tenHocPhan.isEmpty()) &&
-					r.tenHocPhan != null)
-				this.tenHocPhan = r.tenHocPhan;
-
-			if(this.soTinChi == null &&
-					r.soTinChi != null)
-				this.soTinChi = r.soTinChi;
-
-			if((this.tenGiangVien == null ||
-					this.tenGiangVien.isEmpty()) &&
-					r.tenGiangVien != null)
-				this.tenGiangVien = r.tenGiangVien;
-
-			if((this.hinhThucDay == null ||
-					this.hinhThucDay.isEmpty()) &&
-					r.hinhThucDay != null)
-				this.hinhThucDay = r.hinhThucDay;
-
-			if((this.diaDiem == null ||
-					this.diaDiem.isEmpty()) &&
-					r.diaDiem != null)
-				this.diaDiem = r.diaDiem;
-
-			if(r.buoiList != null)
-				this.buoiList.addAll(r.buoiList);
-		}
-
-		public List<ImportedLopHocPhanRow.Buoi> getBuoiList()
-		{
-			return buoiList;
-		}
-	}
-
-	private DanhSachLopDto toDto(DanhSachLop model)
-	{
-		DanhSachLopDto dto = new DanhSachLopDto();
-
-		dto.setId(model.getId());
-		dto.setTenDanhSach(model.getTenDanhSach());
-
-		dto.setNguoiTaoId(
-				model.getNguoiTao() != null
-						? model.getNguoiTao().getId()
-						: null);
-
-		dto.setHocKyId(
-				model.getHocKy() != null
-						? model.getHocKy().getId()
-						: null);
-
-		dto.setLaCongKhai(model.isCongKhai() ? 1 : 0);
-
-		dto.setNgayTao(model.getNgayTao());
-
-		return dto;
 	}
 }

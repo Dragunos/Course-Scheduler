@@ -51,6 +51,29 @@ public class TepTaiLen
 		this.ngayTao = ngayTao;
 	}
 
+	public static TepTaiLen create(
+			NguoiDung nguoiTao,
+			String tenTepGoc,
+			String loaiTep,
+			String duongDan,
+			String storageType,
+			byte[] fileBlob,
+			String checksum,
+			Long kichThuoc)
+	{
+		return new TepTaiLen(
+				null,
+				nguoiTao,
+				tenTepGoc,
+				loaiTep,
+				duongDan,
+				storageType,
+				fileBlob,
+				checksum,
+				kichThuoc,
+				LocalDateTime.now());
+	}
+
 	public static TepTaiLen createPathStorage(
 			NguoiDung nguoiTao,
 			String tenTepGoc,
@@ -67,6 +90,27 @@ public class TepTaiLen
 				duongDan,
 				"PATH",
 				null,
+				checksum,
+				kichThuoc,
+				LocalDateTime.now());
+	}
+
+	public static TepTaiLen createBlobStorage(
+			NguoiDung nguoiTao,
+			String tenTepGoc,
+			String loaiTep,
+			byte[] fileBlob,
+			String checksum,
+			Long kichThuoc)
+	{
+		return new TepTaiLen(
+				null,
+				nguoiTao,
+				tenTepGoc,
+				loaiTep,
+				null,
+				"BLOB",
+				fileBlob,
 				checksum,
 				kichThuoc,
 				LocalDateTime.now());

@@ -1,9 +1,14 @@
 package vn.edu.haui.scheduler.domain.model;
 
+import java.text.Normalizer;
 import java.util.*;
 
 public class LopHocPhan
 {
+	public static final String HINH_THUC_ONLINE = "ONLINE";
+
+	public static final String HINH_THUC_TRUC_TIEP = "TRUC_TIEP";
+
 	private final Long id;
 
 	private final String maLop;
@@ -23,28 +28,28 @@ public class LopHocPhan
 			String maLop,
 			HocPhan hocPhan,
 			GiangVien giangVien,
-			String hinhThucDay,
+			String rawHinhThuc,
 			String diaDiem,
 			List<LichHoc> lichHoc)
 	{
-		validateInvariant(maLop, hocPhan, hinhThucDay);
+		validateInvariant(maLop, hocPhan, rawHinhThuc);
 
 		this.id = id;
 		this.maLop = maLop;
 		this.hocPhan = hocPhan;
 		this.giangVien = giangVien;
-		this.hinhThucDay = hinhThucDay;
 		this.diaDiem = diaDiem;
+		this.hinhThucDay = parseHinhThuc(rawHinhThuc, diaDiem);
 
 		if(lichHoc != null)
-			this.lichHocList.addAll(lichHoc);
+			lichHoc.forEach(this::themLichHoc);
 	}
 
 	public static LopHocPhan create(
 			String maLop,
 			HocPhan hocPhan,
 			GiangVien giangVien,
-			String hinhThucDay,
+			String rawHinhThuc,
 			String diaDiem)
 	{
 		return new LopHocPhan(
@@ -52,7 +57,7 @@ public class LopHocPhan
 				maLop,
 				hocPhan,
 				giangVien,
-				hinhThucDay,
+				rawHinhThuc,
 				diaDiem,
 				Collections.emptyList());
 	}
@@ -62,7 +67,7 @@ public class LopHocPhan
 			String maLop,
 			HocPhan hocPhan,
 			GiangVien giangVien,
-			String hinhThucDay,
+			String rawHinhThuc,
 			String diaDiem,
 			List<LichHoc> lichHoc)
 	{
@@ -74,7 +79,7 @@ public class LopHocPhan
 				maLop,
 				hocPhan,
 				giangVien,
-				hinhThucDay,
+				rawHinhThuc,
 				diaDiem,
 				lichHoc);
 	}
@@ -96,11 +101,54 @@ public class LopHocPhan
 
 	public void themLichHoc(LichHoc lichMoi)
 	{
-		for(LichHoc l : lichHocList) {
-			if(l.trungLich(lichMoi))
-				throw new IllegalStateException("Trung lich trong cung LopHocPhan");
+		if(lichMoi == null)
+			throw new IllegalArgumentException("LichHoc khong duoc null");
+
+		for(LichHoc existing : lichHocList) {
+
+			if(existing.equals(lichMoi))
+				return;
+
+			if(existing.trungLich(lichMoi))
+				throw new IllegalStateException(
+						"Trung lich trong cung LopHocPhan");
 		}
+
 		lichHocList.add(lichMoi);
+	}
+
+	private static String parseHinhThuc(String raw, String diaDiem)
+	{
+		String hinhThucNorm = normalize(raw);
+		String diaDiemNorm = normalize(diaDiem);
+
+		if(hinhThucNorm != null &&
+				hinhThucNorm.contains("ONLINE"))
+			return HINH_THUC_ONLINE;
+
+		if(diaDiemNorm != null &&
+				diaDiemNorm.equals("PH ONLINE"))
+			return HINH_THUC_ONLINE;
+
+		return HINH_THUC_TRUC_TIEP;
+	}
+
+	private static String normalize(String input)
+	{
+		if(input == null)
+			return null;
+
+		String v = input.trim().toUpperCase();
+
+		v = Normalizer.normalize(
+				v,
+				Normalizer.Form.NFKD);
+
+		v = v.replaceAll("\\p{M}", "");
+		v = v.replaceAll("[^A-Z0-9 ]", "");
+		v = v.replaceAll("\\s+", " ").trim();
+
+		return v.isEmpty() ? null : v;
 	}
 
 	public List<LichHoc> getLichHocList()

@@ -7,7 +7,6 @@ import vn.edu.haui.scheduler.application.port.in.*;
 import vn.edu.haui.scheduler.application.service.*;
 import vn.edu.haui.scheduler.application.port.out.*;
 
-import vn.edu.haui.scheduler.infrastructure.io.exports.*;
 import vn.edu.haui.scheduler.infrastructure.io.imports.ExcelDanhSachLopImporter;
 import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.*;
 import vn.edu.haui.scheduler.infrastructure.persistence.config.*;
@@ -25,87 +24,41 @@ public class MainApp extends Application
 
 		TransactionManagerImpl txManager = new TransactionManagerImpl(DataSourceProvider.getDataSource());
 
-		// REPOSITORIES
+		// ===== REPOSITORIES =====
 		NguoiDungRepository nguoiDungRepo = new JdbcNguoiDungRepository(txManager);
 		VaiTroRepository vaiTroRepo = new JdbcVaiTroRepository(txManager);
-		HocPhanRepository hocPhanRepo = new JdbcHocPhanRepository();
-		GiangVienRepository giangVienRepo = new JdbcGiangVienRepository();
-		LopHocPhanRepository lopRepo = new JdbcLopHocPhanRepository();
-		LichHocRepository lichRepo = new JdbcLichHocRepository();
-		DanhSachLopRepository danhSachRepo = new JdbcDanhSachLopRepository();
-		TepTaiLenRepository tepRepo = new JdbcTepTaiLenRepository();
-		ThoiKhoaBieuRepository tkbRepo = new JdbcThoiKhoaBieuRepository();
-		YeuCauRepository yeuCauRepo = new JdbcYeuCauRepository();
-		YeuCauChiTietRepository yeuCauChiTietRepo = new JdbcYeuCauChiTietRepository();
-		RangBuocToiUuRepository rangBuocRepo = new JdbcRangBuocToiUuRepository();
+		HocPhanRepository hocPhanRepo = new JdbcHocPhanRepository(txManager);
+		GiangVienRepository giangVienRepo = new JdbcGiangVienRepository(txManager);
+		LopHocPhanRepository lopRepo = new JdbcLopHocPhanRepository(txManager);
+		DanhSachLopRepository danhSachRepo = new JdbcDanhSachLopRepository(txManager);
+		TepTaiLenRepository tepRepo = new JdbcTepTaiLenRepository(txManager);
+		HocKyRepository hocKyRepo = new JdbcHocKyRepository(txManager);
 
-		// IO
+		// ===== IMPORTER =====
 		ExcelDanhSachLopImporter importer = new ExcelDanhSachLopImporter();
 
-		FileExporter fileExporter = new CompositeFileExporter(
-				new CsvExporter(),
-				new ExcelExporter(),
-				new PdfExporter("fonts/SEGOEUI.TTF"));
+		// ===== USE CASES =====
 
-		IcsExporter icsExporter = new IcsExporter();
-
-		// USE CASES
 		AuthUseCase authUseCase = new AuthService(
 				nguoiDungRepo,
 				vaiTroRepo,
-				new PasswordHasher(),
-				txManager);
+				new PasswordHasher());
 
 		ImportDanhSachLopUseCase importUc = new ImportDanhSachLopService(
 				importer,
+				danhSachRepo,
 				hocPhanRepo,
 				giangVienRepo,
 				lopRepo,
-				lichRepo,
-				danhSachRepo,
+				nguoiDungRepo,
+				hocKyRepo,
 				tepRepo,
 				txManager);
 
-		ManageDanhSachLopUseCase quanLyUc = new ManageDanhSachLopService(danhSachRepo, txManager);
-
-		ExportDanhSachLopUseCase xuatUc = new ExportDanhSachLopService(danhSachRepo, fileExporter);
-
-		GenerateThoiKhoaBieuUseCase sinhUc = new GenerateThoiKhoaBieuService(
-				tkbRepo,
-				yeuCauRepo,
-				yeuCauChiTietRepo,
-				danhSachRepo,
-				lopRepo,
-				lichRepo,
-				rangBuocRepo);
-
-		ManageThoiKhoaBieuUseCase quanLyTkbUc = new ManageThoiKhoaBieuService(
-				tkbRepo,
-				lopRepo,
-				lichRepo,
-				giangVienRepo);
-
-		ExportThoiKhoaBieuUseCase xuatTkbUc = new ExportThoiKhoaBieuService(
-				tkbRepo,
-				lopRepo,
-				lichRepo,
-				hocPhanRepo,
-				giangVienRepo,
-				fileExporter,
-				icsExporter);
-
-		AdminDanhSachLopUseCase quanTriUc = new AdminDanhSachLopService(danhSachRepo, importUc);
-
-		// UI
+		// ===== UI =====
 		ScreenManager screenManager = new ScreenManager(stage, authUseCase);
 
 		screenManager.setImportDanhSachLopUseCase(importUc);
-		screenManager.setQuanLyDanhSachLopUseCase(quanLyUc);
-		screenManager.setXuatDanhSachLopUseCase(xuatUc);
-		screenManager.setSinhThoiKhoaBieuUseCase(sinhUc);
-		screenManager.setQuanLyThoiKhoaBieuUseCase(quanLyTkbUc);
-		screenManager.setXuatThoiKhoaBieuUseCase(xuatTkbUc);
-		screenManager.setQuanTriDanhSachLopUseCase(quanTriUc);
 
 		screenManager.init();
 		stage.show();

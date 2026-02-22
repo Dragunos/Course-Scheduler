@@ -30,15 +30,12 @@ public class HomeController
 
 	private AuthPaneHandler authHandler;
 
-	private ManageDanhSachLopPaneHandler danhSachHandler;
+	// private ManageDanhSachLopPaneHandler danhSachHandler;
+	private ImportDanhSachLopPaneHandler importHandler;
 
-	private ImportPaneHandler importHandler;
-
-	private GenerateThoiKhoaBieuPaneHandler sinhTKBHandler;
-
-	private ManageThoiKhoaBieuPaneHandler quanLyThoiKhoaBieuHandler;
-
-	private AdminDanhSachLopPaneHandler quanTriDanhSachHandler;
+	// private GenerateThoiKhoaBieuPaneHandler sinhTKBHandler;
+	// private ManageThoiKhoaBieuPaneHandler quanLyThoiKhoaBieuHandler;
+	// private AdminDanhSachLopPaneHandler quanTriDanhSachHandler;
 
 	public void init(ScreenManager screenManager)
 	{
@@ -54,13 +51,12 @@ public class HomeController
 
 		adminListButton.setVisible(false);
 
-		danhSachHandler = new ManageDanhSachLopPaneHandler(screenManager, centerContainer);
-		importHandler = new ImportPaneHandler(screenManager, centerContainer);
+		// danhSachHandler = new ManageDanhSachLopPaneHandler(screenManager, centerContainer);
+		importHandler = new ImportDanhSachLopPaneHandler(screenManager, centerContainer);
 
-		sinhTKBHandler = new GenerateThoiKhoaBieuPaneHandler(screenManager, centerContainer);
-		quanLyThoiKhoaBieuHandler = new ManageThoiKhoaBieuPaneHandler(screenManager, centerContainer);
-
-		quanTriDanhSachHandler = new AdminDanhSachLopPaneHandler(screenManager, centerContainer);
+		// sinhTKBHandler = new GenerateThoiKhoaBieuPaneHandler(screenManager, centerContainer);
+		// quanLyThoiKhoaBieuHandler = new ManageThoiKhoaBieuPaneHandler(screenManager, centerContainer);
+		// quanTriDanhSachHandler = new AdminDanhSachLopPaneHandler(screenManager, centerContainer);
 
 		authHandler.updateView();
 	}
@@ -68,13 +64,13 @@ public class HomeController
 	@FXML
 	private void onLogin()
 	{
-	    screenManager.showLogin();
+		screenManager.showLogin();
 	}
 
 	@FXML
 	private void onRegister()
 	{
-	    screenManager.showRegister();
+		screenManager.showRegister();
 	}
 
 	@FXML
@@ -86,7 +82,7 @@ public class HomeController
 	@FXML
 	private void onShowDanhSachLopPane()
 	{
-		danhSachHandler.showDanhSach();
+		// danhSachHandler.showDanhSach();
 	}
 
 	@FXML
@@ -98,18 +94,18 @@ public class HomeController
 	@FXML
 	private void onShowOptimizerPane()
 	{
-		sinhTKBHandler.showOptimizerPane();
+		// sinhTKBHandler.showOptimizerPane();
 	}
 
 	@FXML
 	private void onShowThoiKhoaBieuPane()
 	{
-		quanLyThoiKhoaBieuHandler.showThoiKhoaBieu();
+		// quanLyThoiKhoaBieuHandler.showThoiKhoaBieu();
 	}
 
 	@FXML
 	private void onShowAdminDanhSachPane()
 	{
-		quanTriDanhSachHandler.showDanhSachCongKhai();
+		// quanTriDanhSachHandler.showDanhSachCongKhai();
 	}
 }

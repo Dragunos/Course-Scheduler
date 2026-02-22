@@ -2,15 +2,18 @@ package vn.edu.haui.scheduler.application.port.in;
 
 import java.util.List;
 import vn.edu.haui.scheduler.application.dto.DanhSachLopDto;
-import vn.edu.haui.scheduler.application.dto.UpdateDanhSachLopRequestDto;
 
 public interface ManageDanhSachLopUseCase
 {
-	List<DanhSachLopDto> getAllDanhSachLopByNguoiDungId(Long nguoiDungId);
+	List<DanhSachLopDto> findAllByUser(Long nguoiDungId);
 
-	DanhSachLopDto getDanhSachLopById(Long nguoiDungId, Long danhSachId);
+	DanhSachLopDto findDetail(Long nguoiDungId, Long danhSachLopId);
 
-	DanhSachLopDto updateDanhSachLop(Long nguoiDungId, UpdateDanhSachLopRequestDto request);
+	DanhSachLopDto updateDanhSach(Long nguoiDungId,
+			Long danhSachLopId,
+			String tenDanhSach,
+			Long hocKyId,
+			List<Long> lopHocPhanIds);
 
-	void deleteDanhSachLop(Long nguoiDungId, Long danhSachId);
+	void deleteDanhSach(Long nguoiDungId, Long danhSachLopId);
 }

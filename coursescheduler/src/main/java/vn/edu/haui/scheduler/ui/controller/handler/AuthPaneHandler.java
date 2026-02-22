@@ -7,6 +7,7 @@ import vn.edu.haui.scheduler.ui.fx.ScreenManager;
 
 public class AuthPaneHandler
 {
+	private static final Long ADMIN_ROLE_ID = 1L;
 
 	private final ScreenManager screenManager;
 
@@ -16,9 +17,9 @@ public class AuthPaneHandler
 
 	private final Button logoutButton;
 
-	private final Label welcomeLabel;
-
 	private final Button adminListButton;
+
+	private final Label welcomeLabel;
 
 	public AuthPaneHandler(
 			ScreenManager screenManager,
@@ -38,45 +39,62 @@ public class AuthPaneHandler
 
 	public void updateView()
 	{
-		boolean loggedIn = screenManager != null &&
-				screenManager.isAuthenticated();
+		if(screenManager == null) {
+			setLoggedOutState();
+			return;
+		}
 
+		boolean loggedIn = screenManager.isAuthenticated();
+		NguoiDungDto user = screenManager.getCurrentUser();
+
+		updateAuthButtons(loggedIn);
+		updateAdminButton(user);
+		updateWelcomeLabel(loggedIn, user);
+	}
+
+	private void updateAuthButtons(boolean loggedIn)
+	{
 		loginButton.setVisible(!loggedIn);
 		registerButton.setVisible(!loggedIn);
 		logoutButton.setVisible(loggedIn);
+	}
 
-		boolean userIsAdmin = false;
+	private void updateAdminButton(NguoiDungDto user)
+	{
+		boolean isAdmin = false;
 
-		if(loggedIn) {
-			NguoiDungDto user = screenManager.getCurrentUser();
-
-			if(user != null) {
-				userIsAdmin = "ADMIN".equalsIgnoreCase(user.getVaiTro());
-			}
+		if(user != null && user.getRoleId() != null) {
+			isAdmin = ADMIN_ROLE_ID.equals(user.getRoleId());
 		}
 
-		adminListButton.setVisible(userIsAdmin);
+		adminListButton.setVisible(isAdmin);
+	}
 
-		if(loggedIn) {
-			NguoiDungDto user = screenManager.getCurrentUser();
-
-			if(user != null) {
-				welcomeLabel.setText(
-						"Xin chào, " +
-								user.getTenDangNhap());
-			}
-			else {
-				welcomeLabel.setText("Xin chào");
-			}
-		}
-		else {
+	private void updateWelcomeLabel(boolean loggedIn, NguoiDungDto user)
+	{
+		if(!loggedIn || user == null) {
 			welcomeLabel.setText("Chào mừng bạn");
+			return;
 		}
+
+		welcomeLabel.setText("Xin chào, " + user.getTenDangNhap());
+	}
+
+	private void setLoggedOutState()
+	{
+		loginButton.setVisible(true);
+		registerButton.setVisible(true);
+		logoutButton.setVisible(false);
+		adminListButton.setVisible(false);
+		welcomeLabel.setText("Chào mừng bạn");
 	}
 
 	public void logout()
 	{
+		if(screenManager == null) return;
+
 		screenManager.clearCurrentUser();
 		screenManager.showHome();
+		updateView();
 	}
 }

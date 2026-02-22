@@ -16,6 +16,7 @@ public class NguoiDungMapper
 		dto.setTenDangNhap(domain.getTenDangNhap());
 		dto.setRoleId(domain.getVaiTro() != null ? domain.getVaiTro().getId() : null);
 		dto.setNgayTao(domain.getNgayTao());
+
 		return dto;
 	}
 

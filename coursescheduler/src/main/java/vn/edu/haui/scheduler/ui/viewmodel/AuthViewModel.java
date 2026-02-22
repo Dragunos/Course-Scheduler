@@ -1,9 +1,9 @@
 package vn.edu.haui.scheduler.ui.viewmodel;
 
 import javafx.beans.property.*;
-import vn.edu.haui.scheduler.application.dto.*;
-import vn.edu.haui.scheduler.application.port.in.AuthUseCase;
+import vn.edu.haui.scheduler.application.dto.NguoiDungDto;
 import vn.edu.haui.scheduler.application.exception.*;
+import vn.edu.haui.scheduler.application.port.in.AuthUseCase;
 
 public class AuthViewModel
 {
@@ -22,9 +22,9 @@ public class AuthViewModel
 
 	private final ObjectProperty<Status> status = new SimpleObjectProperty<>(Status.NONE);
 
-	private final IntegerProperty errorCount = new SimpleIntegerProperty(0);
-
 	private final BooleanProperty busy = new SimpleBooleanProperty(false);
+
+	private final IntegerProperty errorCount = new SimpleIntegerProperty(0);
 
 	private final AuthUseCase authService;
 
@@ -33,48 +33,65 @@ public class AuthViewModel
 		this.authService = authService;
 	}
 
-	public NguoiDungDto login() throws ValidationException, AuthenticationException, DataAccessException
+	public NguoiDungDto login()
 	{
-		runGuard();
+		if(busy.get()) return null;
+
+		busy.set(true);
+		status.set(Status.NONE);
+
 		try {
-			validateLogin();
-
-			LoginRequestDto request = new LoginRequestDto(username.get(), password.get());
-
-			NguoiDungDto user = authService.login(request);
+			NguoiDungDto user = authService.login(
+					username.get(),
+					password.get());
 
 			onSuccess("Đăng nhập thành công");
-
 			return user;
 		}
-		catch(Exception e) {
+		catch(BusinessException e) {
 			onError(e.getMessage());
-			throw e;
+		}
+		catch(TechnicalException e) {
+			onError("Lỗi hệ thống. Vui lòng thử lại.");
 		}
 		finally {
 			busy.set(false);
 		}
+
+		return null;
 	}
 
-	public void register() throws ValidationException, DuplicateUsernameException, DataAccessException
+	public NguoiDungDto register()
 	{
-		runGuard();
+		if(busy.get()) return null;
+
+		busy.set(true);
+		status.set(Status.NONE);
+
 		try {
-			validateRegister();
 
-			RegisterRequestDto request = new RegisterRequestDto(username.get(), password.get());
+			if(!password.get().equals(confirm.get())) {
+				throw new ValidationException("Mật khẩu xác nhận không khớp");
+			}
 
-			authService.register(request);
+			NguoiDungDto user = authService.register(
+					username.get(),
+					password.get());
 
 			onSuccess("Đăng ký thành công");
+			return user;
 		}
-		catch(Exception e) {
+		catch(BusinessException e) {
 			onError(e.getMessage());
-			throw e;
+		}
+		catch(TechnicalException e) {
+			onError("Lỗi hệ thống. Vui lòng thử lại.");
 		}
 		finally {
 			busy.set(false);
 		}
+
+		return null;
 	}
 
 	private void onSuccess(String msg)
@@ -89,28 +106,6 @@ public class AuthViewModel
 		message.set(msg);
 		status.set(Status.ERROR);
 		errorCount.set(errorCount.get() + 1);
-	}
-
-	private void runGuard()
-	{
-		if(busy.get()) throw new IllegalStateException("busy");
-
-		busy.set(true);
-		status.set(Status.NONE);
-	}
-
-	private void validateLogin() throws ValidationException
-	{
-		if(username.get().isBlank()) throw new ValidationException("Tên đăng nhập không được rỗng");
-		if(password.get().isBlank()) throw new ValidationException("Mật khẩu không được rỗng");
-	}
-
-	private void validateRegister() throws ValidationException
-	{
-		validateLogin();
-
-		if(password.get().length() < 6) throw new ValidationException("Mật khẩu phải ≥ 6 ký tự");
-		if(!password.get().equals(confirm.get())) throw new ValidationException("Mật khẩu xác nhận không khớp");
 	}
 
 	public void clear()

@@ -1,13 +1,10 @@
 package vn.edu.haui.scheduler.application.port.in;
 
-import vn.edu.haui.scheduler.application.dto.*;
-import vn.edu.haui.scheduler.application.exception.*;
+import vn.edu.haui.scheduler.application.dto.NguoiDungDto;
 
 public interface AuthUseCase
 {
-	long register(RegisterRequestDto request)
-			throws ValidationException, DuplicateUsernameException, DataAccessException;
+	NguoiDungDto register(String tenDangNhap, String matKhau);
 
-	NguoiDungDto login(LoginRequestDto request)
-			throws ValidationException, AuthenticationException, DataAccessException;
+	NguoiDungDto login(String tenDangNhap, String matKhau);
 }

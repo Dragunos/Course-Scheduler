@@ -1,192 +1,102 @@
 package vn.edu.haui.scheduler.application.service;
 
-import java.sql.SQLException;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
-import vn.edu.haui.scheduler.domain.model.NguoiDung;
+import vn.edu.haui.scheduler.application.dto.NguoiDungDto;
+import vn.edu.haui.scheduler.application.exception.AuthenticationException;
+import vn.edu.haui.scheduler.application.exception.EntityNotFoundException;
+import vn.edu.haui.scheduler.application.exception.ValidationException;
+import vn.edu.haui.scheduler.application.port.in.AuthUseCase;
 import vn.edu.haui.scheduler.application.port.out.NguoiDungRepository;
 import vn.edu.haui.scheduler.application.port.out.VaiTroRepository;
-import vn.edu.haui.scheduler.application.port.in.AuthUseCase;
-import vn.edu.haui.scheduler.application.dto.NguoiDungDto;
-import vn.edu.haui.scheduler.application.dto.RegisterRequestDto;
-import vn.edu.haui.scheduler.application.dto.LoginRequestDto;
-import vn.edu.haui.scheduler.application.exception.AuthenticationException;
-import vn.edu.haui.scheduler.application.exception.DataAccessException;
-import vn.edu.haui.scheduler.application.exception.DuplicateUsernameException;
-import vn.edu.haui.scheduler.application.exception.ValidationException;
-import vn.edu.haui.scheduler.infrastructure.persistence.config.TransactionManager;
+import vn.edu.haui.scheduler.application.service.mapper.NguoiDungMapper;
+import vn.edu.haui.scheduler.domain.model.NguoiDung;
+import vn.edu.haui.scheduler.domain.model.VaiTro;
 import vn.edu.haui.scheduler.infrastructure.security.PasswordHasher;
 
 public class AuthService implements AuthUseCase
 {
-	private final NguoiDungRepository nguoiDungRepo;
+	private static final String DEFAULT_ROLE_NAME = "USER";
 
-	private final VaiTroRepository vaiTroRepo;
+	private static final Pattern USERNAME_PATTERN = Pattern.compile("^[a-z0-9._-]{3,50}$");
+
+	private final NguoiDungRepository nguoiDungRepository;
+
+	private final VaiTroRepository vaiTroRepository;
 
 	private final PasswordHasher passwordHasher;
 
-	private final TransactionManager txManager;
-
-	private final String defaultRoleName = "USER";
-
-	private final Pattern USERNAME_PATTERN = Pattern.compile("^[a-z0-9._-]{3,50}$");
-
 	public AuthService(
-			NguoiDungRepository nguoiDungRepo,
-			VaiTroRepository vaiTroRepo,
-			PasswordHasher passwordHasher,
-			TransactionManager txManager)
+			NguoiDungRepository nguoiDungRepository,
+			VaiTroRepository vaiTroRepository,
+			PasswordHasher passwordHasher)
 	{
-		this.nguoiDungRepo = nguoiDungRepo;
-		this.vaiTroRepo = vaiTroRepo;
+		this.nguoiDungRepository = nguoiDungRepository;
+		this.vaiTroRepository = vaiTroRepository;
 		this.passwordHasher = passwordHasher;
-		this.txManager = txManager;
 	}
 
 	@Override
-	public long register(RegisterRequestDto request)
-			throws ValidationException, DuplicateUsernameException, DataAccessException
+	public NguoiDungDto register(String tenDangNhapRaw, String matKhau)
 	{
-		if(request == null) {
-			throw new ValidationException("request_null");
-		}
-
-		String tenDangNhapRaw = request.getTenDangNhap();
-		String matKhau = request.getMatKhau();
-
-		if(tenDangNhapRaw == null || tenDangNhapRaw.trim().isEmpty()) {
-			throw new ValidationException("ten_dang_nhap_empty");
+		if(tenDangNhapRaw == null) {
+			throw new ValidationException("Username must not be null");
 		}
 
 		String tenDangNhap = tenDangNhapRaw.trim().toLowerCase();
 
+		if(tenDangNhap.isEmpty()) {
+			throw new ValidationException("Username must not be blank");
+		}
+
 		if(!USERNAME_PATTERN.matcher(tenDangNhap).matches()) {
-			throw new ValidationException("ten_dang_nhap_invalid");
+			throw new ValidationException("Username format is invalid");
 		}
 
 		if(matKhau == null || matKhau.length() < 6) {
-			throw new ValidationException("mat_khau_too_short");
+			throw new ValidationException("Password must be at least 6 characters");
 		}
 
-		if(matKhau.length() > 100) {
-			throw new ValidationException("mat_khau_too_long");
-		}
+		VaiTro vaiTro = vaiTroRepository
+				.findByTen(DEFAULT_ROLE_NAME)
+				.orElseThrow(() -> new EntityNotFoundException("VaiTro", "ten", DEFAULT_ROLE_NAME));
 
-		txManager.begin();
+		String hash = passwordHasher.hash(matKhau);
 
-		try {
+		NguoiDung domain = NguoiDung.create(
+				tenDangNhap,
+				hash,
+				vaiTro);
 
-			Optional<NguoiDung> existing = nguoiDungRepo.findByTenDangNhap(tenDangNhap);
-
-			if(existing.isPresent()) {
-				throw new DuplicateUsernameException();
-			}
-
-			String hash = passwordHasher.hash(matKhau);
-			Long roleId = ensureDefaultRoleExists();
-
-			NguoiDung nguoiDung = new NguoiDung(tenDangNhap, hash, roleId);
-
-			long generatedId = nguoiDungRepo.save(nguoiDung);
-
-			txManager.commit();
-			return generatedId;
-		}
-		catch(Exception e) {
-			txManager.rollback();
-
-			if(isUniqueConstraintViolation(e)) {
-				throw new DuplicateUsernameException();
-			}
-
-			throw new DataAccessException(e);
-		}
+		NguoiDung saved = nguoiDungRepository.save(domain);
+		return NguoiDungMapper.toDto(saved);
 	}
 
 	@Override
-	public NguoiDungDto login(LoginRequestDto request)
-			throws ValidationException, AuthenticationException, DataAccessException
+	public NguoiDungDto login(String tenDangNhapRaw, String matKhau)
 	{
-		if(request == null) {
-			throw new ValidationException("request_null");
-		}
-
-		String tenDangNhapRaw = request.getTenDangNhap();
-		String matKhau = request.getMatKhau();
-
-		if(tenDangNhapRaw == null || tenDangNhapRaw.trim().isEmpty()) {
-			throw new ValidationException("ten_dang_nhap_empty");
-		}
-
-		if(matKhau == null || matKhau.isEmpty()) {
-			throw new ValidationException("mat_khau_empty");
+		if(tenDangNhapRaw == null) {
+			throw new ValidationException("Username must not be null");
 		}
 
 		String tenDangNhap = tenDangNhapRaw.trim().toLowerCase();
 
-		try {
-			Optional<NguoiDung> userOpt = nguoiDungRepo.findByTenDangNhap(tenDangNhap);
-			if(userOpt.isEmpty()) {
-				throw new AuthenticationException();
-			}
+		if(tenDangNhap.isEmpty()) {
+			throw new ValidationException("Username must not be blank");
+		}
 
-			NguoiDung user = userOpt.get();
+		if(matKhau == null || matKhau.isBlank()) {
+			throw new ValidationException("Password must not be blank");
+		}
 
-			boolean matched = passwordHasher.verify(matKhau, user.getMatKhauHash());
-			if(!matched) {
-				throw new AuthenticationException();
-			}
+		NguoiDung user = nguoiDungRepository
+				.findByUsername(tenDangNhap)
+				.orElseThrow(AuthenticationException::new);
 
-			String tenVaiTro = vaiTroRepo.findTenById(user.getVaiTroId()).orElse("UNKNOWN");
+		if(!passwordHasher.verify(matKhau, user.getMatKhauHash())) {
+			throw new AuthenticationException();
+		}
 
-			return new NguoiDungDto(
-					user.getId(),
-					user.getTenDangNhap(),
-					tenVaiTro,
-					user.getNgayTao());
-		}
-		catch(AuthenticationException e) {
-			throw e;
-		}
-		catch(ValidationException e) {
-			throw e;
-		}
-		catch(Exception e) {
-			throw new DataAccessException(e);
-		}
-	}
-
-	private Long ensureDefaultRoleExists() throws DataAccessException
-	{
-		try {
-			Optional<Long> roleIdOpt = vaiTroRepo.findIdByTenVaiTro(defaultRoleName);
-			if(roleIdOpt.isPresent()) {
-				return roleIdOpt.get();
-			}
-			Long created = vaiTroRepo.save(defaultRoleName);
-			return created;
-		}
-		catch(Exception e) {
-			throw new DataAccessException(e);
-		}
-	}
-
-	private boolean isUniqueConstraintViolation(Throwable t)
-	{
-		if(t == null) {
-			return false;
-		}
-		if(t instanceof SQLException) {
-			String sqlState = ((SQLException) t).getSQLState();
-			if(sqlState != null && sqlState.startsWith("23")) {
-				return true;
-			}
-		}
-		String msg = t.getMessage();
-		if(msg != null && (msg.contains("UNIQUE") || msg.contains("unique") || msg.contains("constraint"))) {
-			return true;
-		}
-		return isUniqueConstraintViolation(t.getCause());
+		return NguoiDungMapper.toDto(user);
 	}
 }

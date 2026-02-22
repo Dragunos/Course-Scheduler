@@ -1,7 +1,5 @@
 package vn.edu.haui.scheduler.infrastructure.io.exports;
 
-import vn.edu.haui.scheduler.application.port.out.FileExporter;
-
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
