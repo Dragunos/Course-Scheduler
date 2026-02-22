@@ -1,244 +1,199 @@
 package vn.edu.haui.scheduler.application.service;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-import vn.edu.haui.scheduler.application.dto.DanhSachLopChiTietDto;
 import vn.edu.haui.scheduler.application.dto.DanhSachLopDto;
-import vn.edu.haui.scheduler.application.dto.LichHocDto;
-import vn.edu.haui.scheduler.application.dto.UpdateDanhSachLopRequestDto;
-import vn.edu.haui.scheduler.application.exception.DataAccessException;
+import vn.edu.haui.scheduler.application.exception.EntityNotFoundException;
+import vn.edu.haui.scheduler.application.exception.UnauthorizedAccessException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
 import vn.edu.haui.scheduler.application.port.in.ManageDanhSachLopUseCase;
 import vn.edu.haui.scheduler.application.port.out.DanhSachLopRepository;
-import vn.edu.haui.scheduler.domain.model.LichHoc;
-import vn.edu.haui.scheduler.domain.model.LopHocPhan;
+import vn.edu.haui.scheduler.application.port.out.HocKyRepository;
+import vn.edu.haui.scheduler.application.port.out.LopHocPhanRepository;
+import vn.edu.haui.scheduler.application.port.out.NguoiDungRepository;
+import vn.edu.haui.scheduler.application.service.mapper.DanhSachLopMapper;
 import vn.edu.haui.scheduler.domain.model.DanhSachLop;
-import vn.edu.haui.scheduler.domain.model.DanhSachLopChiTiet;
+import vn.edu.haui.scheduler.domain.model.HocKy;
+import vn.edu.haui.scheduler.domain.model.LopHocPhan;
+import vn.edu.haui.scheduler.domain.model.NguoiDung;
 import vn.edu.haui.scheduler.infrastructure.persistence.config.TransactionManager;
 
 public class ManageDanhSachLopService implements ManageDanhSachLopUseCase
 {
+	private final DanhSachLopRepository danhSachLopRepository;
 
-	private final DanhSachLopRepository danhSachRepo;
+	private final NguoiDungRepository nguoiDungRepository;
 
-	private final TransactionManager txManager;
+	private final HocKyRepository hocKyRepository;
+
+	private final LopHocPhanRepository lopHocPhanRepository;
+
+	private final TransactionManager transactionManager;
 
 	public ManageDanhSachLopService(
-			DanhSachLopRepository danhSachRepo,
-			TransactionManager txManager)
+			DanhSachLopRepository danhSachLopRepository,
+			NguoiDungRepository nguoiDungRepository,
+			HocKyRepository hocKyRepository,
+			LopHocPhanRepository lopHocPhanRepository,
+			TransactionManager transactionManager)
 	{
-		this.danhSachRepo = danhSachRepo;
-		this.txManager = txManager;
+		this.danhSachLopRepository = danhSachLopRepository;
+		this.nguoiDungRepository = nguoiDungRepository;
+		this.hocKyRepository = hocKyRepository;
+		this.lopHocPhanRepository = lopHocPhanRepository;
+		this.transactionManager = transactionManager;
 	}
 
 	@Override
-	public List<DanhSachLopDto> getAllDanhSachLopByNguoiDungId(Long nguoiDungId)
+	public List<DanhSachLopDto> findAllByUser(Long nguoiDungId)
 	{
-		if(nguoiDungId == null) {
-			throw new ValidationException("User id required");
-		}
+		if(nguoiDungId == null)
+			throw new ValidationException("NguoiDungId must not be null");
 
-		try {
-			List<DanhSachLop> danhSachList = danhSachRepo.findByNguoiTaoOrShared(nguoiDungId);
+		NguoiDung user = nguoiDungRepository
+				.findById(nguoiDungId)
+				.orElseThrow(() -> new EntityNotFoundException("NguoiDung", nguoiDungId));
 
-			return danhSachList.stream()
-					.map(this::toDto)
-					.collect(Collectors.toList());
-		}
-		catch(Exception ex) {
-			throw new DataAccessException("Cannot load lists", ex);
-		}
-	}
+		List<DanhSachLop> owned = danhSachLopRepository.findByNguoiTaoId(user.getId());
 
-	@Override
-	public DanhSachLopDto getDanhSachLopById(Long nguoiDungId, Long danhSachId)
-	{
-		if(nguoiDungId == null || danhSachId == null) {
-			throw new ValidationException("Missing ids");
-		}
+		List<DanhSachLop> publicLists = danhSachLopRepository.findPublicLists();
 
-		try {
-			boolean allowed = danhSachRepo.isCreator(danhSachId, nguoiDungId)
-					|| danhSachRepo.isShared(danhSachId, nguoiDungId);
+		// merge + remove duplicate
+		List<DanhSachLop> accessible = new ArrayList<>(owned);
 
-			if(!allowed) {
-				throw new ValidationException("Access denied");
+		for(DanhSachLop dsl : publicLists) {
+			if(!accessible.contains(dsl)) {
+				accessible.add(dsl);
 			}
-
-			Optional<DanhSachLop> opt = danhSachRepo.findByIdWithDetails(danhSachId);
-
-			DanhSachLop danhSach = opt.orElseThrow(() -> new ValidationException("Danh sach not found"));
-
-			return toDto(danhSach);
 		}
-		catch(ValidationException ve) {
-			throw ve;
-		}
-		catch(Exception ex) {
-			throw new DataAccessException("Cannot load detail", ex);
-		}
+
+		return accessible.stream()
+				.map(DanhSachLopMapper::toDto)
+				.collect(Collectors.toList());
 	}
 
 	@Override
-	public DanhSachLopDto updateDanhSachLop(
+	public DanhSachLopDto findDetail(Long nguoiDungId, Long danhSachLopId)
+	{
+		if(nguoiDungId == null || danhSachLopId == null)
+			throw new ValidationException("Id must not be null");
+
+		NguoiDung user = nguoiDungRepository
+				.findById(nguoiDungId)
+				.orElseThrow(() -> new EntityNotFoundException("NguoiDung", nguoiDungId));
+
+		DanhSachLop danhSach = danhSachLopRepository
+				.findById(danhSachLopId)
+				.orElseThrow(() -> new EntityNotFoundException("DanhSachLop", danhSachLopId));
+
+		checkAccess(user, danhSach);
+
+		return DanhSachLopMapper.toDto(danhSach);
+	}
+
+	@Override
+	public DanhSachLopDto updateDanhSach(
 			Long nguoiDungId,
-			UpdateDanhSachLopRequestDto request)
+			Long danhSachLopId,
+			String tenDanhSach,
+			Long hocKyId,
+			List<Long> lopHocPhanIds)
 	{
-		if(nguoiDungId == null || request == null || request.getId() == null)
-			throw new ValidationException("Invalid request");
+		if(nguoiDungId == null || danhSachLopId == null)
+			throw new ValidationException("Id must not be null");
 
-		return txManager.executeInTransaction(() -> {
+		if(tenDanhSach == null || tenDanhSach.isBlank())
+			throw new ValidationException("TenDanhSach must not be blank");
 
-			DanhSachLop danhSach = danhSachRepo.findByIdWithDetails(request.getId())
-					.orElseThrow(() -> new ValidationException("Danh sach not found"));
+		NguoiDung user = nguoiDungRepository
+				.findById(nguoiDungId)
+				.orElseThrow(() -> new EntityNotFoundException("NguoiDung", nguoiDungId));
 
-			if(!danhSach.getNguoiTao().getId().equals(nguoiDungId))
-				throw new ValidationException("Access denied");
+		transactionManager.begin();
+		try {
 
-			String ten = request.getTenDanhSach();
+			DanhSachLop danhSach = danhSachLopRepository
+					.findById(danhSachLopId)
+					.orElseThrow(() -> new EntityNotFoundException("DanhSachLop", danhSachLopId));
 
-			if(ten == null || ten.trim().isEmpty())
-				throw new ValidationException("Ten danh sach required");
+			checkAccess(user, danhSach);
 
-			danhSach.doiTenDanhSach(ten.trim());
-			danhSach.doiHocKy(request.getHocKyId());
+			HocKy hocKy = null;
+			if(hocKyId != null) {
+				hocKy = hocKyRepository
+						.findById(hocKyId)
+						.orElseThrow(() -> new EntityNotFoundException("HocKy", hocKyId));
+			}
 
-			if(request.getLopHocPhanIds() != null)
-				syncChiTiet(danhSach, request.getLopHocPhanIds());
+			danhSach.doiTen(tenDanhSach.trim());
+			danhSach.doiHocKy(hocKy);
 
-			danhSachRepo.save(danhSach);
+			danhSach.xoaTatCaLop();
 
-			return toDto(danhSach);
-		});
+			if(lopHocPhanIds != null) {
+				for(Long lopId : lopHocPhanIds) {
+
+					LopHocPhan lop = lopHocPhanRepository
+							.findById(lopId)
+							.orElseThrow(() -> new EntityNotFoundException("LopHocPhan", lopId));
+
+					danhSach.themLop(lop, false);
+				}
+			}
+
+			DanhSachLop saved = danhSachLopRepository.save(danhSach);
+
+			transactionManager.commit();
+
+			return DanhSachLopMapper.toDto(saved);
+		}
+		catch(RuntimeException e) {
+			transactionManager.rollback();
+			throw e;
+		}
 	}
 
 	@Override
-	public void deleteDanhSachLop(Long nguoiDungId, Long danhSachId)
+	public void deleteDanhSach(Long nguoiDungId, Long danhSachLopId)
 	{
-		if(nguoiDungId == null || danhSachId == null)
-			throw new ValidationException("Invalid ids");
+		if(nguoiDungId == null || danhSachLopId == null)
+			throw new ValidationException("Id must not be null");
 
-		txManager.executeInTransaction(() -> {
+		NguoiDung user = nguoiDungRepository
+				.findById(nguoiDungId)
+				.orElseThrow(() -> new EntityNotFoundException("NguoiDung", nguoiDungId));
 
-			DanhSachLop danhSach = danhSachRepo.findByIdWithDetails(danhSachId)
-					.orElseThrow(() -> new ValidationException("Danh sach not found"));
+		transactionManager.begin();
+		try {
 
-			if(!danhSach.getNguoiTao().getId().equals(nguoiDungId))
-				throw new ValidationException("Access denied");
+			DanhSachLop danhSach = danhSachLopRepository
+					.findById(danhSachLopId)
+					.orElseThrow(() -> new EntityNotFoundException("DanhSachLop", danhSachLopId));
 
-			danhSachRepo.deleteDanhSach(danhSachId);
+			checkAccess(user, danhSach);
 
-			return null;
-		});
-	}
+			danhSachLopRepository.deleteById(danhSach.getId());
 
-	private void syncChiTiet(
-			DanhSachLop danhSach,
-			List<Long> newIds)
-	{
-		Set<Long> currentIds = danhSach.getChiTietList()
-				.stream()
-				.map(ct -> ct.getLopHocPhan().getId())
-				.collect(Collectors.toSet());
-
-		Set<Long> targetIds = newIds.stream()
-				.filter(Objects::nonNull)
-				.collect(Collectors.toSet());
-
-		Set<Long> toAdd = new HashSet<>(targetIds);
-		toAdd.removeAll(currentIds);
-
-		Set<Long> toRemove = new HashSet<>(currentIds);
-		toRemove.removeAll(targetIds);
-
-		for(Long id : toAdd)
-			danhSach.themLopHocPhan(id);
-
-		for(Long id : toRemove)
-			danhSach.xoaLopHocPhan(id);
-	}
-
-	private DanhSachLopChiTietDto toChiTietDto(DanhSachLopChiTiet model)
-	{
-		DanhSachLopChiTietDto dto = new DanhSachLopChiTietDto();
-
-		LopHocPhan lop = model.getLopHocPhan();
-
-		if(lop != null) {
-
-			dto.setMaLop(lop.getMaLop());
-			dto.setDiaDiem(lop.getDiaDiem());
-
-			if(lop.getHinhThucDay() != null) {
-				dto.setHinhThucDay(lop.getHinhThucDay().name());
-			}
-
-			if(lop.getHocPhan() != null) {
-				dto.setTenHocPhan(lop.getHocPhan().getTenHocPhan());
-				dto.setMaHocPhan(lop.getHocPhan().getMaHocPhan());
-			}
-
-			if(lop.getGiangVien() != null) {
-				dto.setTenGiangVien(lop.getGiangVien().getTenGiangVien());
-			}
-
-			if(lop.getDanhSachLichHoc() != null) {
-				dto.setLichHoc(
-						lop.getDanhSachLichHoc()
-								.stream()
-								.map(this::toLichHocDto)
-								.collect(Collectors.toList()));
-			}
+			transactionManager.commit();
 		}
-
-		return dto;
-	}
-
-	private LichHocDto toLichHocDto(LichHoc lich)
-	{
-		LichHocDto dto = new LichHocDto();
-
-		dto.setThu(lich.getThu());
-		dto.setTietBatDau(lich.getTietBatDau());
-		dto.setTietKetThuc(lich.getTietKetThuc());
-
-		return dto;
-	}
-
-	private DanhSachLopDto toDto(DanhSachLop model)
-	{
-		DanhSachLopDto dto = new DanhSachLopDto();
-
-		dto.setId(model.getId());
-		dto.setTenDanhSach(model.getTenDanhSach());
-
-		dto.setNguoiTaoId(
-				model.getNguoiTao() != null
-						? model.getNguoiTao().getId()
-						: null);
-
-		dto.setHocKyId(
-				model.getHocKy() != null
-						? model.getHocKy().getId()
-						: null);
-
-		dto.setLaCongKhai(model.isCongKhai() ? 1 : 0);
-
-		dto.setNgayTao(model.getNgayTao());
-
-		if(model.getChiTietList() != null) {
-			dto.setChiTiet(
-					model.getChiTietList()
-							.stream()
-							.map(this::toChiTietDto)
-							.collect(Collectors.toList()));
+		catch(RuntimeException e) {
+			transactionManager.rollback();
+			throw e;
 		}
+	}
 
-		return dto;
+	private void checkAccess(NguoiDung user, DanhSachLop danhSach)
+	{
+		boolean isOwner = Objects.equals(
+				danhSach.getNguoiTao().getId(),
+				user.getId());
+
+		boolean isShared = danhSach.duocChiaSeCho(user);
+
+		if(!isOwner && !isShared)
+			throw new UnauthorizedAccessException();
 	}
 }

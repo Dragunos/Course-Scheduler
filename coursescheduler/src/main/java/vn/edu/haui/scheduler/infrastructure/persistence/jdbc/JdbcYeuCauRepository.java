@@ -9,6 +9,7 @@ import vn.edu.haui.scheduler.infrastructure.persistence.config.TransactionManage
 import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper.*;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class JdbcYeuCauRepository implements YeuCauRepository
@@ -114,13 +115,16 @@ public class JdbcYeuCauRepository implements YeuCauRepository
 				       v.id AS vai_tro_id,
 				       v.ten_vai_tro,
 				       dsl.id AS danh_sach_lop_id,
-				       dsl.ten_danh_sach
+				       dsl.ten_danh_sach,
+				       dsl.la_cong_khai,
+				       dsl.ngay_tao AS dsl_ngay_tao,
+				       dsl.hoc_ky_id
 				FROM yeu_cau yc
 				JOIN nguoi_dung nd ON yc.nguoi_tao_id = nd.id
 				LEFT JOIN vai_tro v ON nd.role_id = v.id
 				JOIN danh_sach_lop dsl ON yc.danh_sach_lop_id = dsl.id
 				WHERE yc.id = ?
-				""";
+								""";
 
 		try (Connection conn = transactionManager.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -177,20 +181,28 @@ public class JdbcYeuCauRepository implements YeuCauRepository
 	{
 		Long id = rs.getLong("id");
 
-		// 1️⃣ Load NguoiDung
 		NguoiDung nguoiDung = NguoiDungJdbcMapper.toDomain(rs);
 
-		// 2️⃣ Load DanhSachLop context
 		Long danhSachLopId = rs.getLong("danh_sach_lop_id");
 
 		HocKy hocKy = loadHocKy(conn, danhSachLopId);
 		List<DanhSachLopChiTiet> chiTietDSL = loadDanhSachLopChiTiet(conn, danhSachLopId);
 
-		DanhSachLop danhSachLop = DanhSachLopJdbcMapper.toDomain(
-				rs,
+		LocalDateTime dslNgayTao = rs.getTimestamp("dsl_ngay_tao").toLocalDateTime();
+
+		boolean laCongKhai = rs.getInt("la_cong_khai") == 1;
+
+		Set<Long> sharedUserIds = loadSharedUsers(conn, danhSachLopId);
+
+		DanhSachLop danhSachLop = DanhSachLop.reconstruct(
+				danhSachLopId,
+				rs.getString("ten_danh_sach"),
 				nguoiDung,
+				laCongKhai,
 				hocKy,
-				chiTietDSL);
+				dslNgayTao,
+				chiTietDSL,
+				sharedUserIds);
 
 		YeuCau yc = YeuCau.reconstruct(
 				id,
@@ -287,6 +299,31 @@ public class JdbcYeuCauRepository implements YeuCauRepository
 							DanhSachLopChiTietJdbcMapper.toDomain(
 									rs,
 									lopHocPhan));
+				}
+			}
+		}
+
+		return result;
+	}
+
+	private Set<Long> loadSharedUsers(Connection conn, Long dslId)
+			throws SQLException
+	{
+
+		String sql = """
+				SELECT nguoi_dung_id
+				FROM chia_se_danh_sach_lop
+				WHERE danh_sach_lop_id = ?
+				""";
+
+		Set<Long> result = new HashSet<>();
+
+		try (PreparedStatement ps = conn.prepareStatement(sql)) {
+			ps.setLong(1, dslId);
+
+			try (ResultSet rs = ps.executeQuery()) {
+				while(rs.next()) {
+					result.add(rs.getLong("nguoi_dung_id"));
 				}
 			}
 		}

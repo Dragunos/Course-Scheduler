@@ -14,8 +14,10 @@ import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper.NguoiDungJdb
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 {
@@ -69,6 +71,7 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 			}
 
 			insertChiTiet(conn, generatedId, dsl.getChiTietList());
+			insertSharedUsers(conn, generatedId, dsl.getSharedUserIds());
 
 			return DanhSachLop.reconstruct(
 					generatedId,
@@ -77,7 +80,8 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 					dsl.isLaCongKhai(),
 					dsl.getHocKy(),
 					dsl.getNgayTao(),
-					dsl.getChiTietList());
+					dsl.getChiTietList(),
+					dsl.getSharedUserIds());
 		}
 		catch(SQLException e) {
 			throw new DataAccessException("Error inserting DanhSachLop", e);
@@ -94,6 +98,7 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 
 		try (Connection conn = transactionManager.getRequiredConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
+
 			ps.setString(1, dsl.getTenDanhSach());
 			ps.setInt(2, dsl.isLaCongKhai() ? 1 : 0);
 
@@ -111,6 +116,9 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 			deleteAllChiTiet(conn, dsl.getId());
 			insertChiTiet(conn, dsl.getId(), dsl.getChiTietList());
 
+			deleteAllSharedUsers(conn, dsl.getId());
+			insertSharedUsers(conn, dsl.getId(), dsl.getSharedUserIds());
+
 			return dsl;
 		}
 		catch(SQLException e) {
@@ -122,12 +130,28 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 	public Optional<DanhSachLop> findById(Long id)
 	{
 		String sql = """
-				SELECT dsl.*, nd.*, hk.*
+				SELECT
+				    dsl.id AS dsl_id,
+				    dsl.ten_danh_sach,
+				    dsl.la_cong_khai,
+				    dsl.hoc_ky_id,
+				    dsl.ngay_tao,
+
+				    nd.id AS nd_id,
+				    nd.ten_dang_nhap,
+				    nd.mat_khau_hash,
+				    nd.role_id,
+				    nd.ngay_tao AS nd_ngay_tao,
+
+				    hk.id AS hk_id,
+				    hk.ten_hoc_ky,
+				    hk.nam_hoc
+
 				FROM danh_sach_lop dsl
 				JOIN nguoi_dung nd ON dsl.nguoi_tao_id = nd.id
 				LEFT JOIN hoc_ky hk ON dsl.hoc_ky_id = hk.id
 				WHERE dsl.id = ?
-				""";
+								""";
 
 		try (Connection conn = transactionManager.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -166,12 +190,14 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 
 		try (Connection conn = transactionManager.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
+
 			if(param != null)
 				ps.setLong(1, param);
 
 			try (ResultSet rs = ps.executeQuery()) {
 				while(rs.next()) {
-					findById(rs.getLong("id")).ifPresent(result::add);
+					Long id = rs.getLong("id");
+					findByIdInternal(conn, id).ifPresent(result::add);
 				}
 			}
 		}
@@ -202,18 +228,25 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 
 	private DanhSachLop loadAggregate(Connection conn, ResultSet rs) throws Exception
 	{
-		Long id = rs.getLong("id");
+		Long id = rs.getLong("dsl_id");
 
 		NguoiDung nguoiTao = NguoiDungJdbcMapper.toDomain(rs);
 
 		HocKy hocKy = null;
-		if(rs.getObject("hoc_ky_id") != null) {
+		if(rs.getObject("hk_id") != null) {
 			hocKy = HocKyJdbcMapper.toDomain(rs);
 		}
 
 		List<DanhSachLopChiTiet> chiTiet = loadChiTiet(conn, id);
 
-		return DanhSachLopJdbcMapper.toDomain(rs, nguoiTao, hocKy, chiTiet);
+		Set<Long> sharedUserIds = loadSharedUserIds(conn, id);
+
+		return DanhSachLopJdbcMapper.toDomain(
+				rs,
+				nguoiTao,
+				hocKy,
+				chiTiet,
+				sharedUserIds);
 	}
 
 	private List<DanhSachLopChiTiet> loadChiTiet(Connection conn, Long danhSachId)
@@ -287,6 +320,112 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 			throws SQLException
 	{
 		String sql = "DELETE FROM danh_sach_lop_chi_tiet WHERE danh_sach_lop_id = ?";
+
+		try (PreparedStatement ps = conn.prepareStatement(sql)) {
+			ps.setLong(1, danhSachId);
+			ps.executeUpdate();
+		}
+	}
+
+	private Set<Long> loadSharedUserIds(Connection conn, Long danhSachId)
+			throws SQLException
+	{
+		String sql = """
+				SELECT nguoi_dung_id
+				FROM chia_se_danh_sach_lop
+				WHERE danh_sach_lop_id = ?
+				""";
+
+		Set<Long> result = new HashSet<>();
+
+		try (PreparedStatement ps = conn.prepareStatement(sql)) {
+			ps.setLong(1, danhSachId);
+
+			try (ResultSet rs = ps.executeQuery()) {
+				while(rs.next()) {
+					result.add(rs.getLong("nguoi_dung_id"));
+				}
+			}
+		}
+		return result;
+	}
+
+	private Optional<DanhSachLop> findByIdInternal(Connection conn, Long id)
+	{
+		String sql = """
+				SELECT
+				    dsl.id AS dsl_id,
+				    dsl.ten_danh_sach,
+				    dsl.la_cong_khai,
+				    dsl.hoc_ky_id,
+				    dsl.ngay_tao,
+
+				    nd.id AS nd_id,
+				    nd.ten_dang_nhap,
+				    nd.mat_khau_hash,
+				    nd.role_id,
+				    nd.ngay_tao AS nd_ngay_tao,
+
+				    hk.id AS hk_id,
+				    hk.ten_hoc_ky,
+				    hk.nam_hoc
+
+				FROM danh_sach_lop dsl
+				JOIN nguoi_dung nd ON dsl.nguoi_tao_id = nd.id
+				LEFT JOIN hoc_ky hk ON dsl.hoc_ky_id = hk.id
+				WHERE dsl.id = ?
+				""";
+
+		try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+			ps.setLong(1, id);
+
+			try (ResultSet rs = ps.executeQuery()) {
+
+				if(!rs.next())
+					return Optional.empty();
+
+				return Optional.of(loadAggregate(conn, rs));
+			}
+		}
+		catch(Exception e) {
+			throw new DataAccessException("Error finding DanhSachLop internally", e);
+		}
+	}
+
+	private void insertSharedUsers(Connection conn,
+			Long danhSachId,
+			Set<Long> userIds)
+			throws SQLException
+	{
+		if(userIds == null || userIds.isEmpty())
+			return;
+
+		String sql = """
+				INSERT INTO chia_se_danh_sach_lop
+				(danh_sach_lop_id, nguoi_dung_id)
+				VALUES (?, ?)
+				""";
+
+		try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+			for(Long userId : userIds) {
+				ps.setLong(1, danhSachId);
+				ps.setLong(2, userId);
+				ps.addBatch();
+			}
+
+			ps.executeBatch();
+		}
+	}
+
+	private void deleteAllSharedUsers(Connection conn, Long danhSachId)
+			throws SQLException
+	{
+		String sql = """
+				DELETE FROM chia_se_danh_sach_lop
+				WHERE danh_sach_lop_id = ?
+				""";
 
 		try (PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setLong(1, danhSachId);

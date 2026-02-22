@@ -1,19 +1,18 @@
 package vn.edu.haui.scheduler.domain.optimizer;
 
 import vn.edu.haui.scheduler.domain.model.LopHocPhan;
-import vn.edu.haui.scheduler.domain.enums.HinhThucDay;
 
 import java.util.*;
 
 public class Optimizer
 {
-	private final List<LopHocPhan> allLopHocPhan;
+	private final Map<String, List<LopHocPhan>> groupedByHocPhan;
 
 	private final Set<String> requiredHocPhanCodes;
 
 	private final Set<String> preferredLopIds;
 
-	private final Set<HinhThucDay> avoidHinhThuc;
+	private final Set<String> avoidHinhThuc;
 
 	private final Set<Integer> avoidTiet;
 
@@ -23,18 +22,19 @@ public class Optimizer
 
 	private final long timeLimitMillis;
 
-	private List<PhuongAnThoiKhoaBieu> topPhuongAn;
+	private final List<PhuongAnThoiKhoaBieu> topPhuongAn = new ArrayList<>();
 
-	public Optimizer(List<LopHocPhan> allLopHocPhan,
+	public Optimizer(
+			List<LopHocPhan> allLopHocPhan,
 			Set<String> requiredHocPhanCodes,
 			Set<String> preferredLopIds,
-			Set<HinhThucDay> avoidHinhThuc,
+			Set<String> avoidHinhThuc,
 			Set<Integer> avoidTiet,
 			Set<Integer> avoidThu,
 			int topK,
 			long timeLimitMillis)
 	{
-		this.allLopHocPhan = allLopHocPhan;
+		this.groupedByHocPhan = groupByHocPhan(allLopHocPhan);
 		this.requiredHocPhanCodes = requiredHocPhanCodes;
 		this.preferredLopIds = preferredLopIds;
 		this.avoidHinhThuc = avoidHinhThuc;
@@ -42,83 +42,115 @@ public class Optimizer
 		this.avoidThu = avoidThu;
 		this.topK = topK;
 		this.timeLimitMillis = timeLimitMillis;
-		this.topPhuongAn = new ArrayList<>();
+	}
+
+	private Map<String, List<LopHocPhan>> groupByHocPhan(List<LopHocPhan> list)
+	{
+		Map<String, List<LopHocPhan>> map = new LinkedHashMap<>();
+
+		for(LopHocPhan lop : list) {
+			String maHocPhan = lop.getHocPhan().getMaHocPhan();
+			map.computeIfAbsent(maHocPhan, k -> new ArrayList<>()).add(lop);
+		}
+
+		return map;
 	}
 
 	public List<PhuongAnThoiKhoaBieu> optimize()
 	{
-		long startTime = System.currentTimeMillis();
-		backtrack(new ArrayList<>(), new HashSet<>(), startTime);
+		long start = System.currentTimeMillis();
+
+		List<String> requiredCourses = new ArrayList<>(requiredHocPhanCodes);
+
+		backtrack(0, requiredCourses, new ArrayList<>(), start);
+
 		topPhuongAn.sort(PhuongAnThoiKhoaBieu::compareTo);
-		if(topPhuongAn.size() > topK) {
-			return topPhuongAn.subList(0, topK);
-		}
-		return topPhuongAn;
+
+		return topPhuongAn.size() > topK
+				? topPhuongAn.subList(0, topK)
+				: topPhuongAn;
 	}
 
-	private void backtrack(List<LopHocPhan> current, Set<String> usedHocPhan, long startTime)
+	private void backtrack(
+			int index,
+			List<String> courses,
+			List<LopHocPhan> current,
+			long start)
 	{
-		if(System.currentTimeMillis() - startTime > timeLimitMillis) return;
+		if(System.currentTimeMillis() - start > timeLimitMillis)
+			return;
 
-		if(usedHocPhan.containsAll(requiredHocPhanCodes)) {
+		if(index == courses.size()) {
 			double score = evaluateScore(current);
-			PhuongAnThoiKhoaBieu phuongAn = new PhuongAnThoiKhoaBieu(current, score);
-			addTopPhuongAn(phuongAn);
+			addTop(new PhuongAnThoiKhoaBieu(current, score));
+			return;
 		}
 
-		for(LopHocPhan lop : allLopHocPhan) {
-			if(usedHocPhan.contains(lop.getMaLop())) continue;
-			if(!canAddLopHocPhan(current, lop)) continue;
+		String maHocPhan = courses.get(index);
+
+		List<LopHocPhan> candidates = groupedByHocPhan.get(maHocPhan);
+
+		if(candidates == null)
+			return;
+
+		for(LopHocPhan lop : candidates) {
+
+			if(!canAdd(current, lop))
+				continue;
 
 			current.add(lop);
-			usedHocPhan.add(lop.getMaLop());
-			backtrack(current, usedHocPhan, startTime);
+			backtrack(index + 1, courses, current, start);
 			current.remove(current.size() - 1);
-			usedHocPhan.remove(lop.getMaLop());
 		}
 	}
 
-	private boolean canAddLopHocPhan(List<LopHocPhan> current, LopHocPhan candidate)
+	private boolean canAdd(List<LopHocPhan> current, LopHocPhan candidate)
 	{
 		for(LopHocPhan existing : current) {
-			for(var buoiExisting : existing.getDanhSachLichHoc()) {
-				for(var buoiCandidate : candidate.getDanhSachLichHoc()) {
-					if(buoiExisting.getThu() == buoiCandidate.getThu()
-							&& buoiExisting.getTietBatDau() <= buoiCandidate.getTietKetThuc()
-							&& buoiCandidate.getTietBatDau() <= buoiExisting.getTietKetThuc()) {
-						return false; // Xung đột thời gian -> prune
-					}
+			for(var a : existing.getLichHocList()) {
+				for(var b : candidate.getLichHocList()) {
+					if(a.getThu() == b.getThu()
+							&& a.getTietBatDau() <= b.getTietKetThuc()
+							&& b.getTietBatDau() <= a.getTietKetThuc())
+						return false;
 				}
 			}
 		}
 		return true;
 	}
 
-	private double evaluateScore(List<LopHocPhan> current)
+	private double evaluateScore(List<LopHocPhan> list)
 	{
-		double score = 0.0;
-		for(LopHocPhan lop : current) {
-			// Hình thức học
-			if(avoidHinhThuc.contains(lop.getHinhThucDay())) score -= 1.0;
-			else score += 0.5;
-			// Lớp mong muốn
-			if(preferredLopIds.contains(lop.getMaLop())) score += 1.0;
-			else score -= 0.5;
-			// Ngày và tiết tránh
-			for(var buoi : lop.getDanhSachLichHoc()) {
-				if(avoidThu.contains(buoi.getThu().getGiaTri())) score -= 1.0;
-				if(avoidTiet.contains(buoi.getTietBatDau()) || avoidTiet.contains(buoi.getTietKetThuc())) score -= 0.5;
+		double score = 0;
+
+		for(LopHocPhan lop : list) {
+
+			if(preferredLopIds.contains(lop.getMaLop()))
+				score += 1.5;
+
+			if(avoidHinhThuc.contains(lop.getHinhThucDay()))
+				score -= 1;
+
+			for(var lich : lop.getLichHocList()) {
+
+				if(avoidThu.contains(lich.getThu()))
+					score -= 1;
+
+				if(avoidTiet.contains(lich.getTietBatDau())
+						|| avoidTiet.contains(lich.getTietKetThuc()))
+					score -= 0.5;
 			}
 		}
+
 		return score;
 	}
 
-	private void addTopPhuongAn(PhuongAnThoiKhoaBieu phuongAn)
+	private void addTop(PhuongAnThoiKhoaBieu p)
 	{
-		topPhuongAn.add(phuongAn);
+		topPhuongAn.add(p);
 		topPhuongAn.sort(PhuongAnThoiKhoaBieu::compareTo);
-		if(topPhuongAn.size() > topK) {
-			topPhuongAn = new ArrayList<>(topPhuongAn.subList(0, topK));
-		}
+
+		if(topPhuongAn.size() > topK)
+			topPhuongAn.remove(topPhuongAn.size() - 1);
 	}
 }

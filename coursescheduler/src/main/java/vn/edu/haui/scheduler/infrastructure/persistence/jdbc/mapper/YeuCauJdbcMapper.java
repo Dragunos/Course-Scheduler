@@ -3,6 +3,7 @@ package vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper;
 import vn.edu.haui.scheduler.domain.model.*;
 
 import java.sql.ResultSet;
+import java.util.Collections;
 
 public class YeuCauJdbcMapper
 {
@@ -35,7 +36,8 @@ public class YeuCauJdbcMapper
 					rs,
 					nguoiTao,
 					hocKy,
-					null);
+					Collections.emptyList(),
+					Collections.emptySet());
 		}
 
 		return YeuCau.reconstruct(

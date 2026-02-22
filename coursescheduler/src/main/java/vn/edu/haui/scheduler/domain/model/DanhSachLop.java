@@ -7,17 +7,19 @@ public class DanhSachLop
 {
 	private final Long id;
 
-	private final String tenDanhSach;
+	private String tenDanhSach;
 
 	private final NguoiDung nguoiTao;
 
 	private final boolean laCongKhai;
 
-	private final HocKy hocKy;
+	private HocKy hocKy;
 
 	private final LocalDateTime ngayTao;
 
 	private final List<DanhSachLopChiTiet> chiTietList = new ArrayList<>();
+
+	private final Set<Long> sharedUserIds = new HashSet<>();
 
 	private DanhSachLop(
 			Long id,
@@ -26,13 +28,14 @@ public class DanhSachLop
 			boolean laCongKhai,
 			HocKy hocKy,
 			LocalDateTime ngayTao,
-			List<DanhSachLopChiTiet> chiTiet)
+			List<DanhSachLopChiTiet> chiTiet,
+			Set<Long> sharedUserIds)
 	{
 		if(tenDanhSach == null || tenDanhSach.isBlank())
 			throw new IllegalArgumentException("Ten danh sach khong hop le");
 
 		this.id = id;
-		this.tenDanhSach = tenDanhSach;
+		this.tenDanhSach = tenDanhSach.trim();
 		this.nguoiTao = Objects.requireNonNull(nguoiTao);
 		this.laCongKhai = laCongKhai;
 		this.hocKy = hocKy;
@@ -40,6 +43,9 @@ public class DanhSachLop
 
 		if(chiTiet != null)
 			this.chiTietList.addAll(chiTiet);
+
+		if(sharedUserIds != null)
+			this.sharedUserIds.addAll(sharedUserIds);
 	}
 
 	public static DanhSachLop create(
@@ -55,7 +61,8 @@ public class DanhSachLop
 				laCongKhai,
 				hocKy,
 				LocalDateTime.now(),
-				Collections.emptyList());
+				Collections.emptyList(),
+				Collections.emptySet());
 	}
 
 	public static DanhSachLop reconstruct(
@@ -65,7 +72,8 @@ public class DanhSachLop
 			boolean laCongKhai,
 			HocKy hocKy,
 			LocalDateTime ngayTao,
-			List<DanhSachLopChiTiet> chiTiet)
+			List<DanhSachLopChiTiet> chiTiet,
+			Set<Long> sharedUserIds)
 	{
 		if(id == null)
 			throw new IllegalStateException("Persisted DanhSachLop must have id");
@@ -77,7 +85,8 @@ public class DanhSachLop
 				laCongKhai,
 				hocKy,
 				ngayTao,
-				chiTiet);
+				chiTiet,
+				sharedUserIds);
 	}
 
 	public void themLop(LopHocPhan lop, boolean batBuoc)
@@ -111,9 +120,58 @@ public class DanhSachLop
 		return false;
 	}
 
+	public void doiTen(String tenMoi)
+	{
+		if(tenMoi == null || tenMoi.isBlank())
+			throw new IllegalArgumentException("Ten danh sach khong hop le");
+
+		this.tenDanhSach = tenMoi.trim();
+	}
+
+	public void doiHocKy(HocKy hocKyMoi)
+	{
+		this.hocKy = hocKyMoi;
+	}
+
+	public void xoaTatCaLop()
+	{
+		this.chiTietList.clear();
+	}
+
+	public boolean duocChiaSeCho(NguoiDung user)
+	{
+		if(user == null || user.getId() == null)
+			return false;
+
+		return laCongKhai
+				|| nguoiTao.getId().equals(user.getId())
+				|| sharedUserIds.contains(user.getId());
+	}
+
+	public void chiaSeCho(NguoiDung user)
+	{
+		if(user == null || user.getId() == null)
+			throw new IllegalArgumentException();
+
+		sharedUserIds.add(user.getId());
+	}
+
+	public void huyChiaSeCho(NguoiDung user)
+	{
+		if(user == null || user.getId() == null)
+			return;
+
+		sharedUserIds.remove(user.getId());
+	}
+
 	public List<DanhSachLopChiTiet> getChiTietList()
 	{
 		return Collections.unmodifiableList(chiTietList);
+	}
+
+	public Set<Long> getSharedUserIds()
+	{
+		return Collections.unmodifiableSet(sharedUserIds);
 	}
 
 	public Long getId()

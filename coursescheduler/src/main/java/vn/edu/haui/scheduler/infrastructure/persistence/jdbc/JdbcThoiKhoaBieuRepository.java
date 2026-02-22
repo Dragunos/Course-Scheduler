@@ -291,7 +291,8 @@ public class JdbcThoiKhoaBieuRepository implements ThoiKhoaBieuRepository
 						rs,
 						nguoiTao,
 						hocKy,
-						Collections.emptyList());
+						Collections.emptyList(),
+						Collections.emptySet());
 			}
 		}
 	}
