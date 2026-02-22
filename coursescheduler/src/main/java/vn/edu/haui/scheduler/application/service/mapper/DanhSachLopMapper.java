@@ -1,5 +1,9 @@
 package vn.edu.haui.scheduler.application.service.mapper;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import vn.edu.haui.scheduler.application.dto.DanhSachLopChiTietDto;
 import vn.edu.haui.scheduler.application.dto.DanhSachLopDto;
 import vn.edu.haui.scheduler.domain.model.DanhSachLop;
 
@@ -30,4 +34,19 @@ public class DanhSachLopMapper
 
 		return dto;
 	}
+	
+	public static DanhSachLopDto toDetailDto(
+            DanhSachLop domain,
+            List<DanhSachLopChiTietDto> chiTietDtoList)
+    {
+        DanhSachLopDto dto = toDto(domain);
+
+        dto.setChiTiet(
+                chiTietDtoList != null
+                        ? chiTietDtoList.stream().collect(Collectors.toList())
+                        : List.of()
+        );
+
+        return dto;
+    }
 }

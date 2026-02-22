@@ -10,207 +10,202 @@ import vn.edu.haui.scheduler.ui.controller.*;
 
 public class ScreenManager
 {
-    private final Stage stage;
+	private final Stage stage;
 
-    private final AuthUseCase authUseCase;
+	private final AuthUseCase authUseCase;
 
-    // ====== CHỈ GIỮ IMPORT ======
-    private ImportDanhSachLopUseCase importDanhSachLopUseCase;
+	private ImportDanhSachLopUseCase importDanhSachLopUseCase;
 
-    // ====== COMMENT CÁC USE CASE CHƯA IMPLEMENT ======
-    /*
-    private ManageDanhSachLopUseCase manageDanhSachLopUseCase;
-    private ExportDanhSachLopUseCase exportDanhSachLopUseCase;
-    private GenerateThoiKhoaBieuUseCase generateThoiKhoaBieuUseCase;
-    private ManageThoiKhoaBieuUseCase manageThoiKhoaBieuUseCase;
-    private ExportThoiKhoaBieuUseCase exportThoiKhoaBieuUseCase;
-    private AdminDanhSachLopUseCase adminDanhSachLopUseCase;
-    */
+	private ManageDanhSachLopUseCase manageDanhSachLopUseCase;
 
-    private Scene scene;
+	private ExportDanhSachLopUseCase exportDanhSachLopUseCase;
 
-    private NguoiDungDto currentUser;
+	private GenerateThoiKhoaBieuUseCase generateThoiKhoaBieuUseCase;
 
-    public ScreenManager(Stage stage, AuthUseCase authUseCase)
-    {
-        this.stage = stage;
-        this.authUseCase = authUseCase;
-    }
+	private ManageThoiKhoaBieuUseCase manageThoiKhoaBieuUseCase;
 
-    // ===== IMPORT =====
+	private ExportThoiKhoaBieuUseCase exportThoiKhoaBieuUseCase;
 
-    public void setImportDanhSachLopUseCase(ImportDanhSachLopUseCase uc)
-    {
-        this.importDanhSachLopUseCase = uc;
-    }
+	private AdminDanhSachLopUseCase adminDanhSachLopUseCase;
 
-    public ImportDanhSachLopUseCase getImportDanhSachLopUseCase()
-    {
-        return importDanhSachLopUseCase;
-    }
+	private Scene scene;
 
-    // ===== COMMENT CÁC METHOD KHÁC =====
-    /*
-    public void setQuanLyDanhSachLopUseCase(ManageDanhSachLopUseCase uc)
-    {
-        this.manageDanhSachLopUseCase = uc;
-    }
+	private NguoiDungDto currentUser;
 
-    public ManageDanhSachLopUseCase getQuanLyDanhSachLopUseCase()
-    {
-        return manageDanhSachLopUseCase;
-    }
+	public ScreenManager(Stage stage, AuthUseCase authUseCase)
+	{
+		this.stage = stage;
+		this.authUseCase = authUseCase;
+	}
 
-    public void setXuatDanhSachLopUseCase(ExportDanhSachLopUseCase uc)
-    {
-        this.exportDanhSachLopUseCase = uc;
-    }
+	// ===== IMPORT =====
 
-    public ExportDanhSachLopUseCase getXuatDanhSachLopUseCase()
-    {
-        return this.exportDanhSachLopUseCase;
-    }
+	public void setImportDanhSachLopUseCase(ImportDanhSachLopUseCase uc)
+	{
+		this.importDanhSachLopUseCase = uc;
+	}
 
-    public void setSinhThoiKhoaBieuUseCase(GenerateThoiKhoaBieuUseCase uc)
-    {
-        this.generateThoiKhoaBieuUseCase = uc;
-    }
+	public ImportDanhSachLopUseCase getImportDanhSachLopUseCase()
+	{
+		return importDanhSachLopUseCase;
+	}
 
-    public GenerateThoiKhoaBieuUseCase getSinhThoiKhoaBieuUseCase()
-    {
-        return generateThoiKhoaBieuUseCase;
-    }
+	public void setQuanLyDanhSachLopUseCase(ManageDanhSachLopUseCase uc)
+	{
+		this.manageDanhSachLopUseCase = uc;
+	}
 
-    public void setQuanLyThoiKhoaBieuUseCase(ManageThoiKhoaBieuUseCase uc)
-    {
-        this.manageThoiKhoaBieuUseCase = uc;
-    }
+	public ManageDanhSachLopUseCase getQuanLyDanhSachLopUseCase()
+	{
+		return manageDanhSachLopUseCase;
+	}
 
-    public ManageThoiKhoaBieuUseCase getQuanLyThoiKhoaBieuUseCase()
-    {
-        return manageThoiKhoaBieuUseCase;
-    }
+	public void setXuatDanhSachLopUseCase(ExportDanhSachLopUseCase uc)
+	{
+		this.exportDanhSachLopUseCase = uc;
+	}
 
-    public void setXuatThoiKhoaBieuUseCase(ExportThoiKhoaBieuUseCase uc)
-    {
-        this.exportThoiKhoaBieuUseCase = uc;
-    }
+	public ExportDanhSachLopUseCase getXuatDanhSachLopUseCase()
+	{
+		return this.exportDanhSachLopUseCase;
+	}
 
-    public ExportThoiKhoaBieuUseCase getXuatThoiKhoaBieuUseCase()
-    {
-        return exportThoiKhoaBieuUseCase;
-    }
+	public void setSinhThoiKhoaBieuUseCase(GenerateThoiKhoaBieuUseCase uc)
+	{
+		this.generateThoiKhoaBieuUseCase = uc;
+	}
 
-    public void setQuanTriDanhSachLopUseCase(AdminDanhSachLopUseCase uc)
-    {
-        this.adminDanhSachLopUseCase = uc;
-    }
+	public GenerateThoiKhoaBieuUseCase getSinhThoiKhoaBieuUseCase()
+	{
+		return generateThoiKhoaBieuUseCase;
+	}
 
-    public AdminDanhSachLopUseCase getQuanTriDanhSachLopUseCase()
-    {
-        return adminDanhSachLopUseCase;
-    }
-    */
+	public void setQuanLyThoiKhoaBieuUseCase(ManageThoiKhoaBieuUseCase uc)
+	{
+		this.manageThoiKhoaBieuUseCase = uc;
+	}
 
-    public void init()
-    {
-        showHome();
-    }
+	public ManageThoiKhoaBieuUseCase getQuanLyThoiKhoaBieuUseCase()
+	{
+		return manageThoiKhoaBieuUseCase;
+	}
 
-    public boolean isAuthenticated()
-    {
-        return currentUser != null;
-    }
+	public void setXuatThoiKhoaBieuUseCase(ExportThoiKhoaBieuUseCase uc)
+	{
+		this.exportThoiKhoaBieuUseCase = uc;
+	}
 
-    public NguoiDungDto getCurrentUser()
-    {
-        return currentUser;
-    }
+	public ExportThoiKhoaBieuUseCase getXuatThoiKhoaBieuUseCase()
+	{
+		return exportThoiKhoaBieuUseCase;
+	}
 
-    public void setCurrentUser(NguoiDungDto user)
-    {
-        this.currentUser = user;
-    }
+	public void setQuanTriDanhSachLopUseCase(AdminDanhSachLopUseCase uc)
+	{
+		this.adminDanhSachLopUseCase = uc;
+	}
 
-    public void clearCurrentUser()
-    {
-        this.currentUser = null;
-    }
+	public AdminDanhSachLopUseCase getQuanTriDanhSachLopUseCase()
+	{
+		return adminDanhSachLopUseCase;
+	}
 
-    private void setRoot(Parent root)
-    {
-        if(scene == null) {
-            scene = new Scene(root);
-            stage.setScene(scene);
-        }
-        else {
-            scene.setRoot(root);
-        }
-    }
+	public void init()
+	{
+		showHome();
+	}
 
-    public void showHome()
-    {
-        try {
-            FXMLLoader loader =
-                    new FXMLLoader(getClass().getResource("/fxml/home.fxml"));
-            Parent root = loader.load();
+	public boolean isAuthenticated()
+	{
+		return currentUser != null;
+	}
 
-            HomeController controller = loader.getController();
-            controller.init(this);
+	public NguoiDungDto getCurrentUser()
+	{
+		return currentUser;
+	}
 
-            stage.setTitle("Trang chủ");
-            setRoot(root);
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-        }
-    }
+	public void setCurrentUser(NguoiDungDto user)
+	{
+		this.currentUser = user;
+	}
 
-    public void showLogin()
-    {
-        if(isAuthenticated()) {
-            showHome();
-            return;
-        }
+	public void clearCurrentUser()
+	{
+		this.currentUser = null;
+	}
 
-        try {
-            FXMLLoader loader =
-                    new FXMLLoader(getClass().getResource("/fxml/auth.fxml"));
-            Parent root = loader.load();
+	private void setRoot(Parent root)
+	{
+		if(scene == null) {
+			scene = new Scene(root);
+			stage.setScene(scene);
+		}
+		else {
+			scene.setRoot(root);
+		}
+	}
 
-            AuthController controller = loader.getController();
-            controller.init(authUseCase, this);
-            controller.showLoginPane();
+	public void showHome()
+	{
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/home.fxml"));
+			Parent root = loader.load();
 
-            stage.setTitle("Login");
-            setRoot(root);
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-        }
-    }
+			HomeController controller = loader.getController();
+			controller.init(this);
 
-    public void showRegister()
-    {
-        if(isAuthenticated()) {
-            showHome();
-            return;
-        }
+			stage.setTitle("Trang chủ");
+			setRoot(root);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-        try {
-            FXMLLoader loader =
-                    new FXMLLoader(getClass().getResource("/fxml/auth.fxml"));
-            Parent root = loader.load();
+	public void showLogin()
+	{
+		if(isAuthenticated()) {
+			showHome();
+			return;
+		}
 
-            AuthController controller = loader.getController();
-            controller.init(authUseCase, this);
-            controller.showRegisterPane();
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/auth.fxml"));
+			Parent root = loader.load();
 
-            stage.setTitle("Register");
-            setRoot(root);
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-        }
-    }
+			AuthController controller = loader.getController();
+			controller.init(authUseCase, this);
+			controller.showLoginPane();
+
+			stage.setTitle("Login");
+			setRoot(root);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void showRegister()
+	{
+		if(isAuthenticated()) {
+			showHome();
+			return;
+		}
+
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/auth.fxml"));
+			Parent root = loader.load();
+
+			AuthController controller = loader.getController();
+			controller.init(authUseCase, this);
+			controller.showRegisterPane();
+
+			stage.setTitle("Register");
+			setRoot(root);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
 }

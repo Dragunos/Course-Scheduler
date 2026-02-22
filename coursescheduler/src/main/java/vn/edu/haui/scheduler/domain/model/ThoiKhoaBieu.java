@@ -113,6 +113,16 @@ public class ThoiKhoaBieu
 		this.diemDanhGia = diem;
 	}
 
+	public void doiTenPhuongAn(String tenMoi)
+	{
+		if(tenMoi == null || tenMoi.isBlank())
+			throw new IllegalArgumentException("Ten phuong an khong hop le");
+
+		String normalized = tenMoi.trim();
+
+		this.tenPhuongAn = normalized;
+	}
+
 	public Long getId()
 	{
 		return id;

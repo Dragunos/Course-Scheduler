@@ -1,6 +1,7 @@
 package vn.edu.haui.scheduler.application.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class DanhSachLopDto
 {
@@ -15,6 +16,8 @@ public class DanhSachLopDto
 	private Long hocKyId;
 
 	private LocalDateTime ngayTao;
+	
+	private List<DanhSachLopChiTietDto> chiTiet;
 
 	public DanhSachLopDto()
 	{
@@ -93,5 +96,15 @@ public class DanhSachLopDto
 	public void setNgayTao(LocalDateTime ngayTao)
 	{
 		this.ngayTao = ngayTao;
+	}
+	
+	public List<DanhSachLopChiTietDto> getChiTiet()
+	{
+	    return chiTiet;
+	}
+
+	public void setChiTiet(List<DanhSachLopChiTietDto> chiTiet)
+	{
+	    this.chiTiet = chiTiet;
 	}
 }

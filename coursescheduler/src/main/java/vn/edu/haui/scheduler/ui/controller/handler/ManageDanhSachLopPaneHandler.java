@@ -10,7 +10,7 @@ import javafx.scene.layout.VBox;
 import vn.edu.haui.scheduler.application.dto.DanhSachLopChiTietDto;
 import vn.edu.haui.scheduler.application.dto.DanhSachLopDto;
 import vn.edu.haui.scheduler.application.dto.LichHocDto;
-import vn.edu.haui.scheduler.application.dto.UpdateDanhSachLopRequestDto;
+import vn.edu.haui.scheduler.application.dto.LopHocPhanDto;
 import vn.edu.haui.scheduler.application.exception.DataAccessException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
 import vn.edu.haui.scheduler.application.port.in.ManageDanhSachLopUseCase;
@@ -123,7 +123,7 @@ public class ManageDanhSachLopPaneHandler
 
 		try {
 			Long userId = screenManager.getCurrentUser().getId();
-			List<DanhSachLopDto> list = useCase.getAllDanhSachLopByNguoiDungId(userId);
+			List<DanhSachLopDto> list = useCase.findAllByUser(userId);
 
 			if(list == null || list.isEmpty()) {
 				table.setItems(FXCollections.observableArrayList());
@@ -157,7 +157,7 @@ public class ManageDanhSachLopPaneHandler
 			Long userId = screenManager.getCurrentUser().getId();
 			ManageDanhSachLopUseCase useCase = screenManager.getQuanLyDanhSachLopUseCase();
 
-			DanhSachLopDto detail = useCase.getDanhSachLopById(userId, dto.getId());
+			DanhSachLopDto detail = useCase.findDetail(userId, dto.getId());
 
 			Label title = new Label(
 					"Chi tiết: " +
@@ -173,49 +173,61 @@ public class ManageDanhSachLopPaneHandler
 			TableColumn<DanhSachLopChiTietDto, String> maLopCol = new TableColumn<>("Mã Lớp");
 
 			maLopCol.setCellValueFactory(c -> new SimpleStringProperty(
-					c.getValue().getMaLop()));
+					c.getValue().getMaLop() != null
+							? c.getValue().getMaLop()
+							: ""));
 
 			TableColumn<DanhSachLopChiTietDto, String> tenHpCol = new TableColumn<>("Tên Học Phần");
 
 			tenHpCol.setCellValueFactory(c -> new SimpleStringProperty(
-					c.getValue().getTenHocPhan()));
+					c.getValue().getTenHocPhan() != null
+							? c.getValue().getTenHocPhan()
+							: ""));
 
 			TableColumn<DanhSachLopChiTietDto, String> gvCol = new TableColumn<>("Giảng viên");
 
 			gvCol.setCellValueFactory(c -> new SimpleStringProperty(
-					c.getValue().getTenGiangVien()));
+					c.getValue().getTenGiangVien() != null
+							? c.getValue().getTenGiangVien()
+							: ""));
 
 			TableColumn<DanhSachLopChiTietDto, String> maHpCol = new TableColumn<>("Mã HP");
 
 			maHpCol.setCellValueFactory(c -> new SimpleStringProperty(
-					c.getValue().getMaHocPhan()));
+					c.getValue().getMaHocPhan() != null
+							? c.getValue().getMaHocPhan()
+							: ""));
 
 			TableColumn<DanhSachLopChiTietDto, String> hinhThucCol = new TableColumn<>("Hình thức dạy");
 
 			hinhThucCol.setCellValueFactory(c -> new SimpleStringProperty(
-					c.getValue().getHinhThucDay()));
+					c.getValue().getHinhThucDay() != null
+							? c.getValue().getHinhThucDay()
+							: ""));
 
 			TableColumn<DanhSachLopChiTietDto, String> diaDiemCol = new TableColumn<>("Địa điểm");
 
 			diaDiemCol.setCellValueFactory(c -> new SimpleStringProperty(
-					c.getValue().getDiaDiem()));
+					c.getValue().getDiaDiem() != null
+							? c.getValue().getDiaDiem()
+							: ""));
 
 			TableColumn<DanhSachLopChiTietDto, String> lichHocCol = new TableColumn<>("Lịch học");
 
 			lichHocCol.setCellValueFactory(c -> {
 
-				List<LichHocDto> lich = c.getValue().getLichHoc();
+				List<LichHocDto> lichList = c.getValue().getLichHocList();
 
-				if(lich == null || lich.isEmpty())
+				if(lichList == null || lichList.isEmpty())
 					return new SimpleStringProperty("");
 
-				String value = lich.stream()
+				String value = lichList.stream()
 						.map(l -> toThuLabel(l.getThu()) +
-								" (Tiết " +
-								l.getTietBatDau() +
-								"-" +
-								l.getTietKetThuc() +
-								")")
+						        " (Tiết " +
+						        l.getTietBatDau() +
+						        "-" +
+						        l.getTietKetThuc() +
+						        ")")
 						.collect(Collectors.joining("; "));
 
 				return new SimpleStringProperty(value);
@@ -276,6 +288,7 @@ public class ManageDanhSachLopPaneHandler
 			try {
 				Long hocKyId = null;
 				String hkText = hocKyField.getText();
+
 				if(hkText != null && !hkText.trim().isEmpty()) {
 					try {
 						hocKyId = Long.valueOf(hkText.trim());
@@ -285,29 +298,30 @@ public class ManageDanhSachLopPaneHandler
 					}
 				}
 
-				UpdateDanhSachLopRequestDto req = new UpdateDanhSachLopRequestDto(
-						dto.getId(),
-						tenField.getText(),
-						hocKyId,
-						null // không chỉnh sửa chi tiết ở UI này
-				);
-
 				Long userId = screenManager.getCurrentUser().getId();
 
 				screenManager.getQuanLyDanhSachLopUseCase()
-						.updateDanhSachLop(userId, req);
+						.updateDanhSach(
+								userId,
+								dto.getId(),
+								tenField.getText(),
+								hocKyId,
+								null);
 
-				UiUtils.showAlert("Thành công", "Đã cập nhật.",
+				UiUtils.showAlert("Thành công",
+						"Đã cập nhật.",
 						Alert.AlertType.INFORMATION);
 
 				showDanhSach();
 			}
 			catch(ValidationException ve) {
-				UiUtils.showAlert("Không hợp lệ", ve.getMessage(),
+				UiUtils.showAlert("Không hợp lệ",
+						ve.getMessage(),
 						Alert.AlertType.WARNING);
 			}
 			catch(DataAccessException pe) {
-				UiUtils.showAlert("Lỗi hệ thống", pe.getMessage(),
+				UiUtils.showAlert("Lỗi hệ thống",
+						pe.getMessage(),
 						Alert.AlertType.ERROR);
 			}
 		});
@@ -337,7 +351,7 @@ public class ManageDanhSachLopPaneHandler
 				Long userId = screenManager.getCurrentUser().getId();
 
 				screenManager.getQuanLyDanhSachLopUseCase()
-						.deleteDanhSachLop(userId, dto.getId());
+						.deleteDanhSach(userId, dto.getId());
 
 				UiUtils.showAlert("Thành công", "Đã xóa.",
 						Alert.AlertType.INFORMATION);
@@ -362,26 +376,20 @@ public class ManageDanhSachLopPaneHandler
 		}
 		return true;
 	}
-
-	private String toThuLabel(ThuTrongTuan thu)
+	
+	private String toThuLabel(Integer thu)
 	{
-		switch(thu) {
-			case THU_2:
-				return "Thứ 2";
-			case THU_3:
-				return "Thứ 3";
-			case THU_4:
-				return "Thứ 4";
-			case THU_5:
-				return "Thứ 5";
-			case THU_6:
-				return "Thứ 6";
-			case THU_7:
-				return "Thứ 7";
-			case CHU_NHAT:
-				return "Chủ nhật";
-			default:
-				return thu.name();
-		}
+	    if(thu == null) return "";
+
+	    return switch(thu) {
+	        case 1 -> "Thứ Hai";
+	        case 2 -> "Thứ Ba";
+	        case 3 -> "Thứ Tư";
+	        case 4 -> "Thứ Năm";
+	        case 5 -> "Thứ Sáu";
+	        case 6 -> "Thứ Bảy";
+	        case 7 -> "Chủ Nhật";
+	        default -> "N/A";
+	    };
 	}
 }

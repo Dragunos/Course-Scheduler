@@ -19,6 +19,8 @@ public class ThoiKhoaBieuDto
 
 	private List<Long> lopHocPhanIdList;
 
+	private List<LopHocPhanDto> danhSachLopHocPhan;
+
 	public ThoiKhoaBieuDto()
 	{
 	}
@@ -91,5 +93,15 @@ public class ThoiKhoaBieuDto
 	public void setLopHocPhanIdList(List<Long> lopHocPhanIdList)
 	{
 		this.lopHocPhanIdList = lopHocPhanIdList;
+	}
+
+	public List<LopHocPhanDto> getDanhSachLopHocPhan()
+	{
+		return danhSachLopHocPhan;
+	}
+
+	public void setDanhSachLopHocPhan(List<LopHocPhanDto> danhSachLopHocPhan)
+	{
+		this.danhSachLopHocPhan = danhSachLopHocPhan;
 	}
 }

@@ -1,167 +1,139 @@
 package vn.edu.haui.scheduler.application.service;
 
-import vn.edu.haui.scheduler.application.exception.DataAccessException;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.*;
+
+import vn.edu.haui.scheduler.application.exception.EntityNotFoundException;
+import vn.edu.haui.scheduler.application.exception.ExportThoiKhoaBieuException;
+import vn.edu.haui.scheduler.application.exception.UnauthorizedAccessException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
 import vn.edu.haui.scheduler.application.port.in.ExportThoiKhoaBieuUseCase;
-import vn.edu.haui.scheduler.application.port.out.FileExporter;
-import vn.edu.haui.scheduler.application.port.out.GiangVienRepository;
-import vn.edu.haui.scheduler.application.port.out.HocPhanRepository;
-import vn.edu.haui.scheduler.application.port.out.LichHocRepository;
-import vn.edu.haui.scheduler.application.port.out.LopHocPhanRepository;
 import vn.edu.haui.scheduler.application.port.out.ThoiKhoaBieuRepository;
-import vn.edu.haui.scheduler.domain.model.GiangVien;
-import vn.edu.haui.scheduler.domain.model.HocPhan;
-import vn.edu.haui.scheduler.domain.model.LichHoc;
-import vn.edu.haui.scheduler.domain.model.LopHocPhan;
-import vn.edu.haui.scheduler.domain.model.ThoiKhoaBieu;
+import vn.edu.haui.scheduler.domain.model.*;
+import vn.edu.haui.scheduler.infrastructure.io.exports.FileExporter;
 import vn.edu.haui.scheduler.infrastructure.io.exports.IcsExporter;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
 
 public class ExportThoiKhoaBieuService implements ExportThoiKhoaBieuUseCase
 {
-	private final ThoiKhoaBieuRepository thoiKhoaBieuRepo;
-
-	private final LopHocPhanRepository lopRepo;
-
-	private final LichHocRepository lichRepo;
-
-	private final HocPhanRepository hocPhanRepo;
-
-	private final GiangVienRepository giangVienRepo;
+	private final ThoiKhoaBieuRepository thoiKhoaBieuRepository;
 
 	private final FileExporter fileExporter;
 
 	private final IcsExporter icsExporter;
 
 	public ExportThoiKhoaBieuService(
-			ThoiKhoaBieuRepository thoiKhoaBieuRepo,
-			LopHocPhanRepository lopRepo,
-			LichHocRepository lichRepo,
-			HocPhanRepository hocPhanRepo,
-			GiangVienRepository giangVienRepo,
+			ThoiKhoaBieuRepository thoiKhoaBieuRepository,
 			FileExporter fileExporter,
 			IcsExporter icsExporter)
 	{
-		this.thoiKhoaBieuRepo = thoiKhoaBieuRepo;
-		this.lopRepo = lopRepo;
-		this.lichRepo = lichRepo;
-		this.hocPhanRepo = hocPhanRepo;
-		this.giangVienRepo = giangVienRepo;
+		this.thoiKhoaBieuRepository = thoiKhoaBieuRepository;
 		this.fileExporter = fileExporter;
 		this.icsExporter = icsExporter;
 	}
 
 	@Override
-	public void exportThoiKhoaBieu(Long nguoiDungId, Long thoiKhoaBieuId, String duongDanFile, String dinhDang)
-			throws ValidationException, DataAccessException
+	public void export(
+			Long nguoiDungId,
+			Long thoiKhoaBieuId,
+			String format,
+			String outputPath)
 	{
 		if(nguoiDungId == null)
-			throw new ValidationException("Người dùng không hợp lệ.");
+			throw new ValidationException("NguoiDungId must not be null");
+
 		if(thoiKhoaBieuId == null)
-			throw new ValidationException("Thời khóa biểu không hợp lệ.");
-		if(duongDanFile == null || duongDanFile.trim().isEmpty())
-			throw new ValidationException("Đường dẫn file không hợp lệ.");
+			throw new ValidationException("ThoiKhoaBieuId must not be null");
 
+		if(format == null || format.isBlank())
+			throw new ValidationException("Format must not be blank");
+
+		if(outputPath == null || outputPath.isBlank())
+			throw new ValidationException("OutputPath must not be blank");
+
+		ThoiKhoaBieu tkb = thoiKhoaBieuRepository
+				.findById(thoiKhoaBieuId)
+				.orElseThrow(() -> new EntityNotFoundException("ThoiKhoaBieu", thoiKhoaBieuId));
+
+		if(!tkb.getNguoiDung().getId().equals(nguoiDungId))
+			throw new UnauthorizedAccessException();
+
+		List<String> headers = buildHeaders();
+
+		List<Map<String, String>> rows = buildRows(tkb);
+
+		Path path = Path.of(outputPath);
+
+		performExport(format, path, headers, rows);
+	}
+
+	private List<String> buildHeaders()
+	{
+		return List.of(
+				"MaLop",
+				"MaHocPhan",
+				"TenHocPhan",
+				"SoTinChi",
+				"GiangVien",
+				"HinhThuc",
+				"DiaDiem",
+				"Thu",
+				"TietBatDau",
+				"TietKetThuc");
+	}
+
+	private List<Map<String, String>> buildRows(ThoiKhoaBieu tkb)
+	{
+		List<Map<String, String>> rows = new ArrayList<>();
+
+		for(LopHocPhan lop : tkb.getCacLop()) {
+
+			HocPhan hp = lop.getHocPhan();
+			GiangVien gv = lop.getGiangVien();
+
+			for(LichHoc lich : lop.getLichHocList()) {
+
+				Map<String, String> row = new LinkedHashMap<>();
+
+				row.put("ma_lop", safe(lop.getMaLop()));
+				row.put("ma_hoc_phan", safe(hp.getMaHocPhan()));
+				row.put("ten_hoc_phan", safe(hp.getTenHocPhan()));
+				row.put("so_tin_chi", String.valueOf(hp.getSoTinChi()));
+				row.put("ten_giang_vien", gv != null ? gv.getTenGiangVien() : "");
+				row.put("hinh_thuc", String.valueOf(lop.getHinhThucDay()));
+				row.put("dia_diem", safe(lop.getDiaDiem()));
+				row.put("thu", String.valueOf(lich.getThu()));
+				row.put("tiet_bat_dau", String.valueOf(lich.getTietBatDau()));
+				row.put("tiet_ket_thuc", String.valueOf(lich.getTietKetThuc()));
+
+				rows.add(row);
+			}
+		}
+
+		return rows;
+	}
+
+	private void performExport(
+			String format,
+			Path path,
+			List<String> headers,
+			List<Map<String, String>> rows)
+	{
 		try {
-			ThoiKhoaBieu pa = thoiKhoaBieuRepo.findById(thoiKhoaBieuId)
-					.orElseThrow(() -> new ValidationException("Không tìm thấy thời khóa biểu."));
-
-			if(!Objects.equals(pa.getNguoiDungId(), nguoiDungId))
-				throw new ValidationException("Không có quyền xuất thời khóa biểu này.");
-
-			List<Long> lopIds = thoiKhoaBieuRepo.findChiTietByThoiKhoaBieuId(thoiKhoaBieuId);
-			List<LopHocPhan> lops = lopIds == null || lopIds.isEmpty()
-					? Collections.emptyList()
-					: lopRepo.findByIds(lopIds);
-
-			List<String> headers = Arrays.asList(
-					"ten_phuong_an",
-					"ma_lop",
-					"ma_hoc_phan",
-					"ten_hoc_phan",
-					"so_tin_chi",
-					"ten_giang_vien",
-					"hinh_thuc_day",
-					"dia_diem",
-					"thu",
-					"tiet_bat_dau",
-					"tiet_ket_thuc");
-
-			List<Map<String, String>> rows = new ArrayList<>();
-
-			for(LopHocPhan lhp : lops) {
-				HocPhan hp = lhp.getHocPhan();
-				GiangVien gv = lhp.getGiangVien();
-				List<LichHoc> lichs = lichRepo.findByLopHocPhanId(lhp.getId());
-
-				if(lichs == null || lichs.isEmpty()) {
-					rows.add(buildRow(pa.getTenPhuongAn(), lhp, hp, gv, null));
-				}
-				else {
-					for(LichHoc lich : lichs) {
-						rows.add(buildRow(pa.getTenPhuongAn(), lhp, hp, gv, lich));
-					}
-				}
-			}
-
-			Path output = Paths.get(duongDanFile);
-			String fmt = dinhDang == null ? "CSV" : dinhDang.trim().toUpperCase();
-			boolean isPdf = "PDF".equals(fmt) || duongDanFile.toLowerCase().endsWith(".pdf");
-			boolean isIcs = "ICS".equals(fmt) || duongDanFile.toLowerCase().endsWith(".ics");
-			boolean isExcel = "EXCEL".equals(fmt) || duongDanFile.toLowerCase().endsWith(".xlsx");
-
-			if(isIcs) {
-				icsExporter.export(output, pa.getTenPhuongAn(), rows);
-			}
-			else if(isPdf) {
-				fileExporter.exportPdf(output,
-						"THỜI KHÓA BIỂU - " + pa.getTenPhuongAn(),
-						headers,
-						rows);
-			}
-			else if(isExcel) {
-				throw new ValidationException("Định dạng EXCEL cho thời khóa biểu chưa được triển khai trong lớp này.");
-			}
-			else {
-				fileExporter.exportCsv(output, headers, rows);
+			switch(format.trim().toUpperCase()) {
+				case "CSV" -> fileExporter.exportCsv(path, headers, rows);
+				case "PDF" -> fileExporter.exportPdf(path, "Thời khóa biểu", headers, rows);
+				case "ICS" -> icsExporter.export(path, "Thời khóa biểu", rows);
+				default -> throw new ValidationException("Unsupported export format");
 			}
 		}
-		catch(ValidationException e) {
-			throw e;
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-			throw new DataAccessException("Lỗi khi xuất thời khóa biểu.", e);
+		catch(IOException ex) {
+			throw new ExportThoiKhoaBieuException("Failed to export timetable", ex);
 		}
 	}
 
-	private Map<String, String> buildRow(
-			String tenPhuongAn,
-			LopHocPhan lhp,
-			HocPhan hp,
-			GiangVien gv,
-			LichHoc lich)
+	private String safe(String value)
 	{
-		Map<String, String> r = new LinkedHashMap<>();
-		r.put("ten_phuong_an", safe(tenPhuongAn));
-		r.put("ma_lop", safe(lhp.getMaLop()));
-		r.put("ma_hoc_phan", hp == null ? "" : safe(hp.getMaHocPhan()));
-		r.put("ten_hoc_phan", hp == null ? "" : safe(hp.getTenHocPhan()));
-		r.put("so_tin_chi", hp == null || hp.getSoTinChi() == null ? "" : String.valueOf(hp.getSoTinChi()));
-		r.put("ten_giang_vien", gv == null ? "" : safe(gv.getTenGiangVien()));
-		r.put("hinh_thuc_day", lhp.getHinhThucDay() == null ? "" : lhp.getHinhThucDay().name());
-		r.put("dia_diem", safe(lhp.getDiaDiem()));
-		r.put("thu", lich == null || lich.getThu() == null ? "" : String.valueOf(lich.getThu()));
-		r.put("tiet_bat_dau", lich == null || lich.getTietBatDau() == null ? "" : String.valueOf(lich.getTietBatDau()));
-		r.put("tiet_ket_thuc",
-				lich == null || lich.getTietKetThuc() == null ? "" : String.valueOf(lich.getTietKetThuc()));
-		return r;
-	}
-
-	private String safe(String v)
-	{
-		return v == null ? "" : v;
+		return value == null ? "" : value;
 	}
 }

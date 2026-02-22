@@ -1,168 +1,116 @@
 package vn.edu.haui.scheduler.application.service;
 
-import vn.edu.haui.scheduler.application.dto.*;
+import java.util.List;
+import java.util.Objects;
+
+import vn.edu.haui.scheduler.application.dto.ThoiKhoaBieuDto;
+import vn.edu.haui.scheduler.application.exception.EntityNotFoundException;
+import vn.edu.haui.scheduler.application.exception.UnauthorizedAccessException;
+import vn.edu.haui.scheduler.application.exception.ValidationException;
 import vn.edu.haui.scheduler.application.port.in.ManageThoiKhoaBieuUseCase;
-import vn.edu.haui.scheduler.application.port.out.*;
-
-import vn.edu.haui.scheduler.domain.model.*;
-
-import java.util.*;
-import java.util.stream.Collectors;
+import vn.edu.haui.scheduler.application.port.out.ThoiKhoaBieuRepository;
+import vn.edu.haui.scheduler.application.service.mapper.ThoiKhoaBieuMapper;
+import vn.edu.haui.scheduler.domain.model.ThoiKhoaBieu;
 
 public class ManageThoiKhoaBieuService implements ManageThoiKhoaBieuUseCase
 {
-	private final ThoiKhoaBieuRepository thoiKhoaBieuRepo;
-
-	private final LopHocPhanRepository lopHocPhanRepo;
-
-	private final LichHocRepository lichHocRepo;
-
-	private final GiangVienRepository giangVienRepo;
+	private final ThoiKhoaBieuRepository thoiKhoaBieuRepository;
 
 	public ManageThoiKhoaBieuService(
-			ThoiKhoaBieuRepository thoiKhoaBieuRepo,
-			LopHocPhanRepository lopHocPhanRepo,
-			LichHocRepository lichHocRepo,
-			GiangVienRepository giangVienRepo)
+			ThoiKhoaBieuRepository thoiKhoaBieuRepository)
 	{
-		this.thoiKhoaBieuRepo = thoiKhoaBieuRepo;
-		this.lopHocPhanRepo = lopHocPhanRepo;
-		this.lichHocRepo = lichHocRepo;
-		this.giangVienRepo = giangVienRepo;
+		this.thoiKhoaBieuRepository = thoiKhoaBieuRepository;
 	}
 
 	@Override
-	public List<ThoiKhoaBieuDto> getAllThoiKhoaBieuByNguoiDungId(long nguoiDungId) throws Exception
+	public List<ThoiKhoaBieuDto> findAllByUser(Long nguoiDungId)
 	{
-		List<ThoiKhoaBieu> danhSach = thoiKhoaBieuRepo.findByNguoiDungId(nguoiDungId);
+		if(nguoiDungId == null)
+			throw new ValidationException("NguoiDungId must not be null");
 
-		return danhSach.stream()
-				.map(this::mapToDto)
-				.collect(Collectors.toList());
+		return thoiKhoaBieuRepository
+				.findByNguoiDungId(nguoiDungId)
+				.stream()
+				.map(ThoiKhoaBieuMapper::toDto)
+				.toList();
 	}
 
 	@Override
-	public ThoiKhoaBieuDto getThoiKhoaBieuById(long thoiKhoaBieuId, long nguoiDungId) throws Exception
+	public ThoiKhoaBieuDto findDetail(
+			Long nguoiDungId,
+			Long thoiKhoaBieuId)
 	{
-		ThoiKhoaBieu pa = thoiKhoaBieuRepo.findById(thoiKhoaBieuId)
-				.orElseThrow(() -> new RuntimeException("Không tìm thấy thời khóa biểu"));
+		if(nguoiDungId == null)
+			throw new ValidationException("NguoiDungId must not be null");
 
-		if(pa.getNguoiDungId() != nguoiDungId)
-			throw new RuntimeException("Không có quyền truy cập");
+		if(thoiKhoaBieuId == null)
+			throw new ValidationException("ThoiKhoaBieuId must not be null");
 
-		List<Long> lopIds = thoiKhoaBieuRepo.findChiTietByThoiKhoaBieuId(thoiKhoaBieuId);
+		ThoiKhoaBieu tkb = thoiKhoaBieuRepository
+				.findById(thoiKhoaBieuId)
+				.orElseThrow(() -> new EntityNotFoundException("ThoiKhoaBieu", thoiKhoaBieuId));
 
-		List<LopHocPhan> lops = lopHocPhanRepo.findByIds(lopIds);
+		validateOwnership(nguoiDungId, tkb);
 
-		Map<Long, List<LichHoc>> lichMap = lichHocRepo.findByLopHocPhanIds(lopIds);
-
-		Set<Long> gvIds = lops.stream().map(LopHocPhan::getGiangVien).filter(Objects::nonNull).map(GiangVien::getId)
-				.filter(Objects::nonNull).collect(Collectors.toSet());
-
-		Map<Long, GiangVien> gvMap = new HashMap<>();
-
-		if(!gvIds.isEmpty()) {
-			List<GiangVien> gvs = giangVienRepo.findByIds(new ArrayList<>(gvIds));
-
-			gvMap = gvs.stream()
-					.collect(Collectors.toMap(GiangVien::getId, g -> g));
-		}
-
-		ThoiKhoaBieuDto paDto = mapToDto(pa);
-
-		List<LopHocPhanDto> lopDtos = new ArrayList<>();
-
-		for(LopHocPhan lop : lops) {
-
-			LopHocPhanDto lopDto = mapToDto(lop);
-
-			List<LichHoc> lichCuaLop = lichMap.getOrDefault(lop.getId(), Collections.emptyList());
-
-			lopDto.setLichHocDanhSach(
-					lichCuaLop.stream()
-							.map(this::mapToDto)
-							.collect(Collectors.toList()));
-
-			GiangVien gvEntity = lop.getGiangVien();
-
-			if(gvEntity != null && gvEntity.getId() != null) {
-				GiangVien gv = gvMap.get(gvEntity.getId());
-				if(gv != null)
-					lopDto.setGiangVien(mapToDto(gv));
-			}
-
-			lopDtos.add(lopDto);
-		}
-
-		paDto.setDanhSachLopHocPhan(lopDtos);
-
-		return paDto;
+		return ThoiKhoaBieuMapper.toDto(tkb);
 	}
 
 	@Override
-	public ThoiKhoaBieuDto updateTenThoiKhoaBieu(long thoiKhoaBieuId, long nguoiDungId, String tenMoi) throws Exception
+	public ThoiKhoaBieuDto rename(
+			Long nguoiDungId,
+			Long thoiKhoaBieuId,
+			String newName)
 	{
-		if(tenMoi == null || tenMoi.trim().isEmpty())
-			throw new RuntimeException("Tên không hợp lệ");
+		if(nguoiDungId == null)
+			throw new ValidationException("NguoiDungId must not be null");
 
-		ThoiKhoaBieu pa = thoiKhoaBieuRepo.findById(thoiKhoaBieuId)
-				.orElseThrow(() -> new RuntimeException("Không tìm thấy thời khóa biểu"));
+		if(thoiKhoaBieuId == null)
+			throw new ValidationException("ThoiKhoaBieuId must not be null");
 
-		if(pa.getNguoiDungId() != nguoiDungId)
-			throw new RuntimeException("Không có quyền sửa");
+		if(newName == null || newName.isBlank())
+			throw new ValidationException("New name must not be blank");
 
-		thoiKhoaBieuRepo.updateTenPhuongAn(thoiKhoaBieuId, tenMoi.trim());
-		pa.setTenPhuongAn(tenMoi.trim());
+		String normalized = newName.trim();
 
-		return mapToDto(pa);
+		ThoiKhoaBieu tkb = thoiKhoaBieuRepository
+				.findById(thoiKhoaBieuId)
+				.orElseThrow(() -> new EntityNotFoundException("ThoiKhoaBieu", thoiKhoaBieuId));
+
+		validateOwnership(nguoiDungId, tkb);
+
+		tkb.doiTenPhuongAn(normalized);
+
+		ThoiKhoaBieu updated = thoiKhoaBieuRepository.save(tkb);
+
+		return ThoiKhoaBieuMapper.toDto(updated);
 	}
 
 	@Override
-	public void deleteThoiKhoaBieu(long thoiKhoaBieuId, long nguoiDungId) throws Exception
+	public void delete(
+			Long nguoiDungId,
+			Long thoiKhoaBieuId)
 	{
-		ThoiKhoaBieu pa = thoiKhoaBieuRepo.findById(thoiKhoaBieuId)
-				.orElseThrow(() -> new RuntimeException("Không tìm thấy thời khóa biểu"));
+		if(nguoiDungId == null)
+			throw new ValidationException("NguoiDungId must not be null");
 
-		if(pa.getNguoiDungId() != nguoiDungId)
-			throw new RuntimeException("Không có quyền xóa");
+		if(thoiKhoaBieuId == null)
+			throw new ValidationException("ThoiKhoaBieuId must not be null");
 
-		thoiKhoaBieuRepo.deleteById(thoiKhoaBieuId);
+		ThoiKhoaBieu tkb = thoiKhoaBieuRepository
+				.findById(thoiKhoaBieuId)
+				.orElseThrow(() -> new EntityNotFoundException("ThoiKhoaBieu", thoiKhoaBieuId));
+
+		validateOwnership(nguoiDungId, tkb);
+
+		thoiKhoaBieuRepository.deleteById(thoiKhoaBieuId);
 	}
 
-	private ThoiKhoaBieuDto mapToDto(ThoiKhoaBieu pa)
+	private void validateOwnership(Long nguoiDungId, ThoiKhoaBieu tkb)
 	{
-		ThoiKhoaBieuDto dto = new ThoiKhoaBieuDto();
-		dto.setId(pa.getId());
-		dto.setTenPhuongAn(pa.getTenPhuongAn());
-		dto.setNguoiDungId(pa.getNguoiDungId());
-		return dto;
-	}
+		Objects.requireNonNull(tkb);
 
-	private LopHocPhanDto mapToDto(LopHocPhan lop)
-	{
-		LopHocPhanDto dto = new LopHocPhanDto();
-		dto.setId(lop.getId());
-		dto.setMaLop(lop.getMaLop());
-
-		if(lop.getGiangVien() != null) dto.setGiangVienId(lop.getGiangVien().getId());
-
-		return dto;
-	}
-
-	private LichHocDto mapToDto(LichHoc lich)
-	{
-		LichHocDto dto = new LichHocDto();
-		dto.setThu(lich.getThu());
-		dto.setTietBatDau(lich.getTietBatDau());
-		dto.setTietKetThuc(lich.getTietKetThuc());
-		return dto;
-	}
-
-	private GiangVienDto mapToDto(GiangVien gv)
-	{
-		GiangVienDto dto = new GiangVienDto();
-		dto.setId(gv.getId());
-		dto.setTenGiangVien(gv.getTenGiangVien());
-		return dto;
+		if(!tkb.getNguoiDung().getId().equals(nguoiDungId))
+			throw new UnauthorizedAccessException(
+					"User is not allowed to manage this ThoiKhoaBieu");
 	}
 }

@@ -11,7 +11,7 @@ public class DanhSachLop
 
 	private final NguoiDung nguoiTao;
 
-	private final boolean laCongKhai;
+	private boolean laCongKhai;
 
 	private HocKy hocKy;
 
@@ -162,6 +162,22 @@ public class DanhSachLop
 			return;
 
 		sharedUserIds.remove(user.getId());
+	}
+
+	public void congKhai()
+	{
+		if(this.laCongKhai)
+			throw new IllegalStateException("Danh sach da cong khai");
+
+		this.laCongKhai = true;
+	}
+
+	public void anDanhSach()
+	{
+		if(!this.laCongKhai)
+			throw new IllegalStateException("Danh sach da o trang thai private");
+
+		this.laCongKhai = false;
 	}
 
 	public List<DanhSachLopChiTiet> getChiTietList()

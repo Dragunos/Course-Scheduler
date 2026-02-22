@@ -70,37 +70,38 @@ public class ExportDanhSachLopPaneHandler
 		Button saveBtn = new Button("Lưu");
 		saveBtn.setOnAction(e -> {
 			try {
+				if(pathField.getText() == null || pathField.getText().isBlank())
+					throw new ValidationException("Bạn chưa chọn nơi lưu file.");
+
 				NguoiDungDto user = screenManager.getCurrentUser();
 				String format = csvRb.isSelected() ? "CSV" : "EXCEL";
 
 				ExportDanhSachLopUseCase useCase = screenManager.getXuatDanhSachLopUseCase();
 
-				useCase.exportDanhSachLop(
+				useCase.exportDanhSach(
 						user.getId(),
 						dto.getId(),
-						pathField.getText(),
-						format);
+						format,
+						pathField.getText());
 
-				UiUtils.showAlert("Thành công",
+				UiUtils.showAlert(
+						"Thành công",
 						"Xuất danh sách thành công.",
 						Alert.AlertType.INFORMATION);
 
-				new ManageDanhSachLopPaneHandler(screenManager, centerContainer)
-						.showDanhSach();
-
+				new ManageDanhSachLopPaneHandler(
+						screenManager,
+						centerContainer).showDanhSach();
 			}
 			catch(ValidationException ve) {
-				UiUtils.showAlert("Không hợp lệ",
+				UiUtils.showAlert(
+						"Không hợp lệ",
 						ve.getMessage(),
 						Alert.AlertType.WARNING);
 			}
-			catch(DataAccessException pe) {
-				UiUtils.showAlert("Lỗi hệ thống",
-						pe.getMessage(),
-						Alert.AlertType.ERROR);
-			}
 			catch(Exception ex) {
-				UiUtils.showAlert("Lỗi",
+				UiUtils.showAlert(
+						"Lỗi",
 						ex.getMessage(),
 						Alert.AlertType.ERROR);
 			}
