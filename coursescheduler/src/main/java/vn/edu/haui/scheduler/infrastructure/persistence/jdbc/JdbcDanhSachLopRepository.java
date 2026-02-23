@@ -5,7 +5,7 @@ import vn.edu.haui.scheduler.application.exception.EntityNotFoundException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
 import vn.edu.haui.scheduler.application.port.out.DanhSachLopRepository;
 import vn.edu.haui.scheduler.domain.model.*;
-import vn.edu.haui.scheduler.infrastructure.persistence.config.TransactionManagerImpl;
+import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper.DanhSachLopChiTietJdbcMapper;
 import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper.DanhSachLopJdbcMapper;
 import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper.HocKyJdbcMapper;
@@ -21,11 +21,8 @@ import java.util.Set;
 
 public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 {
-	private final TransactionManagerImpl transactionManager;
-
-	public JdbcDanhSachLopRepository(TransactionManagerImpl transactionManager)
+	public JdbcDanhSachLopRepository()
 	{
-		this.transactionManager = transactionManager;
 	}
 
 	@Override
@@ -48,7 +45,7 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 				VALUES (?, ?, ?, ?, ?)
 				""";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 			ps.setString(1, dsl.getTenDanhSach());
 			ps.setLong(2, dsl.getNguoiTao().getId());
@@ -96,7 +93,7 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 				WHERE id = ?
 				""";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 
 			ps.setString(1, dsl.getTenDanhSach());
@@ -140,8 +137,11 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 				    nd.id AS nd_id,
 				    nd.ten_dang_nhap,
 				    nd.mat_khau_hash,
-				    nd.role_id,
+				    nd.role_id AS vt_id,
 				    nd.ngay_tao AS nd_ngay_tao,
+
+				    vt.id AS vt_id,
+				    vt.ten_vai_tro,
 
 				    hk.id AS hk_id,
 				    hk.ten_hoc_ky,
@@ -150,10 +150,11 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 				FROM danh_sach_lop dsl
 				JOIN nguoi_dung nd ON dsl.nguoi_tao_id = nd.id
 				LEFT JOIN hoc_ky hk ON dsl.hoc_ky_id = hk.id
+				LEFT JOIN vai_tro vt ON nd.role_id = vt.id
 				WHERE dsl.id = ?
 								""";
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setLong(1, id);
 
@@ -188,7 +189,7 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 	{
 		List<DanhSachLop> result = new ArrayList<>();
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 
 			if(param != null)
@@ -202,6 +203,7 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 			}
 		}
 		catch(Exception e) {
+			e.printStackTrace();
 			throw new DataAccessException("Error querying DanhSachLop", e);
 		}
 
@@ -213,7 +215,7 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 	{
 		String sql = "DELETE FROM danh_sach_lop WHERE id = ?";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setLong(1, id);
 
@@ -257,16 +259,26 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 				    ct.danh_sach_lop_id,
 				    ct.lop_hoc_phan_id,
 				    ct.bat_buoc,
+
 				    lhp.id AS lhp_id,
-				    lhp.ma_lop,
-				    lhp.hoc_phan_id,
-				    lhp.giang_vien_id,
+				    lhp.ma_lop AS lhp_ma_lop,
 				    lhp.hinh_thuc_day,
-				    lhp.dia_diem
+				    lhp.dia_diem,
+
+				    hp.id AS hp_id,
+				    hp.ma_hoc_phan,
+				    hp.ten_hoc_phan,
+				    hp.so_tin_chi,
+
+				    gv.id AS gv_id,
+				    gv.ten_giang_vien
+
 				FROM danh_sach_lop_chi_tiet ct
 				JOIN lop_hoc_phan lhp ON ct.lop_hoc_phan_id = lhp.id
+				JOIN hoc_phan hp ON lhp.hoc_phan_id = hp.id
+				LEFT JOIN giang_vien gv ON lhp.giang_vien_id = gv.id
 				WHERE ct.danh_sach_lop_id = ?
-							""";
+											""";
 
 		List<DanhSachLopChiTiet> result = new ArrayList<>();
 
@@ -363,8 +375,11 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 				    nd.id AS nd_id,
 				    nd.ten_dang_nhap,
 				    nd.mat_khau_hash,
-				    nd.role_id,
+				    nd.role_id AS vt_id,
 				    nd.ngay_tao AS nd_ngay_tao,
+
+				    vt.id AS vt_id,
+				    vt.ten_vai_tro,
 
 				    hk.id AS hk_id,
 				    hk.ten_hoc_ky,
@@ -373,6 +388,7 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 				FROM danh_sach_lop dsl
 				JOIN nguoi_dung nd ON dsl.nguoi_tao_id = nd.id
 				LEFT JOIN hoc_ky hk ON dsl.hoc_ky_id = hk.id
+				LEFT JOIN vai_tro vt ON nd.role_id = vt.id
 				WHERE dsl.id = ?
 				""";
 

@@ -5,7 +5,7 @@ import vn.edu.haui.scheduler.application.exception.EntityNotFoundException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
 import vn.edu.haui.scheduler.application.port.out.HocKyRepository;
 import vn.edu.haui.scheduler.domain.model.HocKy;
-import vn.edu.haui.scheduler.infrastructure.persistence.config.TransactionManagerImpl;
+import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper.HocKyJdbcMapper;
 
 import java.sql.*;
@@ -15,11 +15,8 @@ import java.util.Optional;
 
 public class JdbcHocKyRepository implements HocKyRepository
 {
-	private final TransactionManagerImpl transactionManager;
-
-	public JdbcHocKyRepository(TransactionManagerImpl transactionManager)
+	public JdbcHocKyRepository()
 	{
-		this.transactionManager = transactionManager;
 	}
 
 	@Override
@@ -41,7 +38,7 @@ public class JdbcHocKyRepository implements HocKyRepository
 				VALUES (?, ?)
 				""";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 			ps.setString(1, hocKy.getTenHocKy());
 			ps.setString(2, hocKy.getNamHoc());
@@ -73,7 +70,7 @@ public class JdbcHocKyRepository implements HocKyRepository
 				WHERE id = ?
 				""";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setString(1, hocKy.getTenHocKy());
 			ps.setString(2, hocKy.getNamHoc());
@@ -100,7 +97,7 @@ public class JdbcHocKyRepository implements HocKyRepository
 				WHERE id = ?
 				""";
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setLong(1, id);
 
@@ -125,7 +122,7 @@ public class JdbcHocKyRepository implements HocKyRepository
 				WHERE ten_hoc_ky = ? AND nam_hoc = ?
 				""";
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setString(1, tenHocKy);
 			ps.setString(2, namHoc);
@@ -153,7 +150,7 @@ public class JdbcHocKyRepository implements HocKyRepository
 
 		List<HocKy> result = new ArrayList<>();
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql);
 				ResultSet rs = ps.executeQuery()) {
 			while(rs.next()) {
@@ -172,7 +169,7 @@ public class JdbcHocKyRepository implements HocKyRepository
 	{
 		String sql = "DELETE FROM hoc_ky WHERE id = ?";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setLong(1, id);
 

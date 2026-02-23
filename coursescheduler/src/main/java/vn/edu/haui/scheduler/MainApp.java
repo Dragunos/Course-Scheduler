@@ -1,7 +1,5 @@
 package vn.edu.haui.scheduler;
 
-import javax.sql.DataSource;
-
 import javafx.application.Application;
 import javafx.stage.Stage;
 
@@ -26,10 +24,6 @@ public class MainApp extends Application
 	{
 		FxConfig.apply(stage);
 
-		DataSource ds = DataSourceProvider.getDataSource();
-
-		TransactionManagerImpl txManager = new TransactionManagerImpl(ds);
-
 		CompositeFileExporter fileExporter = new CompositeFileExporter(
 				new CsvExporter(),
 				new ExcelExporter(),
@@ -37,16 +31,16 @@ public class MainApp extends Application
 		IcsExporter icsExporter = new IcsExporter();
 
 		// ===== REPOSITORIES =====
-		NguoiDungRepository nguoiDungRepo = new JdbcNguoiDungRepository(txManager);
-		VaiTroRepository vaiTroRepo = new JdbcVaiTroRepository(txManager);
-		HocPhanRepository hocPhanRepo = new JdbcHocPhanRepository(txManager);
-		GiangVienRepository giangVienRepo = new JdbcGiangVienRepository(txManager);
-		LopHocPhanRepository lopRepo = new JdbcLopHocPhanRepository(txManager);
-		DanhSachLopRepository danhSachRepo = new JdbcDanhSachLopRepository(txManager);
-		TepTaiLenRepository tepRepo = new JdbcTepTaiLenRepository(txManager);
-		HocKyRepository hocKyRepo = new JdbcHocKyRepository(txManager);
-		ThoiKhoaBieuRepository thoiKbRepo = new JdbcThoiKhoaBieuRepository(txManager);
-		YeuCauRepository yeuCauRepo = new JdbcYeuCauRepository(txManager);
+		NguoiDungRepository nguoiDungRepo = new JdbcNguoiDungRepository();
+		VaiTroRepository vaiTroRepo = new JdbcVaiTroRepository();
+		HocPhanRepository hocPhanRepo = new JdbcHocPhanRepository();
+		GiangVienRepository giangVienRepo = new JdbcGiangVienRepository();
+		LopHocPhanRepository lopRepo = new JdbcLopHocPhanRepository();
+		DanhSachLopRepository danhSachRepo = new JdbcDanhSachLopRepository();
+		TepTaiLenRepository tepRepo = new JdbcTepTaiLenRepository();
+		HocKyRepository hocKyRepo = new JdbcHocKyRepository();
+		ThoiKhoaBieuRepository thoiKbRepo = new JdbcThoiKhoaBieuRepository();
+		YeuCauRepository yeuCauRepo = new JdbcYeuCauRepository();
 
 		// ===== IMPORTER =====
 		ExcelDanhSachLopImporter importer = new ExcelDanhSachLopImporter();
@@ -56,27 +50,18 @@ public class MainApp extends Application
 		AuthUseCase authUseCase = new AuthService(
 				nguoiDungRepo,
 				vaiTroRepo,
-				new PasswordHasher(),
-				txManager);
+				new PasswordHasher());
 
-		ImportDanhSachLopUseCase importDanhSachLopUc = new ImportDanhSachLopService(
-				importer,
-				danhSachRepo,
-				hocPhanRepo,
-				giangVienRepo,
-				lopRepo,
-				nguoiDungRepo,
-				hocKyRepo,
-				tepRepo,
-				txManager);
+		ImportDanhSachLopUseCase importDanhSachLopUc = new ImportDanhSachLopService(importer, danhSachRepo, hocPhanRepo,
+				giangVienRepo, lopRepo, nguoiDungRepo, hocKyRepo, tepRepo);
 		ManageDanhSachLopUseCase manageDanhSachLopUc = new ManageDanhSachLopService(danhSachRepo, nguoiDungRepo,
-				hocKyRepo, lopRepo, txManager);
+				hocKyRepo, lopRepo);
 
 		ExportDanhSachLopUseCase exportDanhSachLopUc = new ExportDanhSachLopService(danhSachRepo, nguoiDungRepo,
 				fileExporter);
 
 		GenerateThoiKhoaBieuUseCase generateThoiKhoaBieuUc = new GenerateThoiKhoaBieuService(nguoiDungRepo,
-				danhSachRepo, thoiKbRepo, yeuCauRepo, txManager);
+				danhSachRepo, thoiKbRepo, yeuCauRepo);
 
 		ManageThoiKhoaBieuUseCase manageThoiKhoaBieuUc = new ManageThoiKhoaBieuService(thoiKbRepo);
 
@@ -84,7 +69,7 @@ public class MainApp extends Application
 				icsExporter);
 
 		AdminDanhSachLopUseCase adminDanhSachLopUc = new AdminDanhSachLopService(danhSachRepo, nguoiDungRepo, hocKyRepo,
-				importDanhSachLopUc, txManager);
+				importDanhSachLopUc);
 
 		// ===== UI =====
 		ScreenManager screenManager = new ScreenManager(stage, authUseCase);

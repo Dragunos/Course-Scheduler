@@ -10,11 +10,9 @@ import javafx.scene.layout.VBox;
 import vn.edu.haui.scheduler.application.dto.DanhSachLopChiTietDto;
 import vn.edu.haui.scheduler.application.dto.DanhSachLopDto;
 import vn.edu.haui.scheduler.application.dto.LichHocDto;
-import vn.edu.haui.scheduler.application.dto.LopHocPhanDto;
 import vn.edu.haui.scheduler.application.exception.DataAccessException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
 import vn.edu.haui.scheduler.application.port.in.ManageDanhSachLopUseCase;
-import vn.edu.haui.scheduler.domain.enums.ThuTrongTuan;
 import vn.edu.haui.scheduler.ui.fx.ScreenManager;
 import vn.edu.haui.scheduler.ui.util.UiUtils;
 
@@ -223,11 +221,11 @@ public class ManageDanhSachLopPaneHandler
 
 				String value = lichList.stream()
 						.map(l -> toThuLabel(l.getThu()) +
-						        " (Tiết " +
-						        l.getTietBatDau() +
-						        "-" +
-						        l.getTietKetThuc() +
-						        ")")
+								" (Tiết " +
+								l.getTietBatDau() +
+								"-" +
+								l.getTietKetThuc() +
+								")")
 						.collect(Collectors.joining("; "));
 
 				return new SimpleStringProperty(value);
@@ -376,20 +374,20 @@ public class ManageDanhSachLopPaneHandler
 		}
 		return true;
 	}
-	
+
 	private String toThuLabel(Integer thu)
 	{
-	    if(thu == null) return "";
+		if(thu == null) return "";
 
-	    return switch(thu) {
-	        case 1 -> "Thứ Hai";
-	        case 2 -> "Thứ Ba";
-	        case 3 -> "Thứ Tư";
-	        case 4 -> "Thứ Năm";
-	        case 5 -> "Thứ Sáu";
-	        case 6 -> "Thứ Bảy";
-	        case 7 -> "Chủ Nhật";
-	        default -> "N/A";
-	    };
+		return switch(thu) {
+			case 1 -> "Thứ Hai";
+			case 2 -> "Thứ Ba";
+			case 3 -> "Thứ Tư";
+			case 4 -> "Thứ Năm";
+			case 5 -> "Thứ Sáu";
+			case 6 -> "Thứ Bảy";
+			case 7 -> "Chủ Nhật";
+			default -> "N/A";
+		};
 	}
 }

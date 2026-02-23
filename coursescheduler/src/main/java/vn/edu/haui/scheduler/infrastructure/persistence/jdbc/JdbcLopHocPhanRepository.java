@@ -5,7 +5,7 @@ import vn.edu.haui.scheduler.application.exception.EntityNotFoundException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
 import vn.edu.haui.scheduler.application.port.out.LopHocPhanRepository;
 import vn.edu.haui.scheduler.domain.model.*;
-import vn.edu.haui.scheduler.infrastructure.persistence.config.TransactionManagerImpl;
+import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper.*;
 
 import java.sql.*;
@@ -15,11 +15,9 @@ import java.util.Optional;
 
 public class JdbcLopHocPhanRepository implements LopHocPhanRepository
 {
-	private final TransactionManagerImpl transactionManager;
-
 	private static final String BASE_SELECT_QUERY = """
-			SELECT lhp.id,
-			       lhp.ma_lop,
+			SELECT lhp.id as lhp_id,
+			       lhp.ma_lop as lhp_ma_lop,
 			       lhp.hinh_thuc_day,
 			       lhp.dia_diem,
 			       hp.id AS hoc_phan_id,
@@ -33,9 +31,8 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepository
 			LEFT JOIN giang_vien gv ON lhp.giang_vien_id = gv.id
 			""";
 
-	public JdbcLopHocPhanRepository(TransactionManagerImpl transactionManager)
+	public JdbcLopHocPhanRepository()
 	{
-		this.transactionManager = transactionManager;
 	}
 
 	@Override
@@ -82,7 +79,7 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepository
 				generatedId = rs.getLong(1);
 			}
 
-			insertLichHoc(generatedId, lopHocPhan.getLichHocList());
+			insertLichHoc(ps.getConnection(), generatedId, lopHocPhan.getLichHocList());
 
 			return LopHocPhan.reconstruct(
 					generatedId,
@@ -123,8 +120,8 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepository
 			if(affected == 0)
 				throw new EntityNotFoundException("LopHocPhan", lopHocPhan.getId());
 
-			deleteAllLichHoc(lopHocPhan.getId());
-			insertLichHoc(lopHocPhan.getId(), lopHocPhan.getLichHocList());
+			deleteAllLichHoc(ps.getConnection(), lopHocPhan.getId());
+			insertLichHoc(ps.getConnection(), lopHocPhan.getId(), lopHocPhan.getLichHocList());
 
 			return lopHocPhan;
 		});
@@ -135,7 +132,7 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepository
 	{
 		String sql = buildQuery("WHERE lhp.id = ?");
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setLong(1, id);
 
@@ -158,7 +155,7 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepository
 
 		List<LopHocPhan> result = new ArrayList<>();
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setLong(1, hocPhanId);
 
@@ -183,7 +180,7 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepository
 
 		List<LopHocPhan> result = new ArrayList<>();
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql);
 				ResultSet rs = ps.executeQuery()) {
 			while(rs.next()) {
@@ -257,7 +254,7 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepository
 		return result;
 	}
 
-	private void insertLichHoc(Long lopHocPhanId, List<LichHoc> lichHocList)
+	private void insertLichHoc(Connection conn, Long lopHocPhanId, List<LichHoc> lichHocList)
 	{
 		if(lichHocList == null || lichHocList.isEmpty())
 			return;
@@ -267,8 +264,6 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepository
 				(lop_hoc_phan_id, thu, tiet_bat_dau, tiet_ket_thuc)
 				VALUES (?, ?, ?, ?)
 				""";
-
-		Connection conn = transactionManager.getRequiredConnection();
 
 		try (PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -292,11 +287,9 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepository
 		}
 	}
 
-	private void deleteAllLichHoc(Long lopHocPhanId)
+	private void deleteAllLichHoc(Connection conn, Long lopHocPhanId)
 	{
 		String sql = "DELETE FROM lich_hoc WHERE lop_hoc_phan_id = ?";
-
-		Connection conn = transactionManager.getRequiredConnection();
 
 		try (PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -316,16 +309,29 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepository
 			boolean returnGeneratedKeys,
 			SqlFunction<PreparedStatement, T> executor)
 	{
-		Connection conn = transactionManager.getRequiredConnection();
+		try (Connection conn = DataSourceProvider.getConnection()) {
+			conn.setAutoCommit(false);
 
-		try (PreparedStatement ps = conn.prepareStatement(
-				sql,
-				returnGeneratedKeys
-						? Statement.RETURN_GENERATED_KEYS
-						: Statement.NO_GENERATED_KEYS)) {
-			return executor.apply(ps);
+			try (PreparedStatement ps = conn.prepareStatement(
+					sql,
+					returnGeneratedKeys ? Statement.RETURN_GENERATED_KEYS : Statement.NO_GENERATED_KEYS)) {
+				T result = executor.apply(ps);
+
+				conn.commit();
+
+				return result;
+			}
+			catch(Exception ex) {
+				try {
+					conn.rollback();
+				}
+				catch(SQLException rollbackEx) {
+					ex.addSuppressed(rollbackEx);
+				}
+				throw ex;
+			}
 		}
-		catch(SQLException e) {
+		catch(Exception e) {
 			throw new DataAccessException("Database write operation failed", e);
 		}
 	}
@@ -341,7 +347,6 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepository
 		if(whereClause == null || whereClause.isBlank())
 			return BASE_SELECT_QUERY;
 
-		return BASE_SELECT_QUERY.strip() +
-				" " + whereClause.strip();
+		return BASE_SELECT_QUERY.strip() + " " + whereClause.strip();
 	}
 }

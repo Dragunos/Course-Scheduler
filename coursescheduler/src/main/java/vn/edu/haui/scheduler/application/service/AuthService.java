@@ -12,7 +12,6 @@ import vn.edu.haui.scheduler.application.port.out.VaiTroRepository;
 import vn.edu.haui.scheduler.application.service.mapper.NguoiDungMapper;
 import vn.edu.haui.scheduler.domain.model.NguoiDung;
 import vn.edu.haui.scheduler.domain.model.VaiTro;
-import vn.edu.haui.scheduler.infrastructure.persistence.config.TransactionManager;
 import vn.edu.haui.scheduler.infrastructure.security.PasswordHasher;
 
 public class AuthService implements AuthUseCase
@@ -27,59 +26,53 @@ public class AuthService implements AuthUseCase
 
 	private final PasswordHasher passwordHasher;
 
-	private final TransactionManager transactionManager;
-
 	public AuthService(
 			NguoiDungRepository nguoiDungRepository,
 			VaiTroRepository vaiTroRepository,
-			PasswordHasher passwordHasher,
-			TransactionManager txManager)
+			PasswordHasher passwordHasher)
 	{
 		this.nguoiDungRepository = nguoiDungRepository;
 		this.vaiTroRepository = vaiTroRepository;
 		this.passwordHasher = passwordHasher;
-		this.transactionManager = txManager;
 	}
 
 	@Override
 	public NguoiDungDto register(String tenDangNhapRaw, String matKhau)
 	{
-		return transactionManager.executeInTransaction(() -> {
 
-			if(tenDangNhapRaw == null) {
-				throw new ValidationException("Username must not be null");
-			}
+		if(tenDangNhapRaw == null) {
+			throw new ValidationException("Username must not be null");
+		}
 
-			String tenDangNhap = tenDangNhapRaw.trim().toLowerCase();
+		String tenDangNhap = tenDangNhapRaw.trim().toLowerCase();
 
-			if(tenDangNhap.isEmpty()) {
-				throw new ValidationException("Username must not be blank");
-			}
+		if(tenDangNhap.isEmpty()) {
+			throw new ValidationException("Username must not be blank");
+		}
 
-			if(!USERNAME_PATTERN.matcher(tenDangNhap).matches()) {
-				throw new ValidationException("Username format is invalid");
-			}
+		if(!USERNAME_PATTERN.matcher(tenDangNhap).matches()) {
+			throw new ValidationException("Username format is invalid");
+		}
 
-			if(matKhau == null || matKhau.length() < 6) {
-				throw new ValidationException("Password must be at least 6 characters");
-			}
+		if(matKhau == null || matKhau.length() < 6) {
+			throw new ValidationException("Password must be at least 6 characters");
+		}
 
-			VaiTro vaiTro = vaiTroRepository
-					.findByTen(DEFAULT_ROLE_NAME)
-					.orElseThrow(() -> new EntityNotFoundException(
-							"VaiTro", "ten", DEFAULT_ROLE_NAME));
+		VaiTro vaiTro = vaiTroRepository
+				.findByTen(DEFAULT_ROLE_NAME)
+				.orElseThrow(() -> new EntityNotFoundException(
+						"VaiTro", "ten", DEFAULT_ROLE_NAME));
 
-			String hash = passwordHasher.hash(matKhau);
+		String hash = passwordHasher.hash(matKhau);
 
-			NguoiDung domain = NguoiDung.create(
-					tenDangNhap,
-					hash,
-					vaiTro);
+		NguoiDung domain = NguoiDung.create(
+				tenDangNhap,
+				hash,
+				vaiTro);
 
-			NguoiDung saved = nguoiDungRepository.save(domain);
+		NguoiDung saved = nguoiDungRepository.save(domain);
 
-			return NguoiDungMapper.toDto(saved);
-		});
+		return NguoiDungMapper.toDto(saved);
 	}
 
 	@Override

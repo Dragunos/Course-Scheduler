@@ -52,6 +52,7 @@ public class AuthViewModel
 			onError(e.getMessage());
 		}
 		catch(TechnicalException e) {
+			e.printStackTrace();
 			onError("Lỗi hệ thống. Vui lòng thử lại.");
 		}
 		finally {
@@ -85,6 +86,7 @@ public class AuthViewModel
 			onError(e.getMessage());
 		}
 		catch(TechnicalException e) {
+			e.printStackTrace();
 			onError("Lỗi hệ thống. Vui lòng thử lại.");
 		}
 		finally {

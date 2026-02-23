@@ -5,7 +5,7 @@ import vn.edu.haui.scheduler.application.exception.EntityNotFoundException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
 import vn.edu.haui.scheduler.application.port.out.VaiTroRepository;
 import vn.edu.haui.scheduler.domain.model.VaiTro;
-import vn.edu.haui.scheduler.infrastructure.persistence.config.TransactionManagerImpl;
+import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper.VaiTroJdbcMapper;
 
 import java.sql.*;
@@ -15,17 +15,14 @@ import java.util.Optional;
 
 public class JdbcVaiTroRepository implements VaiTroRepository
 {
-	private final TransactionManagerImpl transactionManager;
-
 	private static final String BASE_SELECT_QUERY = """
 			SELECT id,
 			       ten_vai_tro
 			FROM vai_tro
 			""";
 
-	public JdbcVaiTroRepository(TransactionManagerImpl transactionManager)
+	public JdbcVaiTroRepository()
 	{
-		this.transactionManager = transactionManager;
 	}
 
 	@Override
@@ -100,7 +97,7 @@ public class JdbcVaiTroRepository implements VaiTroRepository
 	{
 		String sql = buildQuery("WHERE id = ?");
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 
 			ps.setLong(1, id);
@@ -122,8 +119,8 @@ public class JdbcVaiTroRepository implements VaiTroRepository
 	{
 		String sql = buildQuery("WHERE ten_vai_tro = ?");
 
-		Connection conn = transactionManager.getConnection();
-		try (PreparedStatement ps = conn.prepareStatement(sql)) {
+		try (Connection conn = DataSourceProvider.getConnection();
+				PreparedStatement ps = conn.prepareStatement(sql)) {
 
 			ps.setString(1, tenVaiTro);
 
@@ -146,7 +143,7 @@ public class JdbcVaiTroRepository implements VaiTroRepository
 
 		List<VaiTro> result = new ArrayList<>();
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql);
 				ResultSet rs = ps.executeQuery()) {
 
@@ -183,27 +180,35 @@ public class JdbcVaiTroRepository implements VaiTroRepository
 		});
 	}
 
-	// ===== Write Execution Wrapper =====
-
 	private <T> T executeWrite(
 			String sql,
 			boolean returnGeneratedKeys,
 			SqlFunction<PreparedStatement, T> executor)
 	{
-		Connection conn = transactionManager.getRequiredConnection();
+		try (Connection conn = DataSourceProvider.getConnection()) {
+			conn.setAutoCommit(false);
 
-		try (PreparedStatement ps = conn.prepareStatement(
-				sql,
-				returnGeneratedKeys
-						? Statement.RETURN_GENERATED_KEYS
-						: Statement.NO_GENERATED_KEYS)) {
+			try (PreparedStatement ps = conn.prepareStatement(
+					sql,
+					returnGeneratedKeys ? Statement.RETURN_GENERATED_KEYS : Statement.NO_GENERATED_KEYS)) {
+				T result = executor.apply(ps);
 
-			return executor.apply(ps);
+				conn.commit();
+
+				return result;
+			}
+			catch(Exception ex) {
+				try {
+					conn.rollback();
+				}
+				catch(SQLException rollbackEx) {
+					ex.addSuppressed(rollbackEx);
+				}
+				throw ex;
+			}
 		}
 		catch(Exception e) {
-			throw new DataAccessException(
-					"Database write operation failed",
-					e);
+			throw new DataAccessException("Database write operation failed", e);
 		}
 	}
 
@@ -219,6 +224,6 @@ public class JdbcVaiTroRepository implements VaiTroRepository
 	@FunctionalInterface
 	private interface SqlFunction<T, R>
 	{
-		R apply(T t) throws Exception;
+		R apply(T t) throws SQLException;
 	}
 }

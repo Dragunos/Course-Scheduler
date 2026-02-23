@@ -13,7 +13,6 @@ import vn.edu.haui.scheduler.application.service.mapper.ThoiKhoaBieuMapper;
 import vn.edu.haui.scheduler.domain.model.*;
 import vn.edu.haui.scheduler.domain.optimizer.Optimizer;
 import vn.edu.haui.scheduler.domain.optimizer.PhuongAnThoiKhoaBieu;
-import vn.edu.haui.scheduler.infrastructure.persistence.config.TransactionManager;
 
 public class GenerateThoiKhoaBieuService implements GenerateThoiKhoaBieuUseCase
 {
@@ -27,20 +26,16 @@ public class GenerateThoiKhoaBieuService implements GenerateThoiKhoaBieuUseCase
 
 	private final YeuCauRepository yeuCauRepository;
 
-	private final TransactionManager transactionManager;
-
 	public GenerateThoiKhoaBieuService(
 			NguoiDungRepository nguoiDungRepository,
 			DanhSachLopRepository danhSachLopRepository,
 			ThoiKhoaBieuRepository thoiKhoaBieuRepository,
-			YeuCauRepository yeuCauRepository,
-			TransactionManager transactionManager)
+			YeuCauRepository yeuCauRepository)
 	{
 		this.nguoiDungRepository = nguoiDungRepository;
 		this.danhSachLopRepository = danhSachLopRepository;
 		this.thoiKhoaBieuRepository = thoiKhoaBieuRepository;
 		this.yeuCauRepository = yeuCauRepository;
-		this.transactionManager = transactionManager;
 	}
 
 	@Override
@@ -164,43 +159,33 @@ public class GenerateThoiKhoaBieuService implements GenerateThoiKhoaBieuUseCase
 				.findById(nguoiDungId)
 				.orElseThrow(() -> new EntityNotFoundException("NguoiDung", nguoiDungId));
 
-		transactionManager.begin();
-		try {
+		for(ThoiKhoaBieuDto dto : selectedDtos) {
 
-			for(ThoiKhoaBieuDto dto : selectedDtos) {
+			DanhSachLop danhSach = danhSachLopRepository
+					.findById(dto.getDanhSachLopId())
+					.orElseThrow(() -> new EntityNotFoundException(
+							"DanhSachLop",
+							dto.getDanhSachLopId()));
 
-				DanhSachLop danhSach = danhSachLopRepository
-						.findById(dto.getDanhSachLopId())
-						.orElseThrow(() -> new EntityNotFoundException(
-								"DanhSachLop",
-								dto.getDanhSachLopId()));
+			Set<Long> selectedIds = new HashSet<>(dto.getLopHocPhanIdList());
+			List<LopHocPhan> cacLop = danhSach
+					.getChiTietList()
+					.stream()
+					.map(DanhSachLopChiTiet::getLopHocPhan)
+					.filter(lop -> selectedIds.contains(lop.getId()))
+					.toList();
 
-				Set<Long> selectedIds = new HashSet<>(dto.getLopHocPhanIdList());
-				List<LopHocPhan> cacLop = danhSach
-						.getChiTietList()
-						.stream()
-						.map(DanhSachLopChiTiet::getLopHocPhan)
-						.filter(lop -> selectedIds.contains(lop.getId()))
-						.toList();
+			ThoiKhoaBieu domain = ThoiKhoaBieuMapper.toDomain(
+					dto,
+					nguoiDung,
+					danhSach,
+					cacLop);
 
-				ThoiKhoaBieu domain = ThoiKhoaBieuMapper.toDomain(
-						dto,
-						nguoiDung,
-						danhSach,
-						cacLop);
-
-				if(overwrite && domain.getId() != null) {
-					thoiKhoaBieuRepository.deleteById(domain.getId());
-				}
-
-				thoiKhoaBieuRepository.save(domain);
+			if(overwrite && domain.getId() != null) {
+				thoiKhoaBieuRepository.deleteById(domain.getId());
 			}
 
-			transactionManager.commit();
-		}
-		catch(Exception e) {
-			transactionManager.rollback();
-			throw e;
+			thoiKhoaBieuRepository.save(domain);
 		}
 	}
 }

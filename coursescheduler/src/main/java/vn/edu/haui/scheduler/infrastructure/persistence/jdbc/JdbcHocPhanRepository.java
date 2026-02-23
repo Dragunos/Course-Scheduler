@@ -5,7 +5,7 @@ import vn.edu.haui.scheduler.application.exception.EntityNotFoundException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
 import vn.edu.haui.scheduler.application.port.out.HocPhanRepository;
 import vn.edu.haui.scheduler.domain.model.HocPhan;
-import vn.edu.haui.scheduler.infrastructure.persistence.config.TransactionManagerImpl;
+import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper.HocPhanJdbcMapper;
 
 import java.sql.*;
@@ -15,11 +15,8 @@ import java.util.Optional;
 
 public class JdbcHocPhanRepository implements HocPhanRepository
 {
-	private final TransactionManagerImpl transactionManager;
-
-	public JdbcHocPhanRepository(TransactionManagerImpl transactionManager)
+	public JdbcHocPhanRepository()
 	{
-		this.transactionManager = transactionManager;
 	}
 
 	@Override
@@ -42,7 +39,7 @@ public class JdbcHocPhanRepository implements HocPhanRepository
 				VALUES (?, ?, ?)
 				""";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 			ps.setString(1, hocPhan.getMaHocPhan());
 			ps.setString(2, hocPhan.getTenHocPhan());
@@ -76,7 +73,7 @@ public class JdbcHocPhanRepository implements HocPhanRepository
 				WHERE id = ?
 				""";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setString(1, hocPhan.getTenHocPhan());
 			ps.setInt(2, hocPhan.getSoTinChi());
@@ -103,7 +100,7 @@ public class JdbcHocPhanRepository implements HocPhanRepository
 				WHERE id = ?
 				""";
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setLong(1, id);
 
@@ -128,7 +125,7 @@ public class JdbcHocPhanRepository implements HocPhanRepository
 				WHERE ma_hoc_phan = ?
 				""";
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setString(1, maHocPhan);
 
@@ -155,7 +152,7 @@ public class JdbcHocPhanRepository implements HocPhanRepository
 
 		List<HocPhan> result = new ArrayList<>();
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql);
 				ResultSet rs = ps.executeQuery()) {
 			while(rs.next()) {
@@ -174,7 +171,7 @@ public class JdbcHocPhanRepository implements HocPhanRepository
 	{
 		String sql = "DELETE FROM hoc_phan WHERE id = ?";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setLong(1, id);
 

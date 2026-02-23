@@ -5,7 +5,7 @@ import vn.edu.haui.scheduler.application.exception.EntityNotFoundException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
 import vn.edu.haui.scheduler.application.port.out.GiangVienRepository;
 import vn.edu.haui.scheduler.domain.model.GiangVien;
-import vn.edu.haui.scheduler.infrastructure.persistence.config.TransactionManagerImpl;
+import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper.GiangVienJdbcMapper;
 
 import java.sql.*;
@@ -15,11 +15,8 @@ import java.util.Optional;
 
 public class JdbcGiangVienRepository implements GiangVienRepository
 {
-	private final TransactionManagerImpl transactionManager;
-
-	public JdbcGiangVienRepository(TransactionManagerImpl transactionManager)
+	public JdbcGiangVienRepository()
 	{
-		this.transactionManager = transactionManager;
 	}
 
 	@Override
@@ -41,7 +38,7 @@ public class JdbcGiangVienRepository implements GiangVienRepository
 				VALUES (?)
 				""";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 			ps.setString(1, giangVien.getTenGiangVien());
 
@@ -71,7 +68,7 @@ public class JdbcGiangVienRepository implements GiangVienRepository
 				WHERE id = ?
 				""";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setString(1, giangVien.getTenGiangVien());
 			ps.setLong(2, giangVien.getId());
@@ -97,7 +94,7 @@ public class JdbcGiangVienRepository implements GiangVienRepository
 				WHERE id = ?
 				""";
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setLong(1, id);
 
@@ -122,7 +119,7 @@ public class JdbcGiangVienRepository implements GiangVienRepository
 				WHERE ten_giang_vien = ?
 				""";
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setString(1, tenGiangVien);
 
@@ -149,7 +146,7 @@ public class JdbcGiangVienRepository implements GiangVienRepository
 
 		List<GiangVien> result = new ArrayList<>();
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql);
 				ResultSet rs = ps.executeQuery()) {
 			while(rs.next()) {
@@ -168,7 +165,7 @@ public class JdbcGiangVienRepository implements GiangVienRepository
 	{
 		String sql = "DELETE FROM giang_vien WHERE id = ?";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setLong(1, id);
 

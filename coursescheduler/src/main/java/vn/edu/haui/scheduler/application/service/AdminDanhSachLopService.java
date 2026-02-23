@@ -18,7 +18,6 @@ import vn.edu.haui.scheduler.application.service.mapper.DanhSachLopMapper;
 import vn.edu.haui.scheduler.domain.model.DanhSachLop;
 import vn.edu.haui.scheduler.domain.model.HocKy;
 import vn.edu.haui.scheduler.domain.model.NguoiDung;
-import vn.edu.haui.scheduler.infrastructure.persistence.config.TransactionManager;
 
 public class AdminDanhSachLopService implements AdminDanhSachLopUseCase
 {
@@ -32,20 +31,16 @@ public class AdminDanhSachLopService implements AdminDanhSachLopUseCase
 
 	private final ImportDanhSachLopUseCase importDanhSachLopService;
 
-	private final TransactionManager transactionManager;
-
 	public AdminDanhSachLopService(
 			DanhSachLopRepository danhSachLopRepository,
 			NguoiDungRepository nguoiDungRepository,
 			HocKyRepository hocKyRepository,
-			ImportDanhSachLopUseCase importDanhSachLopService,
-			TransactionManager transactionManager)
+			ImportDanhSachLopUseCase importDanhSachLopService)
 	{
 		this.danhSachLopRepository = danhSachLopRepository;
 		this.nguoiDungRepository = nguoiDungRepository;
 		this.hocKyRepository = hocKyRepository;
 		this.importDanhSachLopService = importDanhSachLopService;
-		this.transactionManager = transactionManager;
 	}
 
 	@Override
@@ -74,24 +69,15 @@ public class AdminDanhSachLopService implements AdminDanhSachLopUseCase
 				hocKy.getId(),
 				tepTaiLenDto);
 
-		transactionManager.begin();
-		try {
-			DanhSachLop domain = danhSachLopRepository
-					.findById(imported.getId())
-					.orElseThrow(() -> new EntityNotFoundException("DanhSachLop", imported.getId()));
+		DanhSachLop domain = danhSachLopRepository
+				.findById(imported.getId())
+				.orElseThrow(() -> new EntityNotFoundException("DanhSachLop", imported.getId()));
 
-			domain.congKhai();
+		domain.congKhai();
 
-			DanhSachLop saved = danhSachLopRepository.save(domain);
+		DanhSachLop saved = danhSachLopRepository.save(domain);
 
-			transactionManager.commit();
-
-			return DanhSachLopMapper.toDto(saved);
-		}
-		catch(Exception e) {
-			transactionManager.rollback();
-			throw new ImportDanhSachLopException("Cannot import public DanhSachLop", e);
-		}
+		return DanhSachLopMapper.toDto(saved);
 	}
 
 	@Override
@@ -110,15 +96,7 @@ public class AdminDanhSachLopService implements AdminDanhSachLopUseCase
 			throw new ValidationException("DanhSachLop is not public");
 		}
 
-		transactionManager.begin();
-		try {
-			danhSachLopRepository.deleteById(danhSachLopId);
-			transactionManager.commit();
-		}
-		catch(Exception e) {
-			transactionManager.rollback();
-			throw e;
-		}
+		danhSachLopRepository.deleteById(danhSachLopId);
 	}
 
 	private void validateAdmin(Long adminId)

@@ -14,17 +14,17 @@ public class NguoiDungJdbcMapper
 
 		VaiTro vaiTro = null;
 
-		Long vaiTroId = JdbcMapperUtil.getLong(rs, "vai_tro_id");
+		Long vaiTroId = JdbcMapperUtil.getLong(rs, "vt_id");
 
 		if(vaiTroId != null) {
 			vaiTro = VaiTroJdbcMapper.toDomain(rs);
 		}
 
 		return NguoiDung.reconstruct(
-				rs.getLong("id"),
+				rs.getLong("nd_id"),
 				rs.getString("ten_dang_nhap"),
 				rs.getString("mat_khau_hash"),
 				vaiTro,
-				JdbcMapperUtil.getLocalDateTime(rs, "ngay_tao"));
+				JdbcMapperUtil.getLocalDateTime(rs, "nd_ngay_tao"));
 	}
 }

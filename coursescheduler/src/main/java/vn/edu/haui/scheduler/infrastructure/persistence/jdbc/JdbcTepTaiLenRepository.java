@@ -5,7 +5,7 @@ import vn.edu.haui.scheduler.application.exception.EntityNotFoundException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
 import vn.edu.haui.scheduler.application.port.out.TepTaiLenRepository;
 import vn.edu.haui.scheduler.domain.model.TepTaiLen;
-import vn.edu.haui.scheduler.infrastructure.persistence.config.TransactionManagerImpl;
+import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper.TepTaiLenJdbcMapper;
 
 import java.sql.*;
@@ -15,16 +15,13 @@ import java.util.Optional;
 
 public class JdbcTepTaiLenRepository implements TepTaiLenRepository
 {
-	private final TransactionManagerImpl transactionManager;
-
 	private static final String BASE_SELECT_QUERY = """
 			SELECT *
 			FROM tep_tai_len
 			""";
 
-	public JdbcTepTaiLenRepository(TransactionManagerImpl transactionManager)
+	public JdbcTepTaiLenRepository()
 	{
-		this.transactionManager = transactionManager;
 	}
 
 	@Override
@@ -144,7 +141,7 @@ public class JdbcTepTaiLenRepository implements TepTaiLenRepository
 	{
 		String sql = buildQuery("WHERE id = ?");
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 
 			ps.setLong(1, id);
@@ -170,7 +167,7 @@ public class JdbcTepTaiLenRepository implements TepTaiLenRepository
 
 		List<TepTaiLen> result = new ArrayList<>();
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 
 			ps.setLong(1, nguoiTaoId);
@@ -215,20 +212,30 @@ public class JdbcTepTaiLenRepository implements TepTaiLenRepository
 			boolean returnGeneratedKeys,
 			SqlFunction<PreparedStatement, T> executor)
 	{
-		Connection conn = transactionManager.getRequiredConnection();
+		try (Connection conn = DataSourceProvider.getConnection()) {
+			conn.setAutoCommit(false);
 
-		try (PreparedStatement ps = conn.prepareStatement(
-				sql,
-				returnGeneratedKeys
-						? Statement.RETURN_GENERATED_KEYS
-						: Statement.NO_GENERATED_KEYS)) {
+			try (PreparedStatement ps = conn.prepareStatement(
+					sql,
+					returnGeneratedKeys ? Statement.RETURN_GENERATED_KEYS : Statement.NO_GENERATED_KEYS)) {
+				T result = executor.apply(ps);
 
-			return executor.apply(ps);
+				conn.commit();
+
+				return result;
+			}
+			catch(Exception ex) {
+				try {
+					conn.rollback();
+				}
+				catch(SQLException rollbackEx) {
+					ex.addSuppressed(rollbackEx);
+				}
+				throw ex;
+			}
 		}
-		catch(SQLException e) {
-			throw new DataAccessException(
-					"Database write operation failed",
-					e);
+		catch(Exception e) {
+			throw new DataAccessException("Database write operation failed", e);
 		}
 	}
 

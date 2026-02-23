@@ -5,7 +5,7 @@ import vn.edu.haui.scheduler.application.exception.EntityNotFoundException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
 import vn.edu.haui.scheduler.application.port.out.ThoiKhoaBieuRepository;
 import vn.edu.haui.scheduler.domain.model.*;
-import vn.edu.haui.scheduler.infrastructure.persistence.config.TransactionManagerImpl;
+import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper.*;
 
 import java.sql.*;
@@ -13,11 +13,9 @@ import java.util.*;
 
 public class JdbcThoiKhoaBieuRepository implements ThoiKhoaBieuRepository
 {
-	private final TransactionManagerImpl transactionManager;
 
-	public JdbcThoiKhoaBieuRepository(TransactionManagerImpl transactionManager)
+	public JdbcThoiKhoaBieuRepository()
 	{
-		this.transactionManager = transactionManager;
 	}
 
 	@Override
@@ -40,7 +38,7 @@ public class JdbcThoiKhoaBieuRepository implements ThoiKhoaBieuRepository
 				VALUES (?, ?, ?, ?, ?)
 				""";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 			ps.setLong(1, tkb.getNguoiDung().getId());
 			ps.setLong(2, tkb.getDanhSachLop().getId());
@@ -88,7 +86,7 @@ public class JdbcThoiKhoaBieuRepository implements ThoiKhoaBieuRepository
 				WHERE id = ?
 				""";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setString(1, tkb.getTenPhuongAn());
 
@@ -128,7 +126,7 @@ public class JdbcThoiKhoaBieuRepository implements ThoiKhoaBieuRepository
 				WHERE tkb.id = ?
 				""";
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setLong(1, id);
 
@@ -164,7 +162,7 @@ public class JdbcThoiKhoaBieuRepository implements ThoiKhoaBieuRepository
 	{
 		List<ThoiKhoaBieu> result = new ArrayList<>();
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setLong(1, param);
 
@@ -186,7 +184,7 @@ public class JdbcThoiKhoaBieuRepository implements ThoiKhoaBieuRepository
 	{
 		String sql = "DELETE FROM thoi_khoa_bieu WHERE id = ?";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setLong(1, id);
 

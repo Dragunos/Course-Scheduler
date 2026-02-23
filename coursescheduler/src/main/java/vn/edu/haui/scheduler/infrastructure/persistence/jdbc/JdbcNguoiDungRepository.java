@@ -5,7 +5,7 @@ import vn.edu.haui.scheduler.application.exception.EntityNotFoundException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
 import vn.edu.haui.scheduler.application.port.out.NguoiDungRepository;
 import vn.edu.haui.scheduler.domain.model.NguoiDung;
-import vn.edu.haui.scheduler.infrastructure.persistence.config.TransactionManagerImpl;
+import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper.NguoiDungJdbcMapper;
 
 import java.sql.*;
@@ -15,22 +15,19 @@ import java.util.Optional;
 
 public class JdbcNguoiDungRepository implements NguoiDungRepository
 {
-	private final TransactionManagerImpl transactionManager;
-
 	private static final String BASE_SELECT_QUERY = """
-			SELECT nd.id,
+			SELECT nd.id as nd_id,
 			       nd.ten_dang_nhap,
 			       nd.mat_khau_hash,
-			       nd.ngay_tao,
-			       vt.id AS vai_tro_id,
+			       nd.ngay_tao as nd_ngay_tao,
+			       vt.id AS vt_id,
 			       vt.ten_vai_tro
 			FROM nguoi_dung nd
 			LEFT JOIN vai_tro vt ON nd.role_id = vt.id
 			""";
 
-	public JdbcNguoiDungRepository(TransactionManagerImpl transactionManager)
+	public JdbcNguoiDungRepository()
 	{
-		this.transactionManager = transactionManager;
 	}
 
 	@Override
@@ -115,7 +112,7 @@ public class JdbcNguoiDungRepository implements NguoiDungRepository
 	{
 		String sql = buildQuery("WHERE nd.id = ?");
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 
 			ps.setLong(1, id);
@@ -137,7 +134,7 @@ public class JdbcNguoiDungRepository implements NguoiDungRepository
 	{
 		String sql = buildQuery("WHERE nd.ten_dang_nhap = ?");
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 
 			ps.setString(1, username);
@@ -161,7 +158,7 @@ public class JdbcNguoiDungRepository implements NguoiDungRepository
 
 		List<NguoiDung> result = new ArrayList<>();
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql);
 				ResultSet rs = ps.executeQuery()) {
 
@@ -200,7 +197,7 @@ public class JdbcNguoiDungRepository implements NguoiDungRepository
 	{
 		String sql = "SELECT 1 FROM nguoi_dung WHERE ten_dang_nhap = ?";
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 
 			ps.setString(1, username);
@@ -220,16 +217,29 @@ public class JdbcNguoiDungRepository implements NguoiDungRepository
 			boolean returnGeneratedKeys,
 			SqlFunction<PreparedStatement, T> executor)
 	{
-		Connection conn = transactionManager.getRequiredConnection();
+		try (Connection conn = DataSourceProvider.getConnection()) {
+			conn.setAutoCommit(false);
 
-		try (PreparedStatement ps = conn.prepareStatement(
-				sql,
-				returnGeneratedKeys ? Statement.RETURN_GENERATED_KEYS : Statement.NO_GENERATED_KEYS)) {
+			try (PreparedStatement ps = conn.prepareStatement(
+					sql,
+					returnGeneratedKeys ? Statement.RETURN_GENERATED_KEYS : Statement.NO_GENERATED_KEYS)) {
+				T result = executor.apply(ps);
 
-			return executor.apply(ps);
+				conn.commit();
 
+				return result;
+			}
+			catch(Exception ex) {
+				try {
+					conn.rollback();
+				}
+				catch(SQLException rollbackEx) {
+					ex.addSuppressed(rollbackEx);
+				}
+				throw ex;
+			}
 		}
-		catch(SQLException e) {
+		catch(Exception e) {
 			throw new DataAccessException("Database write operation failed", e);
 		}
 	}
@@ -240,10 +250,7 @@ public class JdbcNguoiDungRepository implements NguoiDungRepository
 			return BASE_SELECT_QUERY;
 		}
 
-		return BASE_SELECT_QUERY.strip() +
-				(whereClause == null || whereClause.isBlank()
-						? ""
-						: " " + whereClause.strip());
+		return BASE_SELECT_QUERY.strip() + " " + whereClause.strip();
 	}
 
 	@FunctionalInterface

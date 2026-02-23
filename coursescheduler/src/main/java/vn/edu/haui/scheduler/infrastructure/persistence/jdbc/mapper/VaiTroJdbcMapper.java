@@ -10,7 +10,7 @@ public class VaiTroJdbcMapper
 	public static VaiTro toDomain(ResultSet rs)
 	{
 		try {
-			return VaiTro.reconstruct(rs.getLong("id"), rs.getString("ten_vai_tro"));
+			return VaiTro.reconstruct(rs.getLong("vt_id"), rs.getString("ten_vai_tro"));
 		}
 		catch(SQLException e) {
 			throw new DataAccessException("Error mapping VaiTro", e);

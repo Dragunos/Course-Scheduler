@@ -5,7 +5,7 @@ import vn.edu.haui.scheduler.application.exception.EntityNotFoundException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
 import vn.edu.haui.scheduler.application.port.out.YeuCauRepository;
 import vn.edu.haui.scheduler.domain.model.*;
-import vn.edu.haui.scheduler.infrastructure.persistence.config.TransactionManagerImpl;
+import vn.edu.haui.scheduler.infrastructure.persistence.config.DataSourceProvider;
 import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper.*;
 
 import java.sql.*;
@@ -14,11 +14,8 @@ import java.util.*;
 
 public class JdbcYeuCauRepository implements YeuCauRepository
 {
-	private final TransactionManagerImpl transactionManager;
-
-	public JdbcYeuCauRepository(TransactionManagerImpl transactionManager)
+	public JdbcYeuCauRepository()
 	{
-		this.transactionManager = transactionManager;
 	}
 
 	@Override
@@ -41,7 +38,7 @@ public class JdbcYeuCauRepository implements YeuCauRepository
 				VALUES (?, ?, ?, ?)
 				""";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
 			ps.setLong(1, yeuCau.getNguoiTao().getId());
@@ -79,7 +76,7 @@ public class JdbcYeuCauRepository implements YeuCauRepository
 				WHERE id = ?
 				""";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 
 			ps.setString(1, yeuCau.getTenYeuCau());
@@ -112,7 +109,7 @@ public class JdbcYeuCauRepository implements YeuCauRepository
 				       nd.id AS nguoi_dung_id,
 				       nd.ten_dang_nhap,
 				       nd.mat_khau_hash,
-				       v.id AS vai_tro_id,
+				       v.id AS vt_id,
 				       v.ten_vai_tro,
 				       dsl.id AS danh_sach_lop_id,
 				       dsl.ten_danh_sach,
@@ -126,7 +123,7 @@ public class JdbcYeuCauRepository implements YeuCauRepository
 				WHERE yc.id = ?
 								""";
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 
 			ps.setLong(1, id);
@@ -161,7 +158,7 @@ public class JdbcYeuCauRepository implements YeuCauRepository
 	{
 		String sql = "DELETE FROM yeu_cau WHERE id = ?";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 
 			ps.setLong(1, id);
@@ -232,7 +229,7 @@ public class JdbcYeuCauRepository implements YeuCauRepository
 
 		List<YeuCau> result = new ArrayList<>();
 
-		try (Connection conn = transactionManager.getConnection();
+		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 
 			ps.setLong(1, value);
