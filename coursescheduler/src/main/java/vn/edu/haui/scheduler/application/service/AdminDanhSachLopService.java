@@ -10,6 +10,7 @@ import vn.edu.haui.scheduler.application.exception.ImportDanhSachLopException;
 import vn.edu.haui.scheduler.application.exception.UnauthorizedAccessException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
 import vn.edu.haui.scheduler.application.port.in.AdminDanhSachLopUseCase;
+import vn.edu.haui.scheduler.application.port.in.ImportDanhSachLopUseCase;
 import vn.edu.haui.scheduler.application.port.out.DanhSachLopRepository;
 import vn.edu.haui.scheduler.application.port.out.HocKyRepository;
 import vn.edu.haui.scheduler.application.port.out.NguoiDungRepository;
@@ -29,7 +30,7 @@ public class AdminDanhSachLopService implements AdminDanhSachLopUseCase
 
 	private final HocKyRepository hocKyRepository;
 
-	private final ImportDanhSachLopService importDanhSachLopService;
+	private final ImportDanhSachLopUseCase importDanhSachLopService;
 
 	private final TransactionManager transactionManager;
 
@@ -37,7 +38,7 @@ public class AdminDanhSachLopService implements AdminDanhSachLopUseCase
 			DanhSachLopRepository danhSachLopRepository,
 			NguoiDungRepository nguoiDungRepository,
 			HocKyRepository hocKyRepository,
-			ImportDanhSachLopService importDanhSachLopService,
+			ImportDanhSachLopUseCase importDanhSachLopService,
 			TransactionManager transactionManager)
 	{
 		this.danhSachLopRepository = danhSachLopRepository;

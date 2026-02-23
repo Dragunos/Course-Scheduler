@@ -12,6 +12,7 @@ import vn.edu.haui.scheduler.ui.fx.ScreenManager;
 import vn.edu.haui.scheduler.ui.util.UiUtils;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,7 +37,8 @@ public class AdminDanhSachLopPaneHandler
 		AdminDanhSachLopUseCase useCase = screenManager.getQuanTriDanhSachLopUseCase();
 
 		if(useCase == null) {
-			UiUtils.showAlert("Lỗi cấu hình",
+			UiUtils.showAlert(
+					"Lỗi cấu hình",
 					"Chưa cấu hình quản trị danh sách.",
 					Alert.AlertType.ERROR);
 			return;
@@ -50,16 +52,16 @@ public class AdminDanhSachLopPaneHandler
 		VBox listBox = new VBox(10);
 
 		try {
-			List<DanhSachLopDto> list = useCase.getAllDanhSachCongKhai();
+
+			List<DanhSachLopDto> list = useCase.findAllPublic();
 
 			if(list == null || list.isEmpty()) {
-				listBox.getChildren()
-						.add(new Label("Không có danh sách công khai."));
+				listBox.getChildren().add(
+						new Label("Không có danh sách công khai."));
 			}
 			else {
-				for(DanhSachLopDto dto : list) {
+				for(DanhSachLopDto dto : list)
 					listBox.getChildren().add(createCard(dto));
-				}
 			}
 
 			Button importBtn = new Button("Nhập danh sách");
@@ -70,7 +72,8 @@ public class AdminDanhSachLopPaneHandler
 
 		}
 		catch(DataAccessException e) {
-			UiUtils.showAlert("Lỗi hệ thống",
+			UiUtils.showAlert(
+					"Lỗi hệ thống",
 					e.getMessage(),
 					Alert.AlertType.ERROR);
 		}
@@ -82,14 +85,12 @@ public class AdminDanhSachLopPaneHandler
 		Label hocKy = new Label("Học kỳ: " + dto.getHocKyId());
 
 		Button view = new Button("Xem chi tiết");
-		Button edit = new Button("Chỉnh sửa");
 		Button delete = new Button("Xóa");
 
-		view.setOnAction(e -> viewChiTiet(dto.getId()));
-		edit.setOnAction(e -> editDanhSach(dto));
+		view.setOnAction(e -> viewChiTiet(dto));
 		delete.setOnAction(e -> deleteDanhSach(dto.getId()));
 
-		HBox actions = new HBox(10, view, edit, delete);
+		HBox actions = new HBox(10, view, delete);
 
 		VBox card = new VBox(5, ten, hocKy, actions);
 		card.setStyle("-fx-padding:10; -fx-border-color:#ccc;");
@@ -97,126 +98,63 @@ public class AdminDanhSachLopPaneHandler
 		return card;
 	}
 
-	private void viewChiTiet(Long id)
-	{
-		try {
-			DanhSachLopDto dto = screenManager
-					.getQuanTriDanhSachLopUseCase()
-					.getDanhSachLopById(id);
-
-			centerContainer.getChildren().clear();
-
-			Label title = new Label("Chi tiết: " + dto.getTenDanhSach());
-			title.getStyleClass().add("home-title");
-
-			VBox listBox = new VBox(8);
-
-			if(dto.getChiTiet() == null
-					|| dto.getChiTiet().isEmpty()) {
-
-				listBox.getChildren()
-						.add(new Label("Không có lớp học phần."));
-			}
-			else {
-				for(DanhSachLopChiTietDto ct : dto.getChiTiet()) {
-
-					Label row = new Label(
-							ct.getMaLop() + " - " +
-									ct.getTenHocPhan() + " - " +
-									ct.getTenGiangVien());
-
-					listBox.getChildren().add(row);
-				}
-			}
-
-			Button back = new Button("Quay lại");
-			back.setOnAction(e -> showDanhSachCongKhai());
-
-			centerContainer.getChildren()
-					.addAll(title, listBox, back);
-
-		}
-		catch(Exception ex) {
-			UiUtils.showAlert("Lỗi",
-					ex.getMessage(),
-					Alert.AlertType.ERROR);
-		}
-	}
-
-	private void editDanhSach(DanhSachLopDto dto)
+	private void viewChiTiet(DanhSachLopDto dto)
 	{
 		centerContainer.getChildren().clear();
 
-		Label title = new Label("Chỉnh sửa danh sách");
+		Label title = new Label("Chi tiết: " + dto.getTenDanhSach());
 		title.getStyleClass().add("home-title");
 
-		TextField tenField = new TextField(dto.getTenDanhSach());
+		VBox listBox = new VBox(8);
 
-		TextField hocKyField = new TextField(
-				dto.getHocKyId() != null ? dto.getHocKyId().toString() : "");
+		if(dto.getChiTiet() == null || dto.getChiTiet().isEmpty()) {
+			listBox.getChildren().add(
+					new Label("Không có lớp học phần."));
+		}
+		else {
+			for(DanhSachLopChiTietDto ct : dto.getChiTiet()) {
 
-		Button save = new Button("Lưu");
-		save.setOnAction(e -> {
-			try {
-				UpdateDanhSachLopRequestDto req = new UpdateDanhSachLopRequestDto(
-						dto.getId(),
-						tenField.getText(),
-						Long.valueOf(hocKyField.getText()),
-						null);
+				Label row = new Label(
+						ct.getMaLop() + " - " +
+								ct.getTenHocPhan() + " - " +
+								ct.getTenGiangVien());
 
-				screenManager
-						.getQuanTriDanhSachLopUseCase()
-						.updateDanhSachLop(req);
-
-				UiUtils.showAlert("Thành công",
-						"Đã cập nhật.",
-						Alert.AlertType.INFORMATION);
-
-				showDanhSachCongKhai();
+				listBox.getChildren().add(row);
 			}
-			catch(Exception ex) {
-				UiUtils.showAlert("Lỗi",
-						ex.getMessage(),
-						Alert.AlertType.ERROR);
-			}
-		});
+		}
 
-		Button cancel = new Button("Hủy");
-
-		cancel.setOnAction(e -> showDanhSachCongKhai());
+		Button back = new Button("Quay lại");
+		back.setOnAction(e -> showDanhSachCongKhai());
 
 		centerContainer.getChildren()
-				.addAll(title,
-						new Label("Tên"),
-						tenField,
-						new Label("Học kỳ"),
-						hocKyField,
-						new HBox(10, save, cancel));
+				.addAll(title, listBox, back);
 	}
 
 	private void deleteDanhSach(Long id)
 	{
 		Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-
 		confirm.setContentText("Xác nhận xóa?");
 
 		Optional<ButtonType> result = confirm.showAndWait();
 
-		if(result.isPresent()
-				&& result.get() == ButtonType.OK) {
+		if(result.isEmpty() || result.get() != ButtonType.OK)
+			return;
 
-			try {
-				screenManager
-						.getQuanTriDanhSachLopUseCase()
-						.deleteDanhSachLop(id);
+		try {
 
-				showDanhSachCongKhai();
-			}
-			catch(Exception ex) {
-				UiUtils.showAlert("Lỗi",
-						ex.getMessage(),
-						Alert.AlertType.ERROR);
-			}
+			NguoiDungDto user = screenManager.getCurrentUser();
+
+			screenManager
+					.getQuanTriDanhSachLopUseCase()
+					.deletePublic(user.getId(), id);
+
+			showDanhSachCongKhai();
+		}
+		catch(Exception ex) {
+			UiUtils.showAlert(
+					"Lỗi",
+					ex.getMessage(),
+					Alert.AlertType.ERROR);
 		}
 	}
 
@@ -225,33 +163,51 @@ public class AdminDanhSachLopPaneHandler
 		FileChooser chooser = new FileChooser();
 		chooser.setTitle("Chọn file Excel");
 
-		File file = chooser.showOpenDialog(centerContainer.getScene().getWindow());
+		File file = chooser.showOpenDialog(
+				centerContainer.getScene().getWindow());
 
 		if(file == null) return;
 
 		try {
+
 			NguoiDungDto user = screenManager.getCurrentUser();
 
-			ImportDanhSachLopRequestDto req = new ImportDanhSachLopRequestDto(
+			byte[] data = Files.readAllBytes(file.toPath());
+
+			TepTaiLenDto tep = new TepTaiLenDto(
+					file.getName(),
 					file.getAbsolutePath(),
-					"Danh sách hệ thống",
-					user.getId(),
-					null,
-					true,
-					"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+					"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+					data);
+
+			String tenDanhSach = "Danh sách hệ thống";
+			Long hocKyId = null;
 
 			screenManager
 					.getQuanTriDanhSachLopUseCase()
-					.importDanhSachLop(req);
+					.importPublic(
+							user.getId(),
+							tenDanhSach,
+							hocKyId,
+							tep);
 
-			UiUtils.showAlert("Thành công",
+			UiUtils.showAlert(
+					"Thành công",
 					"Đã nhập danh sách.",
 					Alert.AlertType.INFORMATION);
 
 			showDanhSachCongKhai();
+
+		}
+		catch(ValidationException ve) {
+			UiUtils.showAlert(
+					"Không hợp lệ",
+					ve.getMessage(),
+					Alert.AlertType.WARNING);
 		}
 		catch(Exception ex) {
-			UiUtils.showAlert("Lỗi",
+			UiUtils.showAlert(
+					"Lỗi",
 					ex.getMessage(),
 					Alert.AlertType.ERROR);
 		}
@@ -260,16 +216,16 @@ public class AdminDanhSachLopPaneHandler
 	private boolean isAdmin()
 	{
 		if(!screenManager.isAuthenticated()) {
-			UiUtils.showAlert("Chưa đăng nhập",
+			UiUtils.showAlert(
+					"Chưa đăng nhập",
 					"Bạn cần đăng nhập.",
 					Alert.AlertType.WARNING);
 			return false;
 		}
 
-		NguoiDungDto user = screenManager.getCurrentUser();
-
-		if(!"ADMIN".equalsIgnoreCase(user.getVaiTro())) {
-			UiUtils.showAlert("Không có quyền",
+		if(!screenManager.isAdminUser()) {
+			UiUtils.showAlert(
+					"Không có quyền",
 					"Chỉ quản trị viên mới được truy cập.",
 					Alert.AlertType.WARNING);
 			return false;

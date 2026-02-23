@@ -28,6 +28,21 @@ public class TepTaiLenDto
 	{
 	}
 
+	public TepTaiLenDto(
+			String tenTepGoc,
+			String duongDan,
+			String loaiTep,
+			byte[] fileBlob)
+	{
+		this.tenTepGoc = tenTepGoc;
+		this.duongDan = duongDan;
+		this.loaiTep = loaiTep;
+		this.fileBlob = fileBlob;
+
+		if(fileBlob != null)
+			this.kichThuoc = (long) fileBlob.length;
+	}
+
 	public Long getId()
 	{
 		return id;

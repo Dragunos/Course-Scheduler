@@ -1,5 +1,7 @@
 package vn.edu.haui.scheduler.application.dto;
 
+import java.util.List;
+
 public class LopHocPhanDto
 {
 	private Long id;
@@ -13,6 +15,10 @@ public class LopHocPhanDto
 	private String hinhThucDay;
 
 	private String diaDiem;
+
+	private GiangVienDto giangVien;
+
+	private List<LichHocDto> lichHocDanhSach;
 
 	public LopHocPhanDto()
 	{
@@ -92,4 +98,26 @@ public class LopHocPhanDto
 	{
 		this.diaDiem = diaDiem;
 	}
+
+	public GiangVienDto getGiangVien()
+	{
+		return giangVien;
+	}
+
+	public void setGiangVien(GiangVienDto giangVien)
+	{
+		this.giangVien = giangVien;
+	}
+
+	public List<LichHocDto> getLichHocDanhSach()
+	{
+		return lichHocDanhSach;
+	}
+
+	public void setLichHocDanhSach(List<LichHocDto> lichHocDanhSach)
+	{
+		this.lichHocDanhSach = lichHocDanhSach;
+	}
+	
+	
 }

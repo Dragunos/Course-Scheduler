@@ -114,11 +114,17 @@ public class AuthController
 	{
 		try {
 			NguoiDungDto user = viewModel.login();
-			screenManager.setCurrentUser(user);
-			screenManager.showHome();
+			if(user != null) {
+				// Chỉ điều hướng khi đăng nhập thành công
+				screenManager.setCurrentUser(user);
+				screenManager.showHome();
+			}
+			// nếu user == null thì viewModel đã đặt message/status -> label sẽ hiển thị
 		}
 		catch(Exception e) {
-		    e.printStackTrace();
+			e.printStackTrace();
+			// Hiển thị message hệ thống để user biết có lỗi không mong muốn
+			viewModel.setTechnicalError("Lỗi hệ thống. Vui lòng thử lại.");
 		}
 	}
 
@@ -126,11 +132,17 @@ public class AuthController
 	private void onRegisterClicked()
 	{
 		try {
-			viewModel.register();
-			showLogin();
+			NguoiDungDto user = viewModel.register();
+			if(user != null) {
+				// Đăng ký thành công -> chuyển về màn hình đăng nhập
+				// (nếu muốn tự động điền username, có thể set viewModel.usernameProperty() trong showLoginPane)
+				showLogin();
+			}
+			// nếu user == null thì viewModel đã đặt message/status -> label sẽ hiển thị
 		}
 		catch(Exception e) {
-		    e.printStackTrace();
+			e.printStackTrace();
+			viewModel.setTechnicalError("Lỗi hệ thống. Vui lòng thử lại.");
 		}
 	}
 
@@ -141,14 +153,14 @@ public class AuthController
 		viewModel.clear();
 		switchPane(loginPane, registerPane, true);
 	}
-	
+
 	public void showRegisterPane()
 	{
-	    registerPane.setVisible(true);
-	    registerPane.setOpacity(1);
+		registerPane.setVisible(true);
+		registerPane.setOpacity(1);
 
-	    loginPane.setVisible(false);
-	    loginPane.setOpacity(0);
+		loginPane.setVisible(false);
+		loginPane.setOpacity(0);
 	}
 
 	@FXML
@@ -158,16 +170,16 @@ public class AuthController
 		viewModel.clear();
 		switchPane(registerPane, loginPane, false);
 	}
-	
+
 	public void showLoginPane()
 	{
-	    loginPane.setVisible(true);
-	    loginPane.setOpacity(1);
+		loginPane.setVisible(true);
+		loginPane.setOpacity(1);
 
-	    registerPane.setVisible(false);
-	    registerPane.setOpacity(0);
+		registerPane.setVisible(false);
+		registerPane.setOpacity(0);
 	}
-	
+
 	@FXML
 	private void onBackToHome()
 	{

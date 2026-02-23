@@ -72,11 +72,16 @@ public class ImportDanhSachLopPaneHandler
 	private void chooseFile(TextField fileField)
 	{
 		Window window = centerContainer.getScene().getWindow();
+
 		FileChooser chooser = new FileChooser();
 		chooser.getExtensionFilters().add(
-				new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+				new FileChooser.ExtensionFilter(
+						"Excel Files",
+						"*.xlsx",
+						"*.xls"));
 
 		File file = chooser.showOpenDialog(window);
+
 		if(file != null) {
 			fileField.setText(file.getAbsolutePath());
 		}

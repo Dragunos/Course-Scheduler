@@ -152,4 +152,10 @@ public class AuthViewModel
 	{
 		return errorCount;
 	}
+	
+	public void setTechnicalError(String msg)
+	{
+	    message.set(msg);
+	    status.set(Status.ERROR);
+	}
 }

@@ -17,6 +17,12 @@ public class JdbcVaiTroRepository implements VaiTroRepository
 {
 	private final TransactionManagerImpl transactionManager;
 
+	private static final String BASE_SELECT_QUERY = """
+			SELECT id,
+			       ten_vai_tro
+			FROM vai_tro
+			""";
+
 	public JdbcVaiTroRepository(TransactionManagerImpl transactionManager)
 	{
 		this.transactionManager = transactionManager;
@@ -38,10 +44,12 @@ public class JdbcVaiTroRepository implements VaiTroRepository
 
 	private VaiTro insert(VaiTro vaiTro)
 	{
-		String sql = "INSERT INTO vai_tro (ten_vai_tro) VALUES (?)";
+		String sql = """
+				INSERT INTO vai_tro (ten_vai_tro)
+				VALUES (?)
+				""";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
-				PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+		return executeWrite(sql, true, ps -> {
 
 			ps.setString(1, vaiTro.getTenVaiTro());
 			ps.executeUpdate();
@@ -49,45 +57,48 @@ public class JdbcVaiTroRepository implements VaiTroRepository
 			try (ResultSet rs = ps.getGeneratedKeys()) {
 				if(rs.next()) {
 					Long id = rs.getLong(1);
-					return VaiTro.reconstruct(id, vaiTro.getTenVaiTro());
+
+					return VaiTro.reconstruct(
+							id,
+							vaiTro.getTenVaiTro());
 				}
 			}
 
-			throw new DataAccessException("Failed to retrieve generated id for VaiTro", null);
-
-		}
-		catch(SQLException e) {
-			throw new DataAccessException("Error inserting VaiTro", e);
-		}
+			throw new DataAccessException(
+					"Failed to retrieve generated id for VaiTro",
+					null);
+		});
 	}
 
 	private VaiTro update(VaiTro vaiTro)
 	{
-		String sql = "UPDATE vai_tro SET ten_vai_tro = ? WHERE id = ?";
+		String sql = """
+				UPDATE vai_tro
+				SET ten_vai_tro = ?
+				WHERE id = ?
+				""";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
-				PreparedStatement ps = conn.prepareStatement(sql)) {
+		return executeWrite(sql, false, ps -> {
 
 			ps.setString(1, vaiTro.getTenVaiTro());
 			ps.setLong(2, vaiTro.getId());
 
 			int affected = ps.executeUpdate();
+
 			if(affected == 0) {
-				throw new EntityNotFoundException("VaiTro", vaiTro.getId());
+				throw new EntityNotFoundException(
+						"VaiTro",
+						vaiTro.getId());
 			}
 
 			return vaiTro;
-
-		}
-		catch(SQLException e) {
-			throw new DataAccessException("Error updating VaiTro", e);
-		}
+		});
 	}
 
 	@Override
 	public Optional<VaiTro> findById(Long id)
 	{
-		String sql = "SELECT id, ten_vai_tro FROM vai_tro WHERE id = ?";
+		String sql = buildQuery("WHERE id = ?");
 
 		try (Connection conn = transactionManager.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -100,9 +111,8 @@ public class JdbcVaiTroRepository implements VaiTroRepository
 				}
 				return Optional.empty();
 			}
-
 		}
-		catch(SQLException e) {
+		catch(Exception e) {
 			throw new DataAccessException("Error finding VaiTro by id", e);
 		}
 	}
@@ -110,10 +120,10 @@ public class JdbcVaiTroRepository implements VaiTroRepository
 	@Override
 	public Optional<VaiTro> findByTen(String tenVaiTro)
 	{
-		String sql = "SELECT id, ten_vai_tro FROM vai_tro WHERE ten_vai_tro = ?";
+		String sql = buildQuery("WHERE ten_vai_tro = ?");
 
-		try (Connection conn = transactionManager.getConnection();
-				PreparedStatement ps = conn.prepareStatement(sql)) {
+		Connection conn = transactionManager.getConnection();
+		try (PreparedStatement ps = conn.prepareStatement(sql)) {
 
 			ps.setString(1, tenVaiTro);
 
@@ -123,9 +133,8 @@ public class JdbcVaiTroRepository implements VaiTroRepository
 				}
 				return Optional.empty();
 			}
-
 		}
-		catch(SQLException e) {
+		catch(Exception e) {
 			throw new DataAccessException("Error finding VaiTro by ten", e);
 		}
 	}
@@ -133,7 +142,7 @@ public class JdbcVaiTroRepository implements VaiTroRepository
 	@Override
 	public List<VaiTro> findAll()
 	{
-		String sql = "SELECT id, ten_vai_tro FROM vai_tro";
+		String sql = buildQuery(null);
 
 		List<VaiTro> result = new ArrayList<>();
 
@@ -146,9 +155,8 @@ public class JdbcVaiTroRepository implements VaiTroRepository
 			}
 
 			return result;
-
 		}
-		catch(SQLException e) {
+		catch(Exception e) {
 			throw new DataAccessException("Error finding all VaiTro", e);
 		}
 	}
@@ -156,21 +164,61 @@ public class JdbcVaiTroRepository implements VaiTroRepository
 	@Override
 	public void deleteById(Long id)
 	{
-		String sql = "DELETE FROM vai_tro WHERE id = ?";
+		String sql = """
+				DELETE FROM vai_tro
+				WHERE id = ?
+				""";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
-				PreparedStatement ps = conn.prepareStatement(sql)) {
+		executeWrite(sql, false, ps -> {
 
 			ps.setLong(1, id);
+
 			int affected = ps.executeUpdate();
 
 			if(affected == 0) {
 				throw new EntityNotFoundException("VaiTro", id);
 			}
 
+			return null;
+		});
+	}
+
+	// ===== Write Execution Wrapper =====
+
+	private <T> T executeWrite(
+			String sql,
+			boolean returnGeneratedKeys,
+			SqlFunction<PreparedStatement, T> executor)
+	{
+		Connection conn = transactionManager.getRequiredConnection();
+
+		try (PreparedStatement ps = conn.prepareStatement(
+				sql,
+				returnGeneratedKeys
+						? Statement.RETURN_GENERATED_KEYS
+						: Statement.NO_GENERATED_KEYS)) {
+
+			return executor.apply(ps);
 		}
-		catch(SQLException e) {
-			throw new DataAccessException("Error deleting VaiTro", e);
+		catch(Exception e) {
+			throw new DataAccessException(
+					"Database write operation failed",
+					e);
 		}
+	}
+
+	private String buildQuery(String whereClause)
+	{
+		if(whereClause == null || whereClause.isBlank()) {
+			return BASE_SELECT_QUERY;
+		}
+
+		return BASE_SELECT_QUERY.strip() + " " + whereClause.strip();
+	}
+
+	@FunctionalInterface
+	private interface SqlFunction<T, R>
+	{
+		R apply(T t) throws Exception;
 	}
 }

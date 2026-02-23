@@ -208,4 +208,11 @@ public class ScreenManager
 			e.printStackTrace();
 		}
 	}
+	
+	public boolean isAdminUser()
+	{
+	    NguoiDungDto user = getCurrentUser();
+
+	    return user != null && user.getRoleId() != null && user.getRoleId() == 1L;
+	}
 }

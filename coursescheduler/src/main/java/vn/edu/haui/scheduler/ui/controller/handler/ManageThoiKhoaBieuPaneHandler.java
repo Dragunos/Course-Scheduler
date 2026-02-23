@@ -45,7 +45,9 @@ public class ManageThoiKhoaBieuPaneHandler
 
 		try {
 			Long userId = screenManager.getCurrentUser().getId();
-			List<ThoiKhoaBieuDto> list = useCase.getAllThoiKhoaBieuByNguoiDungId(userId);
+
+			// Call đúng usecase contract
+			List<ThoiKhoaBieuDto> list = useCase.findAllByUser(userId);
 
 			if(list == null || list.isEmpty()) {
 				listBox.getChildren().add(new Label("Không có thời khóa biểu nào."));
@@ -80,7 +82,8 @@ public class ManageThoiKhoaBieuPaneHandler
 
 		Button exportBtn = new Button("Xuất");
 		exportBtn.setOnAction(
-				e -> new ExportThoiKhoaBieuPaneHandler(screenManager, centerContainer).showExportPane(dto));
+				e -> new ExportThoiKhoaBieuPaneHandler(screenManager, centerContainer)
+						.showExportPane(dto));
 
 		HBox actions = new HBox(10, viewBtn, renameBtn, deleteBtn, exportBtn);
 
@@ -100,39 +103,44 @@ public class ManageThoiKhoaBieuPaneHandler
 			Long userId = screenManager.getCurrentUser().getId();
 			ManageThoiKhoaBieuUseCase useCase = screenManager.getQuanLyThoiKhoaBieuUseCase();
 
-			ThoiKhoaBieuDto detail = useCase.getThoiKhoaBieuById(dto.getId(), userId);
+			// Call đúng contract service layer
+			ThoiKhoaBieuDto detail = useCase.findDetail(userId, dto.getId());
 
 			Label title = new Label(
-					"Chi tiết: " + (dto.getTenPhuongAn() != null ? dto.getTenPhuongAn() : "<không tên>"));
+					"Chi tiết: " + (detail.getTenPhuongAn() != null ? detail.getTenPhuongAn() : "<không tên>"));
 			title.getStyleClass().add("home-title");
 
 			VBox listBox = new VBox(8);
 
-			if(detail == null || detail.getDanhSachLopHocPhan() == null || detail.getDanhSachLopHocPhan().isEmpty()) {
+			if(detail.getDanhSachLopHocPhan() == null ||
+					detail.getDanhSachLopHocPhan().isEmpty()) {
 				listBox.getChildren().add(new Label("Không có lớp học phần."));
 			}
 			else {
 				for(LopHocPhanDto lh : detail.getDanhSachLopHocPhan()) {
 					String rowText = lh.getMaLop();
-					if(lh.getGiangVien() != null) rowText += " - " + lh.getGiangVien().getTenGiangVien();
-					if(lh.getLichHocDanhSach() != null && !lh.getLichHocDanhSach().isEmpty()) {
+
+					if(lh.getGiangVien() != null)
+						rowText += " - " + lh.getGiangVien().getTenGiangVien();
+
+					if(lh.getLichHocDanhSach() != null && !lh.getLichHocDanhSach().isEmpty())
 						rowText += " - " + lh.getLichHocDanhSach().size() + " buổi";
-					}
-					Label row = new Label(rowText);
-					listBox.getChildren().add(row);
+
+					listBox.getChildren().add(new Label(rowText));
 				}
 			}
 
 			Button backBtn = new Button("Quay lại");
+			backBtn.setOnAction(e -> showThoiKhoaBieu());
 
 			Button exportBtn = new Button("Xuất thời khóa biểu");
 			exportBtn.setOnAction(
-					e -> new ExportThoiKhoaBieuPaneHandler(screenManager, centerContainer).showExportPane(dto));
-			centerContainer.getChildren().addAll(title, listBox, new HBox(10, exportBtn, backBtn));
+					e -> new ExportThoiKhoaBieuPaneHandler(screenManager, centerContainer)
+							.showExportPane(detail));
 
-			backBtn.setOnAction(e -> showThoiKhoaBieu());
+			HBox actionBox = new HBox(10, exportBtn, backBtn);
 
-			centerContainer.getChildren().addAll(title, listBox, backBtn);
+			centerContainer.getChildren().addAll(title, listBox, actionBox);
 
 		}
 		catch(Exception ex) {
@@ -149,15 +157,17 @@ public class ManageThoiKhoaBieuPaneHandler
 		Label title = new Label("Đổi tên thời khóa biểu");
 		title.getStyleClass().add("home-title");
 
-		TextField tenField = new TextField(dto.getTenPhuongAn());
+		TextField tenField = new TextField(
+				dto.getTenPhuongAn() != null ? dto.getTenPhuongAn() : "");
 
 		Button saveBtn = new Button("Lưu");
 		saveBtn.setOnAction(e -> {
+
 			try {
 				Long userId = screenManager.getCurrentUser().getId();
 				ManageThoiKhoaBieuUseCase useCase = screenManager.getQuanLyThoiKhoaBieuUseCase();
 
-				ThoiKhoaBieuDto updated = useCase.updateTenThoiKhoaBieu(dto.getId(), userId, tenField.getText());
+				useCase.rename(userId, dto.getId(), tenField.getText());
 
 				UiUtils.showAlert("Thành công", "Đã cập nhật tên.", Alert.AlertType.INFORMATION);
 
@@ -171,7 +181,11 @@ public class ManageThoiKhoaBieuPaneHandler
 		Button cancelBtn = new Button("Hủy");
 		cancelBtn.setOnAction(e -> showThoiKhoaBieu());
 
-		centerContainer.getChildren().addAll(title, new Label("Tên mới"), tenField, new HBox(10, saveBtn, cancelBtn));
+		centerContainer.getChildren().addAll(
+				title,
+				new Label("Tên mới"),
+				tenField,
+				new HBox(10, saveBtn, cancelBtn));
 	}
 
 	private void xoa(ThoiKhoaBieuDto dto)
@@ -188,7 +202,8 @@ public class ManageThoiKhoaBieuPaneHandler
 		if(result.isPresent() && result.get() == ButtonType.OK) {
 			try {
 				Long userId = screenManager.getCurrentUser().getId();
-				screenManager.getQuanLyThoiKhoaBieuUseCase().deleteThoiKhoaBieu(dto.getId(), userId);
+
+				screenManager.getQuanLyThoiKhoaBieuUseCase().delete(userId, dto.getId());
 
 				UiUtils.showAlert("Thành công", "Đã xóa.", Alert.AlertType.INFORMATION);
 
