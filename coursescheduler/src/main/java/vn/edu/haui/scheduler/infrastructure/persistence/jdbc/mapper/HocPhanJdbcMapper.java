@@ -7,10 +7,11 @@ public class HocPhanJdbcMapper
 {
 	public static HocPhan toDomain(ResultSet rs) throws Exception
 	{
+		Integer tc = JdbcMapperUtil.getInt(rs, "so_tin_chi");
 		return HocPhan.reconstruct(
 				rs.getLong("id"),
 				rs.getString("ma_hoc_phan"),
 				rs.getString("ten_hoc_phan"),
-				JdbcMapperUtil.getInt(rs, "so_tin_chi"));
+				tc == null ? 0 : tc);
 	}
 }

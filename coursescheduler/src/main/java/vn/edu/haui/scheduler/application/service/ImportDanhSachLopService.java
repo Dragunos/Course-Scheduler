@@ -64,28 +64,28 @@ public class ImportDanhSachLopService implements ImportDanhSachLopUseCase
 			Long hocKyId,
 			TepTaiLenDto tepTaiLenDto)
 	{
-		if(nguoiTaoId == null)
-			throw new ValidationException("NguoiTaoId must not be null");
+		return transactionManager.executeInTransaction(() -> {
 
-		if(tenDanhSach == null || tenDanhSach.isBlank())
-			throw new ValidationException("TenDanhSach must not be blank");
+			if(nguoiTaoId == null)
+				throw new ValidationException("NguoiTaoId must not be null");
 
-		if(tepTaiLenDto == null)
-			throw new ValidationException("TepTaiLen must not be null");
+			if(tenDanhSach == null || tenDanhSach.isBlank())
+				throw new ValidationException("TenDanhSach must not be blank");
 
-		NguoiDung nguoiTao = nguoiDungRepository
-				.findById(nguoiTaoId)
-				.orElseThrow(() -> new EntityNotFoundException("NguoiDung", nguoiTaoId));
+			if(tepTaiLenDto == null)
+				throw new ValidationException("TepTaiLen must not be null");
 
-		HocKy hocKy = null;
-		if(hocKyId != null) {
-			hocKy = hocKyRepository
-					.findById(hocKyId)
-					.orElseThrow(() -> new EntityNotFoundException("HocKy", hocKyId));
-		}
+			NguoiDung nguoiTao = nguoiDungRepository
+					.findById(nguoiTaoId)
+					.orElseThrow(() -> new EntityNotFoundException("NguoiDung", nguoiTaoId));
 
-		transactionManager.begin();
-		try {
+			HocKy hocKy = null;
+			if(hocKyId != null) {
+				hocKy = hocKyRepository
+						.findById(hocKyId)
+						.orElseThrow(() -> new EntityNotFoundException("HocKy", hocKyId));
+			}
+
 			TepTaiLen tepTaiLen = TepTaiLen.create(
 					nguoiTao,
 					tepTaiLenDto.getTenTepGoc(),
@@ -99,6 +99,7 @@ public class ImportDanhSachLopService implements ImportDanhSachLopUseCase
 			tepTaiLenRepository.save(tepTaiLen);
 
 			ExcelDanhSachLopImporter.ImportFileResult result = importer.read(tepTaiLen);
+
 			List<ImportedLopHocPhanRaw> rawList = result.rows;
 
 			DanhSachLop danhSach = DanhSachLop.create(
@@ -153,15 +154,7 @@ public class ImportDanhSachLopService implements ImportDanhSachLopUseCase
 
 			DanhSachLop saved = danhSachLopRepository.save(danhSach);
 
-			transactionManager.commit();
-
 			return DanhSachLopMapper.toDto(saved);
-		}
-		catch(Exception e) {
-			transactionManager.rollback();
-			throw new ImportDanhSachLopException(
-					"Error importing DanhSachLop",
-					e);
-		}
+		});
 	}
 }

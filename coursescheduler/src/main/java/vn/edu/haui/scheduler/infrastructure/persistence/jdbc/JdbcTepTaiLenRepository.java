@@ -17,6 +17,11 @@ public class JdbcTepTaiLenRepository implements TepTaiLenRepository
 {
 	private final TransactionManagerImpl transactionManager;
 
+	private static final String BASE_SELECT_QUERY = """
+			SELECT *
+			FROM tep_tai_len
+			""";
+
 	public JdbcTepTaiLenRepository(TransactionManagerImpl transactionManager)
 	{
 		this.transactionManager = transactionManager;
@@ -43,8 +48,7 @@ public class JdbcTepTaiLenRepository implements TepTaiLenRepository
 				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 				""";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
-				PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+		return executeWrite(sql, true, ps -> {
 
 			ps.setLong(1, tepTaiLen.getNguoiTao().getId());
 			ps.setString(2, tepTaiLen.getTenTepGoc());
@@ -64,7 +68,8 @@ public class JdbcTepTaiLenRepository implements TepTaiLenRepository
 			else
 				ps.setNull(8, Types.BIGINT);
 
-			ps.setTimestamp(9, Timestamp.valueOf(tepTaiLen.getNgayTao()));
+			ps.setTimestamp(9,
+					Timestamp.valueOf(tepTaiLen.getNgayTao()));
 
 			ps.executeUpdate();
 
@@ -72,7 +77,10 @@ public class JdbcTepTaiLenRepository implements TepTaiLenRepository
 
 			try (ResultSet rs = ps.getGeneratedKeys()) {
 				if(!rs.next())
-					throw new DataAccessException("Failed to retrieve TepTaiLen id", null);
+					throw new DataAccessException(
+							"Failed to retrieve TepTaiLen id",
+							null);
+
 				generatedId = rs.getLong(1);
 			}
 
@@ -87,10 +95,7 @@ public class JdbcTepTaiLenRepository implements TepTaiLenRepository
 					tepTaiLen.getChecksum(),
 					tepTaiLen.getKichThuoc(),
 					tepTaiLen.getNgayTao());
-		}
-		catch(SQLException e) {
-			throw new DataAccessException("Error inserting TepTaiLen", e);
-		}
+		});
 	}
 
 	private TepTaiLen update(TepTaiLen tepTaiLen)
@@ -102,8 +107,7 @@ public class JdbcTepTaiLenRepository implements TepTaiLenRepository
 				WHERE id = ?
 				""";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
-				PreparedStatement ps = conn.prepareStatement(sql)) {
+		return executeWrite(sql, false, ps -> {
 
 			ps.setString(1, tepTaiLen.getTenTepGoc());
 			ps.setString(2, tepTaiLen.getLoaiTep());
@@ -127,19 +131,18 @@ public class JdbcTepTaiLenRepository implements TepTaiLenRepository
 			int affected = ps.executeUpdate();
 
 			if(affected == 0)
-				throw new EntityNotFoundException("TepTaiLen", tepTaiLen.getId());
+				throw new EntityNotFoundException(
+						"TepTaiLen",
+						tepTaiLen.getId());
 
 			return tepTaiLen;
-		}
-		catch(SQLException e) {
-			throw new DataAccessException("Error updating TepTaiLen", e);
-		}
+		});
 	}
 
 	@Override
 	public Optional<TepTaiLen> findById(Long id)
 	{
-		String sql = "SELECT * FROM tep_tai_len WHERE id = ?";
+		String sql = buildQuery("WHERE id = ?");
 
 		try (Connection conn = transactionManager.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -154,14 +157,16 @@ public class JdbcTepTaiLenRepository implements TepTaiLenRepository
 			}
 		}
 		catch(Exception e) {
-			throw new DataAccessException("Error finding TepTaiLen by id", e);
+			throw new DataAccessException(
+					"Error finding TepTaiLen by id",
+					e);
 		}
 	}
 
 	@Override
 	public List<TepTaiLen> findByNguoiTaoId(Long nguoiTaoId)
 	{
-		String sql = "SELECT * FROM tep_tai_len WHERE nguoi_tao_id = ?";
+		String sql = buildQuery("WHERE nguoi_tao_id = ?");
 
 		List<TepTaiLen> result = new ArrayList<>();
 
@@ -179,7 +184,9 @@ public class JdbcTepTaiLenRepository implements TepTaiLenRepository
 			return result;
 		}
 		catch(Exception e) {
-			throw new DataAccessException("Error finding TepTaiLen by NguoiTaoId", e);
+			throw new DataAccessException(
+					"Error finding TepTaiLen by NguoiTaoId",
+					e);
 		}
 	}
 
@@ -188,18 +195,55 @@ public class JdbcTepTaiLenRepository implements TepTaiLenRepository
 	{
 		String sql = "DELETE FROM tep_tai_len WHERE id = ?";
 
-		try (Connection conn = transactionManager.getRequiredConnection();
-				PreparedStatement ps = conn.prepareStatement(sql)) {
+		executeWrite(sql, false, ps -> {
 
 			ps.setLong(1, id);
 
 			int affected = ps.executeUpdate();
 
 			if(affected == 0)
-				throw new EntityNotFoundException("TepTaiLen", id);
+				throw new EntityNotFoundException(
+						"TepTaiLen",
+						id);
+
+			return null;
+		});
+	}
+
+	private <T> T executeWrite(
+			String sql,
+			boolean returnGeneratedKeys,
+			SqlFunction<PreparedStatement, T> executor)
+	{
+		Connection conn = transactionManager.getRequiredConnection();
+
+		try (PreparedStatement ps = conn.prepareStatement(
+				sql,
+				returnGeneratedKeys
+						? Statement.RETURN_GENERATED_KEYS
+						: Statement.NO_GENERATED_KEYS)) {
+
+			return executor.apply(ps);
 		}
 		catch(SQLException e) {
-			throw new DataAccessException("Error deleting TepTaiLen", e);
+			throw new DataAccessException(
+					"Database write operation failed",
+					e);
 		}
+	}
+
+	@FunctionalInterface
+	private interface SqlFunction<T, R>
+	{
+		R apply(T t) throws SQLException;
+	}
+
+	private String buildQuery(String whereClause)
+	{
+		if(whereClause == null || whereClause.isBlank())
+			return BASE_SELECT_QUERY;
+
+		return BASE_SELECT_QUERY.strip() +
+				" " + whereClause.strip();
 	}
 }

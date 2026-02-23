@@ -131,6 +131,12 @@ public class ImportDanhSachLopPaneHandler
 					"Không thể đọc tệp.",
 					Alert.AlertType.ERROR);
 		}
+		catch(IllegalArgumentException e) {
+			UiUtils.showAlert(
+					"Lỗi nhập liệu",
+					e.getMessage(),
+					Alert.AlertType.ERROR);
+		}
 	}
 
 	private void validateInput(TextField tenField, TextField fileField)

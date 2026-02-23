@@ -22,6 +22,8 @@ public class TransactionManagerImpl implements TransactionManager
 	@Override
 	public void begin()
 	{
+		System.out.println("BEGIN tx on thread " + Thread.currentThread().getName());
+
 		if(Boolean.TRUE.equals(txActive.get())) {
 			throw new IllegalStateException(
 					"Nested transaction is not supported");
@@ -33,10 +35,13 @@ public class TransactionManagerImpl implements TransactionManager
 
 			txConnection.set(conn);
 			txActive.set(true);
+
+			System.out.println("Connection obtained: " + conn + ", closed? " + conn.isClosed());
 		}
 		catch(Exception e) {
 			throw new RuntimeException("Failed to begin transaction", e);
 		}
+
 	}
 
 	@Override
@@ -45,19 +50,22 @@ public class TransactionManagerImpl implements TransactionManager
 		Connection conn = txConnection.get();
 
 		if(conn == null) {
+			System.out.println("commit(): no tx connection found on thread " + Thread.currentThread().getName());
 			return;
 		}
 
 		try {
 			if(!conn.isClosed()) {
 				conn.commit();
+				System.out
+						.println("commit(): committed conn " + conn + " on thread " + Thread.currentThread().getName());
 			}
 		}
 		catch(Exception e) {
 			throw new RuntimeException("Transaction commit failed", e);
 		}
 		finally {
-			cleanup();
+			closeAndCleanup(conn);
 		}
 	}
 
@@ -67,19 +75,22 @@ public class TransactionManagerImpl implements TransactionManager
 		Connection conn = txConnection.get();
 
 		if(conn == null) {
+			System.out.println("rollback(): no tx connection found on thread " + Thread.currentThread().getName());
 			return;
 		}
 
 		try {
 			if(!conn.isClosed()) {
 				conn.rollback();
+				System.out.println(
+						"rollback(): rolled back conn " + conn + " on thread " + Thread.currentThread().getName());
 			}
 		}
 		catch(Exception e) {
 			throw new RuntimeException("Transaction rollback failed", e);
 		}
 		finally {
-			cleanup();
+			closeAndCleanup(conn);
 		}
 	}
 
@@ -89,18 +100,24 @@ public class TransactionManagerImpl implements TransactionManager
 	{
 		begin();
 
+		boolean success = false;
+
 		try {
 			T result = action.get();
+			success = true;
 			commit();
 			return result;
 		}
-		catch(RuntimeException ex) {
-			rollback();
-			throw ex;
-		}
 		catch(Exception ex) {
 			rollback();
-			throw new RuntimeException(ex);
+			throw (ex instanceof RuntimeException)
+					? (RuntimeException) ex
+					: new RuntimeException(ex);
+		}
+		finally {
+			if(!success) {
+				rollback();
+			}
 		}
 	}
 
@@ -120,6 +137,8 @@ public class TransactionManagerImpl implements TransactionManager
 	public Connection getConnection()
 	{
 		Connection conn = txConnection.get();
+
+		System.out.println("getRequiredConnection on thread " + Thread.currentThread().getName() + ", conn = " + conn);
 
 		if(conn != null && !isConnectionInvalid(conn)) {
 			return conn;
@@ -144,21 +163,31 @@ public class TransactionManagerImpl implements TransactionManager
 		}
 	}
 
-	private void cleanup()
+	private void closeAndCleanup(Connection conn)
 	{
-		Connection conn = txConnection.get();
-
 		try {
-			if(conn != null && !conn.isClosed()) {
-				conn.close();
+			if(conn != null) {
+				try {
+					if(!conn.isClosed()) {
+						conn.close();
+						System.out.println("closeAndCleanup(): closed conn " + conn +
+								" on thread " + Thread.currentThread().getName());
+					}
+				}
+				catch(SQLException ex) {
+					System.err.println("closeAndCleanup(): error closing conn: " + ex.getMessage());
+				}
 			}
 		}
-		catch(Exception ignored) {
-			// Ignore cleanup exception
-		}
 		finally {
-			txConnection.remove();
-			txActive.remove();
+			cleanup();
 		}
+	}
+
+	private void cleanup()
+	{
+		txConnection.remove();
+		txActive.remove();
+		System.out.println("cleanup(): removed threadlocal on thread " + Thread.currentThread().getName());
 	}
 }

@@ -10,7 +10,7 @@ public final class DatabaseConfig
 
 	private static final String DB_NAME = "coursescheduler.db";
 
-	public static final int MAX_POOL_SIZE = 5;
+	public static final int MAX_POOL_SIZE = 2;
 
 	public static final int MIN_IDLE = 1;
 

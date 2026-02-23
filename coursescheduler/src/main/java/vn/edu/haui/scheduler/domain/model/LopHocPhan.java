@@ -32,15 +32,17 @@ public class LopHocPhan
 			String diaDiem,
 			List<LichHoc> lichHoc)
 	{
-		validateInvariant(maLop, hocPhan, rawHinhThuc);
+		String inferredHinhThuc = parseHinhThuc(rawHinhThuc, diaDiem);
+
+		validateInvariant(maLop, hocPhan, inferredHinhThuc);
+
+		this.hinhThucDay = inferredHinhThuc;
 
 		this.id = id;
 		this.maLop = maLop;
 		this.hocPhan = hocPhan;
 		this.giangVien = giangVien;
 		this.diaDiem = diaDiem;
-		this.hinhThucDay = parseHinhThuc(rawHinhThuc, diaDiem);
-
 		if(lichHoc != null)
 			lichHoc.forEach(this::themLichHoc);
 	}
@@ -122,13 +124,16 @@ public class LopHocPhan
 		String hinhThucNorm = normalize(raw);
 		String diaDiemNorm = normalize(diaDiem);
 
-		if(hinhThucNorm != null &&
-				hinhThucNorm.contains("ONLINE"))
+		if(hinhThucNorm != null && hinhThucNorm.contains("ONLINE"))
 			return HINH_THUC_ONLINE;
 
-		if(diaDiemNorm != null &&
-				diaDiemNorm.equals("PH ONLINE"))
-			return HINH_THUC_ONLINE;
+		if(diaDiemNorm != null) {
+
+			if(diaDiemNorm.contains("ONLINE")
+					|| diaDiemNorm.contains("PHONG HOC ONLINE")
+					|| diaDiemNorm.contains("LOP HOC ONLINE"))
+				return HINH_THUC_ONLINE;
+		}
 
 		return HINH_THUC_TRUC_TIEP;
 	}

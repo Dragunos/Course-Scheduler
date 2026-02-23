@@ -1,5 +1,7 @@
 package vn.edu.haui.scheduler;
 
+import javax.sql.DataSource;
+
 import javafx.application.Application;
 import javafx.stage.Stage;
 
@@ -24,7 +26,9 @@ public class MainApp extends Application
 	{
 		FxConfig.apply(stage);
 
-		TransactionManagerImpl txManager = new TransactionManagerImpl(DataSourceProvider.getDataSource());
+		DataSource ds = DataSourceProvider.getDataSource();
+
+		TransactionManagerImpl txManager = new TransactionManagerImpl(ds);
 
 		CompositeFileExporter fileExporter = new CompositeFileExporter(
 				new CsvExporter(),

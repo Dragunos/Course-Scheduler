@@ -215,8 +215,6 @@ public class JdbcNguoiDungRepository implements NguoiDungRepository
 		}
 	}
 
-	// ===== Write Execution Wrapper =====
-
 	private <T> T executeWrite(
 			String sql,
 			boolean returnGeneratedKeys,
@@ -248,7 +246,6 @@ public class JdbcNguoiDungRepository implements NguoiDungRepository
 						: " " + whereClause.strip());
 	}
 
-	// Functional interface (giống Function nhưng có checked exception support)
 	@FunctionalInterface
 	private interface SqlFunction<T, R>
 	{
