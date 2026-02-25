@@ -95,7 +95,11 @@ public class JdbcHocPhanRepository implements HocPhanRepository
 	public Optional<HocPhan> findById(Long id)
 	{
 		String sql = """
-				SELECT id, ma_hoc_phan, ten_hoc_phan, so_tin_chi
+				SELECT
+				    id AS hoc_phan_id,
+				    ma_hoc_phan,
+				    ten_hoc_phan,
+				    so_tin_chi
 				FROM hoc_phan
 				WHERE id = ?
 				""";
@@ -120,7 +124,11 @@ public class JdbcHocPhanRepository implements HocPhanRepository
 	public Optional<HocPhan> findByMaHocPhan(String maHocPhan)
 	{
 		String sql = """
-				SELECT id, ma_hoc_phan, ten_hoc_phan, so_tin_chi
+				SELECT
+				    id AS hoc_phan_id,
+				    ma_hoc_phan,
+				    ten_hoc_phan,
+				    so_tin_chi
 				FROM hoc_phan
 				WHERE ma_hoc_phan = ?
 				""";
@@ -137,6 +145,7 @@ public class JdbcHocPhanRepository implements HocPhanRepository
 			}
 		}
 		catch(Exception e) {
+			e.printStackTrace();
 			throw new DataAccessException("Error finding HocPhan by maHocPhan", e);
 		}
 	}
@@ -145,7 +154,11 @@ public class JdbcHocPhanRepository implements HocPhanRepository
 	public List<HocPhan> findAll()
 	{
 		String sql = """
-				SELECT id, ma_hoc_phan, ten_hoc_phan, so_tin_chi
+				SELECT
+				    id AS hoc_phan_id,
+				    ma_hoc_phan,
+				    ten_hoc_phan,
+				    so_tin_chi
 				FROM hoc_phan
 				ORDER BY ma_hoc_phan ASC
 				""";

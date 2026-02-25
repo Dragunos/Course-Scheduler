@@ -257,7 +257,6 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 		String sql = """
 				SELECT
 				    ct.danh_sach_lop_id,
-				    ct.lop_hoc_phan_id,
 				    ct.bat_buoc,
 
 				    lhp.id AS lhp_id,
@@ -277,8 +276,9 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 				JOIN lop_hoc_phan lhp ON ct.lop_hoc_phan_id = lhp.id
 				JOIN hoc_phan hp ON lhp.hoc_phan_id = hp.id
 				LEFT JOIN giang_vien gv ON lhp.giang_vien_id = gv.id
+
 				WHERE ct.danh_sach_lop_id = ?
-											""";
+				""";
 
 		List<DanhSachLopChiTiet> result = new ArrayList<>();
 
@@ -287,11 +287,11 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 			ps.setLong(1, danhSachId);
 
 			try (ResultSet rs = ps.executeQuery()) {
+
 				while(rs.next()) {
 
-					LopHocPhan lop = LopHocPhanJdbcMapper.toDomain(rs);
-
-					DanhSachLopChiTiet chiTiet = DanhSachLopChiTietJdbcMapper.toDomain(rs, lop);
+					DanhSachLopChiTiet chiTiet = DanhSachLopChiTietJdbcMapper.toDomain(rs,
+							LopHocPhanJdbcMapper.toDomain(rs));
 
 					result.add(chiTiet);
 				}

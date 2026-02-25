@@ -9,7 +9,7 @@ public class HocPhanJdbcMapper
 	{
 		Integer tc = JdbcMapperUtil.getInt(rs, "so_tin_chi");
 		return HocPhan.reconstruct(
-				rs.getLong("id"),
+				rs.getLong("hoc_phan_id"), // was "id"
 				rs.getString("ma_hoc_phan"),
 				rs.getString("ten_hoc_phan"),
 				tc == null ? 0 : tc);

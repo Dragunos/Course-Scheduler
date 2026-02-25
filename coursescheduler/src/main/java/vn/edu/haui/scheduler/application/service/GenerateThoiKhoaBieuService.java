@@ -120,6 +120,30 @@ public class GenerateThoiKhoaBieuService implements GenerateThoiKhoaBieuUseCase
 	}
 
 	@Override
+	public List<ThoiKhoaBieuDto> generateFromDanhSach(
+			Long nguoiDungId,
+			Long danhSachLopId,
+			int topK)
+	{
+		NguoiDung nguoiDung = nguoiDungRepository
+				.findById(nguoiDungId)
+				.orElseThrow(() -> new EntityNotFoundException("NguoiDung", nguoiDungId));
+
+		DanhSachLop danhSach = danhSachLopRepository
+				.findById(danhSachLopId)
+				.orElseThrow(() -> new EntityNotFoundException("DanhSachLop", danhSachLopId));
+
+		YeuCau yeuCau = YeuCau.create(
+				nguoiDung,
+				danhSach,
+				"AUTO_" + System.currentTimeMillis());
+
+		YeuCau saved = yeuCauRepository.save(yeuCau);
+
+		return generate(nguoiDungId, saved.getId(), topK);
+	}
+
+	@Override
 	public ThoiKhoaBieuDto regenerate(
 			Long nguoiDungId,
 			Long thoiKhoaBieuId,

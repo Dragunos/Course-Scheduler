@@ -8,7 +8,7 @@ public class GiangVienJdbcMapper
 	public static GiangVien toDomain(ResultSet rs) throws Exception
 	{
 		return GiangVien.reconstruct(
-				rs.getLong("id"),
+				rs.getLong("giang_vien_id"), // was "id"
 				rs.getString("ten_giang_vien"));
 	}
 }

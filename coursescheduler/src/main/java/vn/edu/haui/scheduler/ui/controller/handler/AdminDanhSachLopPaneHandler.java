@@ -179,6 +179,8 @@ public class AdminDanhSachLopPaneHandler
 					file.getAbsolutePath(),
 					"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 					data);
+			
+			tep.setStorageType("LOCAL");
 
 			String tenDanhSach = "Danh sách hệ thống";
 			Long hocKyId = null;

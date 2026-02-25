@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import vn.edu.haui.scheduler.application.dto.DanhSachLopDto;
 import vn.edu.haui.scheduler.application.dto.TepTaiLenDto;
 import vn.edu.haui.scheduler.application.exception.EntityNotFoundException;
-import vn.edu.haui.scheduler.application.exception.ImportDanhSachLopException;
 import vn.edu.haui.scheduler.application.exception.UnauthorizedAccessException;
 import vn.edu.haui.scheduler.application.exception.ValidationException;
 import vn.edu.haui.scheduler.application.port.in.AdminDanhSachLopUseCase;
@@ -61,12 +60,17 @@ public class AdminDanhSachLopService implements AdminDanhSachLopUseCase
 	{
 		validateAdmin(adminId);
 
-		HocKy hocKy = validateHocKy(hocKyId);
+		HocKy hocKy = null;
+		if(hocKyId != null) {
+			hocKy = validateHocKy(hocKyId);
+		}
+
+		Long finalHocKyId = (hocKy != null) ? hocKy.getId() : null;
 
 		DanhSachLopDto imported = importDanhSachLopService.importFromExcel(
 				adminId,
 				tenDanhSach,
-				hocKy.getId(),
+				finalHocKyId,
 				tepTaiLenDto);
 
 		DanhSachLop domain = danhSachLopRepository

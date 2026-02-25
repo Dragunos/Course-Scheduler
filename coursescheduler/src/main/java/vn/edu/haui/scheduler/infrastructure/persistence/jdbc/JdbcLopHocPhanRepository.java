@@ -215,19 +215,20 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepository
 
 	private LopHocPhan loadAggregate(Connection conn, ResultSet rs) throws Exception
 	{
-		Long id = rs.getLong("id");
+		// use aliases declared in BASE_SELECT_QUERY
+		Long id = rs.getLong("lhp_id"); // was "id"
+		String maLop = rs.getString("lhp_ma_lop"); // was "ma_lop"
 
-		HocPhan hocPhan = HocPhanJdbcMapper.toDomain(rs);
-
+		HocPhan hocPhan = HocPhanJdbcMapper.toDomain(rs); // update mapper to read hoc_phan_id
 		GiangVien giangVien = null;
 		if(rs.getObject("giang_vien_id") != null)
-			giangVien = GiangVienJdbcMapper.toDomain(rs);
+			giangVien = GiangVienJdbcMapper.toDomain(rs); // update mapper to read giang_vien_id
 
 		List<LichHoc> lichHocList = loadLichHoc(conn, id);
 
 		return LopHocPhan.reconstruct(
 				id,
-				rs.getString("ma_lop"),
+				maLop,
 				hocPhan,
 				giangVien,
 				rs.getString("hinh_thuc_day"),
@@ -237,6 +238,7 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepository
 
 	private List<LichHoc> loadLichHoc(Connection conn, Long lopHocPhanId) throws Exception
 	{
+		System.out.println("DEBUG: loadLichHoc for lopHocPhanId=" + lopHocPhanId);
 		String sql = "SELECT * FROM lich_hoc WHERE lop_hoc_phan_id = ?";
 
 		List<LichHoc> result = new ArrayList<>();

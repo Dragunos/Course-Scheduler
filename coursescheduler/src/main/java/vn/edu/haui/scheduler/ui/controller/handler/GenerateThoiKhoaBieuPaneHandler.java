@@ -1,7 +1,6 @@
 package vn.edu.haui.scheduler.ui.controller.handler;
 
 import javafx.geometry.Insets;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -133,18 +132,13 @@ public class GenerateThoiKhoaBieuPaneHandler
 			try {
 				Long userId = screenManager.getCurrentUser().getId();
 
-				// ⭐ Create requirement + generate solution graph
-				long yeuCauId = screenManager
-						.getSinhThoiKhoaBieuUseCase()
-						.generate(userId, selected.getId(), topK)
-						.stream()
-						.findFirst()
-						.map(ThoiKhoaBieuDto::getId)
-						.orElseThrow();
-
-				List<ThoiKhoaBieuDto> solutions = screenManager.getSinhThoiKhoaBieuUseCase()
-						.generate(userId, selected.getId(), topK);
-
+				List<ThoiKhoaBieuDto> solutions =
+				        screenManager.getSinhThoiKhoaBieuUseCase()
+				                .generateFromDanhSach(
+				                        userId,
+				                        selected.getId(),
+				                        topK);
+				
 				resultBox.getChildren().clear();
 
 				if(solutions == null || solutions.isEmpty()) {

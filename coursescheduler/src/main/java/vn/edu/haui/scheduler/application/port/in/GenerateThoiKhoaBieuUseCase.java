@@ -15,6 +15,11 @@ public interface GenerateThoiKhoaBieuUseCase
 			Long thoiKhoaBieuId,
 			Long yeuCauId,
 			int topK);
+	
+	List<ThoiKhoaBieuDto> generateFromDanhSach(
+	        Long nguoiDungId,
+	        Long danhSachLopId,
+	        int topK);
 
 	void saveAll(
 			Long nguoiDungId,

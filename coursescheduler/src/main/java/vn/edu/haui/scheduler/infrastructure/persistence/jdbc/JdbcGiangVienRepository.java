@@ -89,7 +89,9 @@ public class JdbcGiangVienRepository implements GiangVienRepository
 	public Optional<GiangVien> findById(Long id)
 	{
 		String sql = """
-				SELECT id, ten_giang_vien
+				SELECT
+				    id AS giang_vien_id,
+				    ten_giang_vien
 				FROM giang_vien
 				WHERE id = ?
 				""";
@@ -114,7 +116,9 @@ public class JdbcGiangVienRepository implements GiangVienRepository
 	public Optional<GiangVien> findByTen(String tenGiangVien)
 	{
 		String sql = """
-				SELECT id, ten_giang_vien
+				SELECT
+				    id AS giang_vien_id,
+				    ten_giang_vien
 				FROM giang_vien
 				WHERE ten_giang_vien = ?
 				""";
@@ -131,6 +135,7 @@ public class JdbcGiangVienRepository implements GiangVienRepository
 			}
 		}
 		catch(Exception e) {
+			e.printStackTrace();
 			throw new DataAccessException("Error finding GiangVien by ten", e);
 		}
 	}
@@ -139,7 +144,9 @@ public class JdbcGiangVienRepository implements GiangVienRepository
 	public List<GiangVien> findAll()
 	{
 		String sql = """
-				SELECT id, ten_giang_vien
+				SELECT
+				    id AS giang_vien_id,
+				    ten_giang_vien
 				FROM giang_vien
 				ORDER BY ten_giang_vien ASC
 				""";
