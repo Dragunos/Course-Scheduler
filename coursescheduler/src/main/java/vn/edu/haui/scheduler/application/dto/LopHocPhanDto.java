@@ -118,6 +118,4 @@ public class LopHocPhanDto
 	{
 		this.lichHocDanhSach = lichHocDanhSach;
 	}
-	
-	
 }

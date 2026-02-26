@@ -5,6 +5,7 @@ import javafx.stage.Stage;
 
 import vn.edu.haui.scheduler.application.port.in.*;
 import vn.edu.haui.scheduler.application.service.*;
+import vn.edu.haui.scheduler.domain.optimizer.Optimizer;
 import vn.edu.haui.scheduler.application.port.out.*;
 import vn.edu.haui.scheduler.infrastructure.io.exports.*;
 import vn.edu.haui.scheduler.infrastructure.io.imports.ExcelDanhSachLopImporter;
@@ -29,6 +30,8 @@ public class MainApp extends Application
 				new ExcelExporter(),
 				new PdfExporter(PDF_FONT_PATH));
 		IcsExporter icsExporter = new IcsExporter();
+
+		Optimizer optimizer = new Optimizer();
 
 		// ===== REPOSITORIES =====
 		NguoiDungRepository nguoiDungRepo = new JdbcNguoiDungRepository();
@@ -60,8 +63,12 @@ public class MainApp extends Application
 		ExportDanhSachLopUseCase exportDanhSachLopUc = new ExportDanhSachLopService(danhSachRepo, nguoiDungRepo,
 				fileExporter);
 
-		GenerateThoiKhoaBieuUseCase generateThoiKhoaBieuUc = new GenerateThoiKhoaBieuService(nguoiDungRepo,
-				danhSachRepo, thoiKbRepo, yeuCauRepo);
+		GenerateThoiKhoaBieuUseCase generateThoiKhoaBieuUc = new GenerateThoiKhoaBieuService(
+				nguoiDungRepo,
+				danhSachRepo,
+				yeuCauRepo,
+				thoiKbRepo,
+				optimizer);
 
 		ManageThoiKhoaBieuUseCase manageThoiKhoaBieuUc = new ManageThoiKhoaBieuService(thoiKbRepo);
 
@@ -77,7 +84,7 @@ public class MainApp extends Application
 		screenManager.setImportDanhSachLopUseCase(importDanhSachLopUc);
 		screenManager.setQuanLyDanhSachLopUseCase(manageDanhSachLopUc);
 		screenManager.setXuatDanhSachLopUseCase(exportDanhSachLopUc);
-		screenManager.setSinhThoiKhoaBieuUseCase(generateThoiKhoaBieuUc);
+		screenManager.setGenerateThoiKhoaBieuUseCase(generateThoiKhoaBieuUc);
 		screenManager.setQuanLyThoiKhoaBieuUseCase(manageThoiKhoaBieuUc);
 		screenManager.setXuatThoiKhoaBieuUseCase(exportThoiKhoaBieuUc);
 		screenManager.setQuanTriDanhSachLopUseCase(adminDanhSachLopUc);

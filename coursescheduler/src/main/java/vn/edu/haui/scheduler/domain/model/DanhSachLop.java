@@ -179,6 +179,17 @@ public class DanhSachLop
 
 		this.laCongKhai = false;
 	}
+	
+	public List<LopHocPhan> getLopHocPhanList()
+	{
+	    List<LopHocPhan> result = new ArrayList<>();
+
+	    for (DanhSachLopChiTiet ct : chiTietList) {
+	        result.add(ct.getLopHocPhan());
+	    }
+
+	    return Collections.unmodifiableList(result);
+	}
 
 	public List<DanhSachLopChiTiet> getChiTietList()
 	{

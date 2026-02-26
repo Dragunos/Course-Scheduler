@@ -16,4 +16,6 @@ public interface ThoiKhoaBieuRepository
 	List<ThoiKhoaBieu> findByDanhSachLopId(Long danhSachLopId);
 
 	void deleteById(Long id);
+	
+	ThoiKhoaBieu update(ThoiKhoaBieu tkb);
 }

@@ -78,7 +78,8 @@ public class JdbcThoiKhoaBieuRepository implements ThoiKhoaBieuRepository
 		}
 	}
 
-	private ThoiKhoaBieu update(ThoiKhoaBieu tkb)
+	@Override
+	public ThoiKhoaBieu update(ThoiKhoaBieu tkb)
 	{
 		String sql = """
 				UPDATE thoi_khoa_bieu
@@ -117,11 +118,20 @@ public class JdbcThoiKhoaBieuRepository implements ThoiKhoaBieuRepository
 	{
 		String sql = """
 				SELECT tkb.*,
-				       nd.id as nd_id, nd.ten_dang_nhap, nd.mat_khau_hash,
-				       nd.ngay_tao as nd_ngay_tao,
-				       dsl.id as dsl_id
+
+				       nd.id              as nd_id,
+				       nd.ten_dang_nhap,
+				       nd.mat_khau_hash,
+				       nd.ngay_tao        as nd_ngay_tao,
+
+				       vt.id              as vt_id,
+				       vt.ten_vai_tro,
+
+				       dsl.id             as dsl_id
+
 				FROM thoi_khoa_bieu tkb
 				JOIN nguoi_dung nd ON tkb.nguoi_dung_id = nd.id
+				LEFT JOIN vai_tro vt ON nd.role_id = vt.id
 				JOIN danh_sach_lop dsl ON tkb.danh_sach_lop_id = dsl.id
 				WHERE tkb.id = ?
 				""";
@@ -175,6 +185,7 @@ public class JdbcThoiKhoaBieuRepository implements ThoiKhoaBieuRepository
 			return result;
 		}
 		catch(Exception e) {
+			e.printStackTrace();
 			throw new DataAccessException("Error querying ThoiKhoaBieu", e);
 		}
 	}
@@ -273,7 +284,31 @@ public class JdbcThoiKhoaBieuRepository implements ThoiKhoaBieuRepository
 
 	private DanhSachLop loadDanhSachLop(Connection conn, Long id) throws Exception
 	{
-		String sql = "SELECT * FROM danh_sach_lop WHERE id = ?";
+		String sql = """
+				SELECT
+				    dsl.id               AS dsl_id,
+				    dsl.ten_danh_sach,
+				    dsl.la_cong_khai,
+				    dsl.ngay_tao,
+
+				    nd.id                AS nd_id,
+				    nd.ten_dang_nhap,
+				    nd.mat_khau_hash,
+				    nd.ngay_tao          AS nd_ngay_tao,
+
+				    vt.id                AS vt_id,
+				    vt.ten_vai_tro,
+
+				    hk.id                AS hk_id,
+				    hk.ten_hoc_ky,
+				    hk.nam_hoc
+
+				FROM danh_sach_lop dsl
+				JOIN nguoi_dung nd ON dsl.nguoi_tao_id = nd.id
+				LEFT JOIN vai_tro vt ON nd.role_id = vt.id
+				LEFT JOIN hoc_ky hk ON dsl.hoc_ky_id = hk.id
+				WHERE dsl.id = ?
+				""";
 
 		try (PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setLong(1, id);
@@ -282,8 +317,13 @@ public class JdbcThoiKhoaBieuRepository implements ThoiKhoaBieuRepository
 				if(!rs.next())
 					throw new IllegalStateException("DanhSachLop not found");
 
-				NguoiDung nguoiTao = null;
+				NguoiDung nguoiTao = NguoiDungJdbcMapper.toDomain(rs);
 				HocKy hocKy = null;
+
+				Long hocKyId = rs.getLong("hk_id");
+				if(!rs.wasNull()) {
+					hocKy = HocKyJdbcMapper.toDomain(rs);
+				}
 
 				return DanhSachLopJdbcMapper.toDomain(
 						rs,

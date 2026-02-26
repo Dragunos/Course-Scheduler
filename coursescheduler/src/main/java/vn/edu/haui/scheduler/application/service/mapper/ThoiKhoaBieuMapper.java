@@ -8,7 +8,6 @@ import vn.edu.haui.scheduler.domain.model.ThoiKhoaBieu;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 public class ThoiKhoaBieuMapper
@@ -32,13 +31,19 @@ public class ThoiKhoaBieuMapper
 		dto.setNgayTao(domain.getNgayTao());
 
 		if(domain.getCacLop() != null) {
+
 			dto.setLopHocPhanIdList(
 					domain.getCacLop()
 							.stream()
-							.filter(Objects::nonNull)
 							.map(LopHocPhan::getId)
 							.toList());
 		}
+		
+		dto.setDanhSachLopHocPhan(
+		        domain.getCacLop()
+		                .stream()
+		                .map(LopHocPhanMapper::toDto)
+		                .toList());
 
 		return dto;
 	}

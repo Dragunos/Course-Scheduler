@@ -1,215 +1,227 @@
 package vn.edu.haui.scheduler.application.service;
 
-import java.util.*;
+import vn.edu.haui.scheduler.application.dto.RangBuocToiUuDto;
 import vn.edu.haui.scheduler.application.dto.ThoiKhoaBieuDto;
 import vn.edu.haui.scheduler.application.exception.EntityNotFoundException;
-import vn.edu.haui.scheduler.application.exception.ValidationException;
 import vn.edu.haui.scheduler.application.port.in.GenerateThoiKhoaBieuUseCase;
 import vn.edu.haui.scheduler.application.port.out.DanhSachLopRepository;
 import vn.edu.haui.scheduler.application.port.out.NguoiDungRepository;
 import vn.edu.haui.scheduler.application.port.out.ThoiKhoaBieuRepository;
 import vn.edu.haui.scheduler.application.port.out.YeuCauRepository;
+import vn.edu.haui.scheduler.application.service.mapper.RangBuocToiUuMapper;
 import vn.edu.haui.scheduler.application.service.mapper.ThoiKhoaBieuMapper;
-import vn.edu.haui.scheduler.domain.model.*;
+import vn.edu.haui.scheduler.domain.model.DanhSachLop;
+import vn.edu.haui.scheduler.domain.model.LopHocPhan;
+import vn.edu.haui.scheduler.domain.model.NguoiDung;
+import vn.edu.haui.scheduler.domain.model.RangBuocToiUu;
+import vn.edu.haui.scheduler.domain.model.ThoiKhoaBieu;
+import vn.edu.haui.scheduler.domain.model.YeuCau;
+import vn.edu.haui.scheduler.domain.optimizer.HardConstraint;
+import vn.edu.haui.scheduler.domain.optimizer.OptimizationInput;
+import vn.edu.haui.scheduler.domain.optimizer.OptimizationResult;
 import vn.edu.haui.scheduler.domain.optimizer.Optimizer;
-import vn.edu.haui.scheduler.domain.optimizer.PhuongAnThoiKhoaBieu;
+import vn.edu.haui.scheduler.domain.optimizer.SoftConstraint;
+
+import java.time.Duration;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class GenerateThoiKhoaBieuService implements GenerateThoiKhoaBieuUseCase
 {
-	private static final long DEFAULT_TIME_LIMIT = 5000L;
-
 	private final NguoiDungRepository nguoiDungRepository;
 
 	private final DanhSachLopRepository danhSachLopRepository;
 
+	private final YeuCauRepository yeuCauRepository;
+
 	private final ThoiKhoaBieuRepository thoiKhoaBieuRepository;
 
-	private final YeuCauRepository yeuCauRepository;
+	private final Optimizer optimizer;
 
 	public GenerateThoiKhoaBieuService(
 			NguoiDungRepository nguoiDungRepository,
 			DanhSachLopRepository danhSachLopRepository,
+			YeuCauRepository yeuCauRepository,
 			ThoiKhoaBieuRepository thoiKhoaBieuRepository,
-			YeuCauRepository yeuCauRepository)
+			Optimizer optimizer)
 	{
 		this.nguoiDungRepository = nguoiDungRepository;
 		this.danhSachLopRepository = danhSachLopRepository;
-		this.thoiKhoaBieuRepository = thoiKhoaBieuRepository;
 		this.yeuCauRepository = yeuCauRepository;
+		this.thoiKhoaBieuRepository = thoiKhoaBieuRepository;
+		this.optimizer = optimizer;
 	}
 
 	@Override
 	public List<ThoiKhoaBieuDto> generate(
 			Long nguoiDungId,
-			Long yeuCauId,
-			int topK)
-	{
-		if(nguoiDungId == null)
-			throw new ValidationException("NguoiDungId must not be null");
-
-		if(yeuCauId == null)
-			throw new ValidationException("YeuCauId must not be null");
-
-		if(topK <= 0)
-			throw new ValidationException("topK must be positive");
-
-		NguoiDung nguoiDung = nguoiDungRepository
-				.findById(nguoiDungId)
-				.orElseThrow(() -> new EntityNotFoundException("NguoiDung", nguoiDungId));
-
-		YeuCau yeuCau = yeuCauRepository
-				.findById(yeuCauId)
-				.orElseThrow(() -> new EntityNotFoundException("YeuCau", yeuCauId));
-
-		DanhSachLop danhSach = yeuCau.getDanhSachLop();
-
-		List<LopHocPhan> allLop = danhSach
-				.getChiTietList()
-				.stream()
-				.map(DanhSachLopChiTiet::getLopHocPhan)
-				.toList();
-
-		Set<String> requiredHocPhanCodes = new HashSet<>();
-		Set<String> preferredLopIds = new HashSet<>();
-		Set<String> avoidHinhThuc = new HashSet<>();
-		Set<Integer> avoidTiet = new HashSet<>();
-		Set<Integer> avoidThu = new HashSet<>();
-
-		for(RangBuocToiUu rb : yeuCau.getRangBuoc()) {
-			switch(rb.getLoaiRangBuoc()) {
-				case "FIX_SECTION" -> preferredLopIds.add(rb.getTargetValue());
-
-				case "REQUIRE_COURSE" -> requiredHocPhanCodes.add(rb.getTargetValue());
-
-				case "AVOID_MODE" -> avoidHinhThuc.add(rb.getValue());
-
-				case "AVOID_THU" -> avoidThu.add(Integer.parseInt(rb.getValue()));
-
-				case "AVOID_TIET" -> avoidTiet.add(Integer.parseInt(rb.getValue()));
-			}
-		}
-
-		Optimizer optimizer = new Optimizer(
-				allLop,
-				requiredHocPhanCodes,
-				preferredLopIds,
-				avoidHinhThuc,
-				avoidTiet,
-				avoidThu,
-				topK,
-				DEFAULT_TIME_LIMIT);
-
-		List<PhuongAnThoiKhoaBieu> results = optimizer.optimize();
-
-		if(results.isEmpty())
-			throw new ValidationException("Khong tim duoc thoi khoa bieu hop le");
-
-		return results.stream()
-				.map(pa -> {
-					ThoiKhoaBieu tkb = ThoiKhoaBieu.create(
-							nguoiDung,
-							danhSach,
-							"GENERATED");
-
-					tkb.chamDiem(pa.getDiemDanhGia());
-					pa.getLopHocPhans().forEach(tkb::themLop);
-
-					return ThoiKhoaBieuMapper.toDto(tkb);
-				})
-				.toList();
-	}
-
-	@Override
-	public List<ThoiKhoaBieuDto> generateFromDanhSach(
-			Long nguoiDungId,
 			Long danhSachLopId,
-			int topK)
+			List<String> maHocPhanDangKy,
+			List<RangBuocToiUuDto> rangBuocDtos,
+			int topK,
+			long timeLimitMillis)
 	{
-		NguoiDung nguoiDung = nguoiDungRepository
-				.findById(nguoiDungId)
-				.orElseThrow(() -> new EntityNotFoundException("NguoiDung", nguoiDungId));
 
-		DanhSachLop danhSach = danhSachLopRepository
-				.findById(danhSachLopId)
+		DanhSachLop danhSach = danhSachLopRepository.findById(danhSachLopId)
 				.orElseThrow(() -> new EntityNotFoundException("DanhSachLop", danhSachLopId));
 
+		NguoiDung nguoiDung = nguoiDungRepository.findById(nguoiDungId)
+				.orElseThrow(() -> new EntityNotFoundException("NguoiDung", nguoiDungId));
+
+		// tạo YeuCau mới (aggregate root)
 		YeuCau yeuCau = YeuCau.create(
 				nguoiDung,
 				danhSach,
-				"AUTO_" + System.currentTimeMillis());
+				"Auto Generated Request");
 
-		YeuCau saved = yeuCauRepository.save(yeuCau);
+		List<RangBuocToiUu> rangBuocs = rangBuocDtos.stream()
+				.map(dto -> RangBuocToiUuMapper.toDomain(dto, yeuCau, null, null))
+				.collect(Collectors.toList());
 
-		return generate(nguoiDungId, saved.getId(), topK);
+		for(RangBuocToiUu rb : rangBuocs) {
+			yeuCau.themRangBuoc(rb);
+		}
+
+		yeuCauRepository.save(yeuCau);
+
+		List<LopHocPhan> availableSections = danhSach.getLopHocPhanList();
+
+		Set<Long> requiredCourseIds = availableSections.stream()
+				.filter(s -> maHocPhanDangKy.contains(s.getHocPhan().getMaHocPhan()))
+				.map(s -> s.getHocPhan().getId())
+				.collect(Collectors.toSet());
+
+		if(requiredCourseIds.isEmpty()) {
+			throw new IllegalArgumentException("No required courses found for given maHocPhanDangKy");
+		}
+
+		List<HardConstraint> hardConstraints = List.of();
+		List<SoftConstraint> softConstraints = List.of();
+
+		OptimizationInput input = new OptimizationInput(
+				availableSections,
+				requiredCourseIds,
+				hardConstraints,
+				softConstraints,
+				topK,
+				Duration.ofMillis(timeLimitMillis));
+
+		List<OptimizationResult> results = optimizer.optimize(input);
+
+		return results.stream()
+				.map(r -> {
+					ThoiKhoaBieu tkb = ThoiKhoaBieu.create(
+							yeuCau.getNguoiTao(),
+							yeuCau.getDanhSachLop(),
+							"Generated Plan");
+
+					for(LopHocPhan lop : r.selectedSections()) {
+						tkb.themLop(lop);
+					}
+
+					tkb.chamDiem(r.score());
+
+					return ThoiKhoaBieuMapper.toDto(tkb);
+				})
+				.collect(Collectors.toList());
 	}
 
 	@Override
-	public ThoiKhoaBieuDto regenerate(
+	public List<ThoiKhoaBieuDto> reGenerate(
 			Long nguoiDungId,
 			Long thoiKhoaBieuId,
-			Long yeuCauId,
-			int topK)
+			List<RangBuocToiUuDto> updatedConstraints,
+			int topK,
+			long timeLimitMillis)
 	{
-		if(thoiKhoaBieuId == null)
-			throw new ValidationException("ThoiKhoaBieuId must not be null");
 
-		thoiKhoaBieuRepository
-				.findById(thoiKhoaBieuId)
-				.orElseThrow(() -> new EntityNotFoundException(
-						"ThoiKhoaBieu",
-						thoiKhoaBieuId));
+		ThoiKhoaBieu existing = thoiKhoaBieuRepository.findById(thoiKhoaBieuId)
+				.orElseThrow(() -> new EntityNotFoundException("ThoiKhoaBieu", thoiKhoaBieuId));
 
-		List<ThoiKhoaBieuDto> list = generate(
-				nguoiDungId,
-				yeuCauId,
-				topK);
+		YeuCau yeuCau = YeuCau.create(
+				existing.getNguoiDung(),
+				existing.getDanhSachLop(),
+				"Regenerate from TKB " + thoiKhoaBieuId);
 
-		return list.get(0);
+		List<RangBuocToiUu> rangBuocs = updatedConstraints.stream()
+				.map(dto -> RangBuocToiUuMapper.toDomain(dto, yeuCau, null, null))
+				.collect(Collectors.toList());
+
+		for(RangBuocToiUu rb : rangBuocs) {
+			yeuCau.themRangBuoc(rb);
+		}
+
+		yeuCauRepository.save(yeuCau);
+
+		List<LopHocPhan> availableSections = existing.getDanhSachLop().getLopHocPhanList();
+
+		Set<Long> requiredCourseIds = existing.getCacLop()
+				.stream()
+				.map(l -> l.getHocPhan().getId())
+				.collect(Collectors.toSet());
+
+		if(requiredCourseIds.isEmpty()) {
+			throw new IllegalArgumentException("No required courses found in existing schedule");
+		}
+
+		List<HardConstraint> hardConstraints = List.of();
+		List<SoftConstraint> softConstraints = List.of();
+
+		OptimizationInput input = new OptimizationInput(
+				availableSections,
+				requiredCourseIds,
+				hardConstraints,
+				softConstraints,
+				topK,
+				Duration.ofMillis(timeLimitMillis));
+
+		List<OptimizationResult> results = optimizer.optimize(input);
+
+		return results.stream()
+				.map(r -> {
+					ThoiKhoaBieu tkb = ThoiKhoaBieu.create(
+							yeuCau.getNguoiTao(),
+							yeuCau.getDanhSachLop(),
+							"Generated Plan");
+
+					for(LopHocPhan lop : r.selectedSections()) {
+						tkb.themLop(lop);
+					}
+
+					tkb.chamDiem(r.score());
+
+					return ThoiKhoaBieuMapper.toDto(tkb);
+				})
+				.collect(Collectors.toList());
 	}
 
 	@Override
-	public void saveAll(
+	public void save(
 			Long nguoiDungId,
-			List<ThoiKhoaBieuDto> selectedDtos,
+			Long danhSachLopId,
+			List<ThoiKhoaBieuDto> selectedResults,
 			boolean overwrite)
 	{
-		if(nguoiDungId == null)
-			throw new ValidationException("NguoiDungId must not be null");
 
-		if(selectedDtos == null || selectedDtos.isEmpty())
-			throw new ValidationException("No ThoiKhoaBieu selected");
+		for(ThoiKhoaBieuDto dto : selectedResults) {
 
-		NguoiDung nguoiDung = nguoiDungRepository
-				.findById(nguoiDungId)
-				.orElseThrow(() -> new EntityNotFoundException("NguoiDung", nguoiDungId));
+			NguoiDung nguoiDung = nguoiDungRepository.findById(dto.getNguoiDungId())
+					.orElseThrow(() -> new EntityNotFoundException("NguoiDung", dto.getNguoiDungId()));
 
-		for(ThoiKhoaBieuDto dto : selectedDtos) {
+			DanhSachLop danhSach = danhSachLopRepository.findById(dto.getDanhSachLopId())
+					.orElseThrow(() -> new EntityNotFoundException("DanhSachLop", dto.getDanhSachLopId()));
 
-			DanhSachLop danhSach = danhSachLopRepository
-					.findById(dto.getDanhSachLopId())
-					.orElseThrow(() -> new EntityNotFoundException(
-							"DanhSachLop",
-							dto.getDanhSachLopId()));
+			List<LopHocPhan> cacLop = List.of();
 
-			Set<Long> selectedIds = new HashSet<>(dto.getLopHocPhanIdList());
-			List<LopHocPhan> cacLop = danhSach
-					.getChiTietList()
-					.stream()
-					.map(DanhSachLopChiTiet::getLopHocPhan)
-					.filter(lop -> selectedIds.contains(lop.getId()))
-					.toList();
+			ThoiKhoaBieu domain = ThoiKhoaBieuMapper.toDomain(dto, nguoiDung, danhSach, cacLop);
 
-			ThoiKhoaBieu domain = ThoiKhoaBieuMapper.toDomain(
-					dto,
-					nguoiDung,
-					danhSach,
-					cacLop);
-
-			if(overwrite && domain.getId() != null) {
-				thoiKhoaBieuRepository.deleteById(domain.getId());
+			if(overwrite) {
+				thoiKhoaBieuRepository.update(domain);
 			}
-
-			thoiKhoaBieuRepository.save(domain);
+			else {
+				thoiKhoaBieuRepository.save(domain);
+			}
 		}
 	}
 }

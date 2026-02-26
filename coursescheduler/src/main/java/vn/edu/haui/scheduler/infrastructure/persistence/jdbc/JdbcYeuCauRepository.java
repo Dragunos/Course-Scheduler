@@ -106,9 +106,10 @@ public class JdbcYeuCauRepository implements YeuCauRepository
 	{
 		String sql = """
 				SELECT yc.*,
-				       nd.id AS nguoi_dung_id,
+				       nd.id AS nd_id,
 				       nd.ten_dang_nhap,
 				       nd.mat_khau_hash,
+				       nd.ngay_tao AS nd_ngay_tao,
 				       v.id AS vt_id,
 				       v.ten_vai_tro,
 				       dsl.id AS danh_sach_lop_id,
@@ -137,6 +138,7 @@ public class JdbcYeuCauRepository implements YeuCauRepository
 
 		}
 		catch(Exception e) {
+			e.printStackTrace();
 			throw new DataAccessException("Error finding YeuCau by id", e);
 		}
 	}
@@ -275,12 +277,34 @@ public class JdbcYeuCauRepository implements YeuCauRepository
 	{
 
 		String sql = """
-				SELECT ct.*, lhp.*
+				SELECT ct.*,
+
+				       lhp.id AS lhp_id,
+				       lhp.ma_lop AS lhp_ma_lop,
+				       lhp.hinh_thuc_day,
+				       lhp.dia_diem,
+
+				       hp.id AS hp_id,
+				       hp.ma_hoc_phan,
+				       hp.ten_hoc_phan,
+				       hp.so_tin_chi,
+
+				       gv.id AS gv_id,
+				       gv.ten_giang_vien
+
 				FROM danh_sach_lop_chi_tiet ct
+
 				JOIN lop_hoc_phan lhp
 				     ON ct.lop_hoc_phan_id = lhp.id
+
+				JOIN hoc_phan hp
+				     ON lhp.hoc_phan_id = hp.id
+
+				LEFT JOIN giang_vien gv
+				     ON lhp.giang_vien_id = gv.id
+
 				WHERE ct.danh_sach_lop_id = ?
-				""";
+								""";
 
 		List<DanhSachLopChiTiet> result = new ArrayList<>();
 
@@ -355,11 +379,18 @@ public class JdbcYeuCauRepository implements YeuCauRepository
 	{
 
 		String sql = """
-				SELECT rb.*, nd.id as nguoi_tao_id, nd.ten_dang_nhap
+				SELECT rb.*,
+				       nd.id AS nd_id,
+				       nd.ten_dang_nhap,
+				       nd.mat_khau_hash,
+				       nd.ngay_tao AS nd_ngay_tao,
+				       v.id AS vt_id,
+				       v.ten_vai_tro
 				FROM rang_buoc_toi_uu rb
 				LEFT JOIN nguoi_dung nd ON rb.nguoi_tao_id = nd.id
+				LEFT JOIN vai_tro v ON nd.role_id = v.id
 				WHERE rb.yeu_cau_id = ?
-				""";
+								""";
 
 		List<RangBuocToiUu> result = new ArrayList<>();
 

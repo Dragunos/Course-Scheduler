@@ -1,28 +1,31 @@
 package vn.edu.haui.scheduler.application.port.in;
 
-import java.util.List;
+import vn.edu.haui.scheduler.application.dto.RangBuocToiUuDto;
 import vn.edu.haui.scheduler.application.dto.ThoiKhoaBieuDto;
+
+import java.util.List;
 
 public interface GenerateThoiKhoaBieuUseCase
 {
+
 	List<ThoiKhoaBieuDto> generate(
 			Long nguoiDungId,
-			Long yeuCauId,
-			int topK);
+			Long danhSachLopId,
+			List<String> maHocPhanDangKy,
+			List<RangBuocToiUuDto> rangBuocDtos,
+			int topK,
+			long timeLimitMillis);
 
-	ThoiKhoaBieuDto regenerate(
+	List<ThoiKhoaBieuDto> reGenerate(
 			Long nguoiDungId,
 			Long thoiKhoaBieuId,
-			Long yeuCauId,
-			int topK);
-	
-	List<ThoiKhoaBieuDto> generateFromDanhSach(
-	        Long nguoiDungId,
-	        Long danhSachLopId,
-	        int topK);
+			List<RangBuocToiUuDto> updatedConstraints,
+			int topK,
+			long timeLimitMillis);
 
-	void saveAll(
+	void save(
 			Long nguoiDungId,
-			List<ThoiKhoaBieuDto> selectedDtos,
+			Long danhSachLopId,
+			List<ThoiKhoaBieuDto> selectedResults,
 			boolean overwrite);
 }

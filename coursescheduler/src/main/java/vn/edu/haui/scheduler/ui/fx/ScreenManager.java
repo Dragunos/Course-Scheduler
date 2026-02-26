@@ -70,12 +70,12 @@ public class ScreenManager
 		return this.exportDanhSachLopUseCase;
 	}
 
-	public void setSinhThoiKhoaBieuUseCase(GenerateThoiKhoaBieuUseCase uc)
+	public void setGenerateThoiKhoaBieuUseCase(GenerateThoiKhoaBieuUseCase uc)
 	{
 		this.generateThoiKhoaBieuUseCase = uc;
 	}
 
-	public GenerateThoiKhoaBieuUseCase getSinhThoiKhoaBieuUseCase()
+	public GenerateThoiKhoaBieuUseCase getGenerateThoiKhoaBieuUseCase()
 	{
 		return generateThoiKhoaBieuUseCase;
 	}

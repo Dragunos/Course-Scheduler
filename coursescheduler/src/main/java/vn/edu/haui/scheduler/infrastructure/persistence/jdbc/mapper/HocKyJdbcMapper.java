@@ -11,7 +11,7 @@ public class HocKyJdbcMapper
 	{
 		try {
 			return HocKy.reconstruct(
-					rs.getLong("id"),
+					rs.getLong("hk_id"),
 					rs.getString("ten_hoc_ky"),
 					rs.getString("nam_hoc"));
 		}
