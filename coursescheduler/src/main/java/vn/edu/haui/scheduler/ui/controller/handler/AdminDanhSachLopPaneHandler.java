@@ -148,59 +148,79 @@ public class AdminDanhSachLopPaneHandler
 
     private void viewChiTiet(DanhSachLopDto dto)
     {
-        centerContainer.getChildren().clear();
+        try {
+            NguoiDungDto user = screenManager.getCurrentUser();
 
-        Label title = new Label(
-                "Chi tiết: " +
-                        (dto.getTenDanhSach() != null
-                                ? dto.getTenDanhSach()
-                                : "<không tên>"));
-        title.getStyleClass().add("home-title");
+            DanhSachLopDto detail =
+                    screenManager
+                            .getQuanTriDanhSachLopUseCase()
+                            .findDetail(user.getId(), dto.getId());
 
-        TableView<DanhSachLopChiTietDto> table =
-                new TableView<>();
-        table.setColumnResizePolicy(
-                TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+            centerContainer.getChildren().clear();
 
-        TableColumn<DanhSachLopChiTietDto, String> maLopCol =
-                new TableColumn<>("Mã lớp");
-        maLopCol.setCellValueFactory(c ->
-                new SimpleStringProperty(
-                        c.getValue().getMaLop() != null
-                                ? c.getValue().getMaLop()
-                                : ""));
+            Label title = new Label(
+                    "Chi tiết: " +
+                            (detail.getTenDanhSach() != null
+                                    ? detail.getTenDanhSach()
+                                    : "<không tên>"));
 
-        TableColumn<DanhSachLopChiTietDto, String> tenHpCol =
-                new TableColumn<>("Học phần");
-        tenHpCol.setCellValueFactory(c ->
-                new SimpleStringProperty(
-                        c.getValue().getTenHocPhan() != null
-                                ? c.getValue().getTenHocPhan()
-                                : ""));
+            title.getStyleClass().add("home-title");
 
-        TableColumn<DanhSachLopChiTietDto, String> gvCol =
-                new TableColumn<>("Giảng viên");
-        gvCol.setCellValueFactory(c ->
-                new SimpleStringProperty(
-                        c.getValue().getTenGiangVien() != null
-                                ? c.getValue().getTenGiangVien()
-                                : ""));
+            TableView<DanhSachLopChiTietDto> table =
+                    new TableView<>();
 
-        table.getColumns().addAll(maLopCol, tenHpCol, gvCol);
+            table.setColumnResizePolicy(
+                    TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
 
-        if(dto.getChiTiet() != null)
+            TableColumn<DanhSachLopChiTietDto, String> maLopCol =
+                    new TableColumn<>("Mã lớp");
+
+            maLopCol.setCellValueFactory(c ->
+                    new SimpleStringProperty(
+                            c.getValue().getMaLop() != null
+                                    ? c.getValue().getMaLop()
+                                    : ""));
+
+            TableColumn<DanhSachLopChiTietDto, String> tenHpCol =
+                    new TableColumn<>("Học phần");
+
+            tenHpCol.setCellValueFactory(c ->
+                    new SimpleStringProperty(
+                            c.getValue().getTenHocPhan() != null
+                                    ? c.getValue().getTenHocPhan()
+                                    : ""));
+
+            TableColumn<DanhSachLopChiTietDto, String> gvCol =
+                    new TableColumn<>("Giảng viên");
+
+            gvCol.setCellValueFactory(c ->
+                    new SimpleStringProperty(
+                            c.getValue().getTenGiangVien() != null
+                                    ? c.getValue().getTenGiangVien()
+                                    : ""));
+
+            table.getColumns().addAll(maLopCol, tenHpCol, gvCol);
+
             table.setItems(
                     FXCollections.observableArrayList(
-                            dto.getChiTiet()));
+                            detail.getChiTiet()));
 
-        Button backBtn = new Button("← Quay lại");
-        backBtn.setOnAction(e -> showDanhSachCongKhai());
+            Button backBtn = new Button("← Quay lại");
+            backBtn.setOnAction(e -> showDanhSachCongKhai());
 
-        VBox wrapper = new VBox(12, title, table, backBtn);
-        wrapper.setPadding(new Insets(10));
-        VBox.setVgrow(table, Priority.ALWAYS);
+            VBox wrapper = new VBox(12, title, table, backBtn);
+            wrapper.setPadding(new Insets(10));
+            VBox.setVgrow(table, Priority.ALWAYS);
 
-        centerContainer.getChildren().add(wrapper);
+            centerContainer.getChildren().add(wrapper);
+
+        }
+        catch(Exception ex) {
+            UiUtils.showAlert(
+                    "Lỗi",
+                    ex.getMessage(),
+                    Alert.AlertType.ERROR);
+        }
     }
 
     private void deleteDanhSach(Long id)

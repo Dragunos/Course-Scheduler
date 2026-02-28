@@ -2,6 +2,8 @@ package vn.edu.haui.scheduler.ui.controller.handler;
 
 import javafx.application.Platform;
 import javafx.beans.binding.BooleanBinding;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -36,6 +38,7 @@ public class ImportDanhSachLopPaneHandler
 
 	public void showImportPane()
 	{
+		BooleanProperty importing = new SimpleBooleanProperty(false);
 
 		if(!isAuthenticated()) {
 			showLoginWarning();
@@ -92,7 +95,8 @@ public class ImportDanhSachLopPaneHandler
 		BooleanBinding invalidInput = tenField.textProperty().isEmpty()
 				.or(fileField.textProperty().isEmpty());
 
-		importBtn.disableProperty().bind(invalidInput);
+		importBtn.disableProperty().bind(
+				invalidInput.or(importing));
 
 		// ===== Layout positioning =====
 		formGrid.add(tenLabel, 0, 0);
@@ -109,7 +113,8 @@ public class ImportDanhSachLopPaneHandler
 		centerContainer.getChildren().add(wrapper);
 
 		// ===== Import Action with Background Task =====
-		importBtn.setOnAction(e -> runImportTask(tenField, fileField, importBtn, chooseBtn, progressIndicator));
+		importBtn.setOnAction(
+				e -> runImportTask(tenField, fileField, importBtn, chooseBtn, progressIndicator, importing));
 	}
 
 	private boolean isAuthenticated()
@@ -145,9 +150,9 @@ public class ImportDanhSachLopPaneHandler
 			TextField fileField,
 			Button importBtn,
 			Button chooseBtn,
-			ProgressIndicator progressIndicator)
+			ProgressIndicator progressIndicator,
+			BooleanProperty importing)
 	{
-
 		Task<Void> task = new Task<>()
 		{
 			@Override
@@ -159,65 +164,78 @@ public class ImportDanhSachLopPaneHandler
 		};
 
 		task.setOnRunning(e -> {
-			importBtn.setDisable(true);
+			importing.set(true);
 			chooseBtn.setDisable(true);
 			progressIndicator.setVisible(true);
 		});
 
 		task.setOnSucceeded(e -> {
-			progressIndicator.setVisible(false);
-			importBtn.setDisable(false);
+			importing.set(false);
 			chooseBtn.setDisable(false);
+			progressIndicator.setVisible(false);
+
+			UiUtils.showAlert(
+					"Thành công",
+					"Nhập hoàn tất.",
+					Alert.AlertType.INFORMATION);
 		});
 
 		task.setOnFailed(e -> {
-			progressIndicator.setVisible(false);
-			importBtn.setDisable(false);
+			importing.set(false);
 			chooseBtn.setDisable(false);
+			progressIndicator.setVisible(false);
+
+			Throwable ex = task.getException();
+
+			if(ex instanceof BusinessException) {
+				UiUtils.showAlert("Lỗi dữ liệu",
+						ex.getMessage(),
+						Alert.AlertType.ERROR);
+			}
+			else if(ex instanceof ImportDanhSachLopException) {
+				UiUtils.showAlert("Lỗi hệ thống",
+						"Không thể nhập dữ liệu.",
+						Alert.AlertType.ERROR);
+			}
+			else if(ex instanceof IOException) {
+				UiUtils.showAlert("Lỗi đọc tệp",
+						"Không thể đọc tệp.",
+						Alert.AlertType.ERROR);
+			}
+			else if(ex instanceof IllegalArgumentException) {
+				UiUtils.showAlert("Lỗi nhập liệu",
+						ex.getMessage(),
+						Alert.AlertType.ERROR);
+			}
+			else {
+				UiUtils.showAlert("Lỗi không xác định",
+						ex.getMessage(),
+						Alert.AlertType.ERROR);
+			}
 		});
 
 		new Thread(task).start();
 	}
 
 	// ===== Business Logic giữ nguyên =====
-	private void handleImport(TextField tenField, TextField fileField)
+	private void handleImport(TextField tenField, TextField fileField) throws Exception
 	{
-		try {
-			validateInput(tenField, fileField);
+		validateInput(tenField, fileField);
 
-			NguoiDungDto user = screenManager.getCurrentUser();
+		NguoiDungDto user = screenManager.getCurrentUser();
 
-			byte[] content = Files.readAllBytes(
-					new File(fileField.getText()).toPath());
+		byte[] content = Files.readAllBytes(
+				new File(fileField.getText()).toPath());
 
-			TepTaiLenDto tep = buildTepTaiLenDto(fileField.getText(), content);
+		TepTaiLenDto tep = buildTepTaiLenDto(fileField.getText(), content);
 
-			ImportDanhSachLopUseCase useCase = screenManager.getImportDanhSachLopUseCase();
+		ImportDanhSachLopUseCase useCase = screenManager.getImportDanhSachLopUseCase();
 
-			useCase.importFromExcel(
-					user.getId(),
-					tenField.getText(),
-					null,
-					tep);
-
-			Platform.runLater(() -> UiUtils.showAlert(
-					"Thành công",
-					"Nhập hoàn tất.",
-					Alert.AlertType.INFORMATION));
-
-		}
-		catch(BusinessException e) {
-			showError("Lỗi dữ liệu", e.getMessage());
-		}
-		catch(ImportDanhSachLopException e) {
-			showError("Lỗi hệ thống", "Không thể nhập dữ liệu.");
-		}
-		catch(IOException e) {
-			showError("Lỗi đọc tệp", "Không thể đọc tệp.");
-		}
-		catch(IllegalArgumentException e) {
-			showError("Lỗi nhập liệu", e.getMessage());
-		}
+		useCase.importFromExcel(
+				user.getId(),
+				tenField.getText(),
+				null,
+				tep);
 	}
 
 	private void showError(String title, String message)

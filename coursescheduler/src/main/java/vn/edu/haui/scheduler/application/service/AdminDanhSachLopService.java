@@ -3,6 +3,7 @@ package vn.edu.haui.scheduler.application.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import vn.edu.haui.scheduler.application.dto.DanhSachLopChiTietDto;
 import vn.edu.haui.scheduler.application.dto.DanhSachLopDto;
 import vn.edu.haui.scheduler.application.dto.TepTaiLenDto;
 import vn.edu.haui.scheduler.application.exception.EntityNotFoundException;
@@ -125,5 +126,27 @@ public class AdminDanhSachLopService implements AdminDanhSachLopUseCase
 
 		return hocKyRepository.findById(hocKyId)
 				.orElseThrow(() -> new EntityNotFoundException("HocKy", hocKyId));
+	}
+
+	@Override
+	public DanhSachLopDto findDetail(Long adminId, Long danhSachLopId)
+	{
+	    if(adminId == null || danhSachLopId == null)
+	        throw new ValidationException("IDs không được phép rỗng");
+
+	    validateAdmin(adminId);
+
+	    DanhSachLop danhSach = danhSachLopRepository
+	            .findById(danhSachLopId)
+	            .orElseThrow(() ->
+	                    new EntityNotFoundException("DanhSachLop", danhSachLopId));
+
+	    List<DanhSachLopChiTietDto> chiTietDtos =
+	            danhSach.getChiTietList()
+	                    .stream()
+	                    .map(DanhSachLopMapper::toDetailDto)
+	                    .collect(Collectors.toList());
+
+	    return DanhSachLopMapper.toDetailDto(danhSach, chiTietDtos);
 	}
 }

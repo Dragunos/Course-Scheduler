@@ -102,59 +102,58 @@ public class ImportDanhSachLopService implements ImportDanhSachLopUseCase
 
 		List<ImportedLopHocPhanRaw> rawList = result.rows;
 
-		Map<String, List<ImportedLopHocPhanRaw>> grouped =
-		        rawList.stream()
-		               .collect(Collectors.groupingBy(ImportedLopHocPhanRaw::maLop));
+		Map<String, List<ImportedLopHocPhanRaw>> grouped = rawList.stream()
+				.collect(Collectors.groupingBy(ImportedLopHocPhanRaw::maLop));
 
-		for (Map.Entry<String, List<ImportedLopHocPhanRaw>> entry : grouped.entrySet()) {
+		for(Map.Entry<String, List<ImportedLopHocPhanRaw>> entry : grouped.entrySet()) {
 
-		    List<ImportedLopHocPhanRaw> rows = entry.getValue();
-		    ImportedLopHocPhanRaw first = rows.get(0);
+			List<ImportedLopHocPhanRaw> rows = entry.getValue();
+			ImportedLopHocPhanRaw first = rows.get(0);
 
-		    // ===== Học phần =====
-		    HocPhan hocPhan = hocPhanRepository
-		            .findByMaHocPhan(first.maHocPhan())
-		            .orElseGet(() -> {
-		                HocPhan newHp = HocPhan.create(
-		                        first.maHocPhan(),
-		                        first.tenHocPhan(),
-		                        first.soTinChi());
-		                return hocPhanRepository.save(newHp);
-		            });
+			// ===== Học phần =====
+			HocPhan hocPhan = hocPhanRepository
+					.findByMaHocPhan(first.maHocPhan())
+					.orElseGet(() -> {
+						HocPhan newHp = HocPhan.create(
+								first.maHocPhan(),
+								first.tenHocPhan(),
+								first.soTinChi() == null ? 0 : first.soTinChi());
+						return hocPhanRepository.save(newHp);
+					});
 
-		    // ===== Giảng viên =====
-		    GiangVien giangVien = null;
-		    if(first.tenGiangVien() != null && !first.tenGiangVien().isBlank()) {
-		        giangVien = giangVienRepository
-		                .findByTen(first.tenGiangVien())
-		                .orElseGet(() -> {
-		                    GiangVien gv = GiangVien.create(first.tenGiangVien());
-		                    return giangVienRepository.save(gv);
-		                });
-		    }
+			// ===== Giảng viên =====
+			GiangVien giangVien = null;
+			if(first.tenGiangVien() != null && !first.tenGiangVien().isBlank()) {
+				giangVien = giangVienRepository
+						.findByTen(first.tenGiangVien())
+						.orElseGet(() -> {
+							GiangVien gv = GiangVien.create(first.tenGiangVien());
+							return giangVienRepository.save(gv);
+						});
+			}
 
-		    // ===== Tạo lớp =====
-		    LopHocPhan lop = LopHocPhan.create(
-		            first.maLop(),
-		            hocPhan,
-		            giangVien,
-		            first.hinhThucDay(),
-		            first.diaDiem());
+			// ===== Tạo lớp =====
+			LopHocPhan lop = LopHocPhan.create(
+					first.maLop(),
+					hocPhan,
+					giangVien,
+					first.hinhThucDay(),
+					first.diaDiem());
 
-		    // ===== Gộp tất cả lịch học của cùng mã lớp =====
-		    for (ImportedLopHocPhanRaw raw : rows) {
-		        raw.lichHocList().forEach(lh -> {
-		            LichHoc lichHoc = LichHoc.create(
-		                    null,
-		                    lh.thu(),
-		                    lh.tietBatDau(),
-		                    lh.tietKetThuc());
-		            lop.themLichHoc(lichHoc);
-		        });
-		    }
+			// ===== Gộp tất cả lịch học của cùng mã lớp =====
+			for(ImportedLopHocPhanRaw raw : rows) {
+				raw.lichHocList().forEach(lh -> {
+					LichHoc lichHoc = LichHoc.create(
+							null,
+							lh.thu(),
+							lh.tietBatDau(),
+							lh.tietKetThuc());
+					lop.themLichHoc(lichHoc);
+				});
+			}
 
-		    LopHocPhan savedLop = lopHocPhanRepository.save(lop);
-		    danhSach.themLop(savedLop, false);
+			LopHocPhan savedLop = lopHocPhanRepository.save(lop);
+			danhSach.themLop(savedLop, false);
 		}
 
 		DanhSachLop saved = danhSachLopRepository.save(danhSach);

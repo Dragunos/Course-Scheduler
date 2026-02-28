@@ -14,4 +14,6 @@ public interface AdminDanhSachLopUseCase
 			TepTaiLenDto tepTaiLenDto);
 
 	void deletePublic(Long adminId, Long danhSachLopId);
+	
+	DanhSachLopDto findDetail(Long adminId, Long danhSachLopId);
 }
