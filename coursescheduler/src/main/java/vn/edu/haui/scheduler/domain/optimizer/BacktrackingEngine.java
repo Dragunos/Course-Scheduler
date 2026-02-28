@@ -20,7 +20,6 @@ final class BacktrackingEngine
 
 	BacktrackingEngine(OptimizationInput input)
 	{
-
 		this.input = input;
 		this.grouped = groupByCourse(input);
 		this.topResults = new PriorityQueue<>();

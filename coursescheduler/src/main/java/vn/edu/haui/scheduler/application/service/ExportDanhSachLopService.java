@@ -48,16 +48,16 @@ public class ExportDanhSachLopService implements ExportDanhSachLopUseCase
 			String outputPath)
 	{
 		if(nguoiDungId == null)
-			throw new ValidationException("NguoiDungId must not be null");
+			throw new ValidationException("Người Dùng ID không được phép NULL");
 
 		if(danhSachLopId == null)
-			throw new ValidationException("DanhSachLopId must not be null");
+			throw new ValidationException("Danh Sách Lớp ID không được phép NULL");
 
 		if(format == null || format.isBlank())
-			throw new ValidationException("Format must not be blank");
+			throw new ValidationException("Loại định dạng không được để trống");
 
 		if(outputPath == null || outputPath.isBlank())
-			throw new ValidationException("OutputPath must not be blank");
+			throw new ValidationException("Đầu ra không được để trống");
 
 		NguoiDung nguoiDung = nguoiDungRepository
 				.findById(nguoiDungId)
@@ -69,7 +69,7 @@ public class ExportDanhSachLopService implements ExportDanhSachLopUseCase
 
 		if(!danhSach.isLaCongKhai() &&
 				!danhSach.getNguoiTao().getId().equals(nguoiDung.getId())) {
-			throw new UnauthorizedAccessException("You are not allowed to export this DanhSachLop");
+			throw new UnauthorizedAccessException("Bạn không có đủ quyền hạn để can thiệp đến Danh Sách Lớp này");
 		}
 
 		List<String> headers = buildHeaders();
@@ -95,7 +95,7 @@ public class ExportDanhSachLopService implements ExportDanhSachLopUseCase
 			}
 		}
 		catch(IOException e) {
-			throw new ExportDanhSachLopException("Error exporting file", e);
+			throw new ExportDanhSachLopException("Lỗi Xuất File", e);
 		}
 	}
 

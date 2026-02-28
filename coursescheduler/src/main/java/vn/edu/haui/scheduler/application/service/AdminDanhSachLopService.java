@@ -88,7 +88,7 @@ public class AdminDanhSachLopService implements AdminDanhSachLopUseCase
 	public void deletePublic(Long adminId, Long danhSachLopId)
 	{
 		if(adminId == null || danhSachLopId == null)
-			throw new ValidationException("Id must not be null");
+			throw new ValidationException("ID không được phép rỗng");
 
 		validateAdmin(adminId);
 
@@ -97,7 +97,7 @@ public class AdminDanhSachLopService implements AdminDanhSachLopUseCase
 				.orElseThrow(() -> new EntityNotFoundException("DanhSachLop", danhSachLopId));
 
 		if(!danhSach.isLaCongKhai()) {
-			throw new ValidationException("DanhSachLop is not public");
+			throw new ValidationException("Danh Sách Lớp không công khai");
 		}
 
 		danhSachLopRepository.deleteById(danhSachLopId);
@@ -106,7 +106,7 @@ public class AdminDanhSachLopService implements AdminDanhSachLopUseCase
 	private void validateAdmin(Long adminId)
 	{
 		if(adminId == null)
-			throw new ValidationException("AdminId must not be null");
+			throw new ValidationException("Admin ID không được phép rỗng");
 
 		NguoiDung admin = nguoiDungRepository
 				.findById(adminId)
@@ -121,7 +121,7 @@ public class AdminDanhSachLopService implements AdminDanhSachLopUseCase
 	private HocKy validateHocKy(Long hocKyId)
 	{
 		if(hocKyId == null)
-			throw new ValidationException("HocKyId must not be null");
+			throw new ValidationException("Học Kỳ ID không được phép rỗng");
 
 		return hocKyRepository.findById(hocKyId)
 				.orElseThrow(() -> new EntityNotFoundException("HocKy", hocKyId));

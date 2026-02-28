@@ -4,6 +4,6 @@ public class DuplicateUsernameException extends BusinessException
 {
 	public DuplicateUsernameException()
 	{
-		super("USER_DUPLICATE_USERNAME", "Username already exists.");
+		super("USER_DUPLICATE_USERNAME", "Username đã tồn tại");
 	}
 }

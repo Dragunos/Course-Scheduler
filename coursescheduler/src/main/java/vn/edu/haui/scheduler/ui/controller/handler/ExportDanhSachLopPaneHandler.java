@@ -16,7 +16,6 @@ import java.io.File;
 
 public class ExportDanhSachLopPaneHandler
 {
-
 	private final ScreenManager screenManager;
 
 	private final VBox centerContainer;
@@ -29,7 +28,6 @@ public class ExportDanhSachLopPaneHandler
 
 	public void showExportPane(DanhSachLopDto dto)
 	{
-
 		centerContainer.getChildren().clear();
 
 		Label title = new Label("Xuất danh sách: " + dto.getTenDanhSach());
@@ -53,11 +51,11 @@ public class ExportDanhSachLopPaneHandler
 
 			if(csvRb.isSelected()) {
 				chooser.getExtensionFilters().add(
-						new FileChooser.ExtensionFilter("CSV files", "*.csv"));
+						new FileChooser.ExtensionFilter("Tệp CSV", "*.csv"));
 			}
 			else {
 				chooser.getExtensionFilters().add(
-						new FileChooser.ExtensionFilter("Excel files", "*.xlsx"));
+						new FileChooser.ExtensionFilter("Tệp Excel", "*.xlsx"));
 			}
 
 			File file = chooser.showSaveDialog(w);

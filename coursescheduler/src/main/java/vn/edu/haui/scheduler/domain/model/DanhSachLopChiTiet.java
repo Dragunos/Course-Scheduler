@@ -11,7 +11,7 @@ public class DanhSachLopChiTiet
 			boolean batBuoc)
 	{
 		if(lopHocPhan == null)
-			throw new IllegalArgumentException("LopHocPhan khong duoc null");
+			throw new IllegalArgumentException("Lớp học phần không được phép NULL");
 
 		this.lopHocPhan = lopHocPhan;
 		this.batBuoc = batBuoc;

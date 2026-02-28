@@ -1,8 +1,11 @@
 package vn.edu.haui.scheduler.ui.controller.handler;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import vn.edu.haui.scheduler.application.dto.*;
 import vn.edu.haui.scheduler.application.exception.DataAccessException;
@@ -18,221 +21,295 @@ import java.util.Optional;
 
 public class AdminDanhSachLopPaneHandler
 {
-	private final ScreenManager screenManager;
+    private final ScreenManager screenManager;
+    private final VBox centerContainer;
 
-	private final VBox centerContainer;
+    public AdminDanhSachLopPaneHandler(
+            ScreenManager screenManager,
+            VBox centerContainer)
+    {
+        this.screenManager = screenManager;
+        this.centerContainer = centerContainer;
+    }
 
-	public AdminDanhSachLopPaneHandler(
-			ScreenManager screenManager,
-			VBox centerContainer)
-	{
-		this.screenManager = screenManager;
-		this.centerContainer = centerContainer;
-	}
+    public void showDanhSachCongKhai()
+    {
+        if(!isAdmin()) return;
 
-	public void showDanhSachCongKhai()
-	{
-		if(!isAdmin()) return;
+        AdminDanhSachLopUseCase useCase =
+                screenManager.getQuanTriDanhSachLopUseCase();
 
-		AdminDanhSachLopUseCase useCase = screenManager.getQuanTriDanhSachLopUseCase();
+        if(useCase == null) {
+            UiUtils.showAlert(
+                    "Lỗi cấu hình",
+                    "Chưa cấu hình quản trị danh sách.",
+                    Alert.AlertType.ERROR);
+            return;
+        }
 
-		if(useCase == null) {
-			UiUtils.showAlert(
-					"Lỗi cấu hình",
-					"Chưa cấu hình quản trị danh sách.",
-					Alert.AlertType.ERROR);
-			return;
-		}
+        centerContainer.getChildren().clear();
 
-		centerContainer.getChildren().clear();
+        Label title = new Label("Danh sách lớp hệ thống");
+        title.getStyleClass().add("home-title");
 
-		Label title = new Label("Danh sách lớp hệ thống");
-		title.getStyleClass().add("home-title");
+        Button importBtn = new Button("📥 Nhập danh sách");
+        importBtn.setOnAction(e -> importDanhSach());
 
-		VBox listBox = new VBox(10);
+        HBox toolbar = new HBox(importBtn);
+        toolbar.setAlignment(Pos.CENTER_RIGHT);
+        toolbar.setPadding(new Insets(5,0,5,0));
 
-		try {
+        TableView<DanhSachLopDto> table = new TableView<>();
+        table.setColumnResizePolicy(
+                TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
 
-			List<DanhSachLopDto> list = useCase.findAllPublic();
+        TableColumn<DanhSachLopDto, String> tenCol =
+                new TableColumn<>("Tên danh sách");
+        tenCol.setCellValueFactory(c ->
+                new SimpleStringProperty(
+                        c.getValue().getTenDanhSach() != null
+                                ? c.getValue().getTenDanhSach()
+                                : "<không tên>"));
 
-			if(list == null || list.isEmpty()) {
-				listBox.getChildren().add(
-						new Label("Không có danh sách công khai."));
-			}
-			else {
-				for(DanhSachLopDto dto : list)
-					listBox.getChildren().add(createCard(dto));
-			}
+        TableColumn<DanhSachLopDto, String> hocKyCol =
+                new TableColumn<>("Học kỳ");
+        hocKyCol.setCellValueFactory(c -> {
+            Long hk = c.getValue().getHocKyId();
+            return new SimpleStringProperty(
+                    hk != null ? String.valueOf(hk) : "N/A");
+        });
 
-			Button importBtn = new Button("Nhập danh sách");
-			importBtn.setOnAction(e -> importDanhSach());
+        TableColumn<DanhSachLopDto, Void> actionCol =
+                new TableColumn<>("Hành động");
+        actionCol.setMinWidth(200);
 
-			centerContainer.getChildren()
-					.addAll(title, importBtn, listBox);
+        actionCol.setCellFactory(col -> new TableCell<>()
+        {
+            private final Button viewBtn =
+                    new Button("🔍 Xem");
 
-		}
-		catch(DataAccessException e) {
-			UiUtils.showAlert(
-					"Lỗi hệ thống",
-					e.getMessage(),
-					Alert.AlertType.ERROR);
-		}
-	}
+            private final Button deleteBtn =
+                    new Button("🗑 Xóa");
 
-	private VBox createCard(DanhSachLopDto dto)
-	{
-		Label ten = new Label("Tên: " + dto.getTenDanhSach());
-		Label hocKy = new Label("Học kỳ: " + dto.getHocKyId());
+            private final HBox box =
+                    new HBox(8, viewBtn, deleteBtn);
 
-		Button view = new Button("Xem chi tiết");
-		Button delete = new Button("Xóa");
+            {
+                box.setAlignment(Pos.CENTER);
 
-		view.setOnAction(e -> viewChiTiet(dto));
-		delete.setOnAction(e -> deleteDanhSach(dto.getId()));
+                viewBtn.setOnAction(e -> {
+                    DanhSachLopDto dto =
+                            getTableView().getItems()
+                                    .get(getIndex());
+                    viewChiTiet(dto);
+                });
 
-		HBox actions = new HBox(10, view, delete);
+                deleteBtn.setOnAction(e -> {
+                    DanhSachLopDto dto =
+                            getTableView().getItems()
+                                    .get(getIndex());
+                    deleteDanhSach(dto.getId());
+                });
+            }
 
-		VBox card = new VBox(5, ten, hocKy, actions);
-		card.setStyle("-fx-padding:10; -fx-border-color:#ccc;");
+            @Override
+            protected void updateItem(Void item, boolean empty)
+            {
+                super.updateItem(item, empty);
+                if(empty) setGraphic(null);
+                else setGraphic(box);
+            }
+        });
 
-		return card;
-	}
+        table.getColumns().addAll(tenCol, hocKyCol, actionCol);
 
-	private void viewChiTiet(DanhSachLopDto dto)
-	{
-		centerContainer.getChildren().clear();
+        try {
 
-		Label title = new Label("Chi tiết: " + dto.getTenDanhSach());
-		title.getStyleClass().add("home-title");
+            List<DanhSachLopDto> list =
+                    useCase.findAllPublic();
 
-		VBox listBox = new VBox(8);
+            table.setItems(
+                    FXCollections.observableArrayList(list));
 
-		if(dto.getChiTiet() == null || dto.getChiTiet().isEmpty()) {
-			listBox.getChildren().add(
-					new Label("Không có lớp học phần."));
-		}
-		else {
-			for(DanhSachLopChiTietDto ct : dto.getChiTiet()) {
+        }
+        catch(DataAccessException e) {
+            UiUtils.showAlert(
+                    "Lỗi hệ thống",
+                    e.getMessage(),
+                    Alert.AlertType.ERROR);
+        }
 
-				Label row = new Label(
-						ct.getMaLop() + " - " +
-								ct.getTenHocPhan() + " - " +
-								ct.getTenGiangVien());
+        VBox wrapper = new VBox(12, title, toolbar, table);
+        wrapper.setPadding(new Insets(10));
+        VBox.setVgrow(table, Priority.ALWAYS);
 
-				listBox.getChildren().add(row);
-			}
-		}
+        centerContainer.getChildren().add(wrapper);
+    }
 
-		Button back = new Button("Quay lại");
-		back.setOnAction(e -> showDanhSachCongKhai());
+    private void viewChiTiet(DanhSachLopDto dto)
+    {
+        centerContainer.getChildren().clear();
 
-		centerContainer.getChildren()
-				.addAll(title, listBox, back);
-	}
+        Label title = new Label(
+                "Chi tiết: " +
+                        (dto.getTenDanhSach() != null
+                                ? dto.getTenDanhSach()
+                                : "<không tên>"));
+        title.getStyleClass().add("home-title");
 
-	private void deleteDanhSach(Long id)
-	{
-		Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-		confirm.setContentText("Xác nhận xóa?");
+        TableView<DanhSachLopChiTietDto> table =
+                new TableView<>();
+        table.setColumnResizePolicy(
+                TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
 
-		Optional<ButtonType> result = confirm.showAndWait();
+        TableColumn<DanhSachLopChiTietDto, String> maLopCol =
+                new TableColumn<>("Mã lớp");
+        maLopCol.setCellValueFactory(c ->
+                new SimpleStringProperty(
+                        c.getValue().getMaLop() != null
+                                ? c.getValue().getMaLop()
+                                : ""));
 
-		if(result.isEmpty() || result.get() != ButtonType.OK)
-			return;
+        TableColumn<DanhSachLopChiTietDto, String> tenHpCol =
+                new TableColumn<>("Học phần");
+        tenHpCol.setCellValueFactory(c ->
+                new SimpleStringProperty(
+                        c.getValue().getTenHocPhan() != null
+                                ? c.getValue().getTenHocPhan()
+                                : ""));
 
-		try {
+        TableColumn<DanhSachLopChiTietDto, String> gvCol =
+                new TableColumn<>("Giảng viên");
+        gvCol.setCellValueFactory(c ->
+                new SimpleStringProperty(
+                        c.getValue().getTenGiangVien() != null
+                                ? c.getValue().getTenGiangVien()
+                                : ""));
 
-			NguoiDungDto user = screenManager.getCurrentUser();
+        table.getColumns().addAll(maLopCol, tenHpCol, gvCol);
 
-			screenManager
-					.getQuanTriDanhSachLopUseCase()
-					.deletePublic(user.getId(), id);
+        if(dto.getChiTiet() != null)
+            table.setItems(
+                    FXCollections.observableArrayList(
+                            dto.getChiTiet()));
 
-			showDanhSachCongKhai();
-		}
-		catch(Exception ex) {
-			UiUtils.showAlert(
-					"Lỗi",
-					ex.getMessage(),
-					Alert.AlertType.ERROR);
-		}
-	}
+        Button backBtn = new Button("← Quay lại");
+        backBtn.setOnAction(e -> showDanhSachCongKhai());
 
-	private void importDanhSach()
-	{
-		FileChooser chooser = new FileChooser();
-		chooser.setTitle("Chọn file Excel");
+        VBox wrapper = new VBox(12, title, table, backBtn);
+        wrapper.setPadding(new Insets(10));
+        VBox.setVgrow(table, Priority.ALWAYS);
 
-		File file = chooser.showOpenDialog(
-				centerContainer.getScene().getWindow());
+        centerContainer.getChildren().add(wrapper);
+    }
 
-		if(file == null) return;
+    private void deleteDanhSach(Long id)
+    {
+        Alert confirm =
+                new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setHeaderText(null);
+        confirm.setContentText("Xác nhận xóa?");
 
-		try {
+        Optional<ButtonType> result =
+                confirm.showAndWait();
 
-			NguoiDungDto user = screenManager.getCurrentUser();
+        if(result.isEmpty()
+                || result.get() != ButtonType.OK)
+            return;
 
-			byte[] data = Files.readAllBytes(file.toPath());
+        try {
 
-			TepTaiLenDto tep = new TepTaiLenDto(
-					file.getName(),
-					file.getAbsolutePath(),
-					"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-					data);
-			
-			tep.setStorageType("LOCAL");
+            NguoiDungDto user =
+                    screenManager.getCurrentUser();
 
-			String tenDanhSach = "Danh sách hệ thống";
-			Long hocKyId = null;
+            screenManager
+                    .getQuanTriDanhSachLopUseCase()
+                    .deletePublic(user.getId(), id);
 
-			screenManager
-					.getQuanTriDanhSachLopUseCase()
-					.importPublic(
-							user.getId(),
-							tenDanhSach,
-							hocKyId,
-							tep);
+            showDanhSachCongKhai();
+        }
+        catch(Exception ex) {
+            UiUtils.showAlert(
+                    "Lỗi",
+                    ex.getMessage(),
+                    Alert.AlertType.ERROR);
+        }
+    }
 
-			UiUtils.showAlert(
-					"Thành công",
-					"Đã nhập danh sách.",
-					Alert.AlertType.INFORMATION);
+    private void importDanhSach()
+    {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Chọn file Excel");
 
-			showDanhSachCongKhai();
+        File file = chooser.showOpenDialog(
+                centerContainer.getScene().getWindow());
 
-		}
-		catch(ValidationException ve) {
-			UiUtils.showAlert(
-					"Không hợp lệ",
-					ve.getMessage(),
-					Alert.AlertType.WARNING);
-		}
-		catch(Exception ex) {
-			UiUtils.showAlert(
-					"Lỗi",
-					ex.getMessage(),
-					Alert.AlertType.ERROR);
-		}
-	}
+        if(file == null) return;
 
-	private boolean isAdmin()
-	{
-		if(!screenManager.isAuthenticated()) {
-			UiUtils.showAlert(
-					"Chưa đăng nhập",
-					"Bạn cần đăng nhập.",
-					Alert.AlertType.WARNING);
-			return false;
-		}
+        try {
 
-		if(!screenManager.isAdminUser()) {
-			UiUtils.showAlert(
-					"Không có quyền",
-					"Chỉ quản trị viên mới được truy cập.",
-					Alert.AlertType.WARNING);
-			return false;
-		}
+            NguoiDungDto user =
+                    screenManager.getCurrentUser();
 
-		return true;
-	}
+            byte[] data =
+                    Files.readAllBytes(file.toPath());
+
+            TepTaiLenDto tep = new TepTaiLenDto(
+                    file.getName(),
+                    file.getAbsolutePath(),
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    data);
+
+            tep.setStorageType("LOCAL");
+
+            screenManager
+                    .getQuanTriDanhSachLopUseCase()
+                    .importPublic(
+                            user.getId(),
+                            "Danh sách hệ thống",
+                            null,
+                            tep);
+
+            UiUtils.showAlert(
+                    "Thành công",
+                    "Đã nhập danh sách.",
+                    Alert.AlertType.INFORMATION);
+
+            showDanhSachCongKhai();
+
+        }
+        catch(ValidationException ve) {
+            UiUtils.showAlert(
+                    "Không hợp lệ",
+                    ve.getMessage(),
+                    Alert.AlertType.WARNING);
+        }
+        catch(Exception ex) {
+            UiUtils.showAlert(
+                    "Lỗi",
+                    ex.getMessage(),
+                    Alert.AlertType.ERROR);
+        }
+    }
+
+    private boolean isAdmin()
+    {
+        if(!screenManager.isAuthenticated()) {
+            UiUtils.showAlert(
+                    "Chưa đăng nhập",
+                    "Bạn cần đăng nhập.",
+                    Alert.AlertType.WARNING);
+            return false;
+        }
+
+        if(!screenManager.isAdminUser()) {
+            UiUtils.showAlert(
+                    "Không có quyền",
+                    "Chỉ quản trị viên mới được truy cập.",
+                    Alert.AlertType.WARNING);
+            return false;
+        }
+
+        return true;
+    }
 }

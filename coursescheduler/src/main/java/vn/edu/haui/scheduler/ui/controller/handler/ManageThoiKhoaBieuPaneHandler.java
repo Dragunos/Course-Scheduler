@@ -1,227 +1,368 @@
 package vn.edu.haui.scheduler.ui.controller.handler;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import vn.edu.haui.scheduler.application.dto.*;
+import vn.edu.haui.scheduler.application.dto.LopHocPhanDto;
+import vn.edu.haui.scheduler.application.dto.ThoiKhoaBieuDto;
 import vn.edu.haui.scheduler.application.port.in.ManageThoiKhoaBieuUseCase;
 import vn.edu.haui.scheduler.ui.fx.ScreenManager;
 import vn.edu.haui.scheduler.ui.util.UiUtils;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ManageThoiKhoaBieuPaneHandler
 {
+    private final ScreenManager screenManager;
+    private final VBox centerContainer;
 
-	private final ScreenManager screenManager;
+    public ManageThoiKhoaBieuPaneHandler(ScreenManager screenManager, VBox centerContainer)
+    {
+        this.screenManager = screenManager;
+        this.centerContainer = centerContainer;
+    }
 
-	private final VBox centerContainer;
+    public void showThoiKhoaBieu()
+    {
+        if(!isAuthenticated()) return;
 
-	public ManageThoiKhoaBieuPaneHandler(ScreenManager screenManager, VBox centerContainer)
-	{
-		this.screenManager = screenManager;
-		this.centerContainer = centerContainer;
-	}
+        ManageThoiKhoaBieuUseCase useCase =
+                screenManager.getQuanLyThoiKhoaBieuUseCase();
 
-	public void showThoiKhoaBieu()
-	{
-		if(!isAuthenticated()) return;
+        if(useCase == null) {
+            UiUtils.showAlert("Lỗi cấu hình",
+                    "Tính năng quản lý thời khóa biểu chưa được cấu hình.",
+                    Alert.AlertType.ERROR);
+            return;
+        }
 
-		ManageThoiKhoaBieuUseCase useCase = screenManager.getQuanLyThoiKhoaBieuUseCase();
-		if(useCase == null) {
-			UiUtils.showAlert("Lỗi cấu hình",
-					"Tính năng quản lý thời khóa biểu chưa được cấu hình.",
-					Alert.AlertType.ERROR);
-			return;
-		}
+        centerContainer.getChildren().clear();
 
-		centerContainer.getChildren().clear();
+        Label title = new Label("Thời khóa biểu của tôi");
+        title.getStyleClass().add("home-title");
 
-		Label title = new Label("Thời khóa biểu của tôi");
-		title.getStyleClass().add("home-title");
+        TableView<ThoiKhoaBieuDto> table = new TableView<>();
+        table.setColumnResizePolicy(
+                TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
 
-		VBox listBox = new VBox(10);
+        TableColumn<ThoiKhoaBieuDto, String> tenCol =
+                new TableColumn<>("Tên phương án");
 
-		try {
-			Long userId = screenManager.getCurrentUser().getId();
+        tenCol.setCellValueFactory(c ->
+                new SimpleStringProperty(
+                        c.getValue().getTenPhuongAn() != null
+                                ? c.getValue().getTenPhuongAn()
+                                : "<không tên>"
+                ));
 
-			// Call đúng usecase contract
-			List<ThoiKhoaBieuDto> list = useCase.findAllByUser(userId);
+        TableColumn<ThoiKhoaBieuDto, String> soLopCol =
+                new TableColumn<>("Số lớp");
 
-			if(list == null || list.isEmpty()) {
-				listBox.getChildren().add(new Label("Không có thời khóa biểu nào."));
-			}
-			else {
-				for(ThoiKhoaBieuDto dto : list) {
-					listBox.getChildren().add(createCard(dto));
-				}
-			}
+        soLopCol.setCellValueFactory(c -> {
+            List<LopHocPhanDto> list =
+                    c.getValue().getDanhSachLopHocPhan();
+            int size = (list == null) ? 0 : list.size();
+            return new SimpleStringProperty(String.valueOf(size));
+        });
 
-			centerContainer.getChildren().addAll(title, listBox);
+        TableColumn<ThoiKhoaBieuDto, Void> actionCol =
+                new TableColumn<>("Hành động");
 
-		}
-		catch(Exception e) {
-			UiUtils.showAlert("Lỗi hệ thống", e.getMessage(), Alert.AlertType.ERROR);
-		}
-	}
+        actionCol.setMinWidth(250);
 
-	private VBox createCard(ThoiKhoaBieuDto dto)
-	{
-		String ten = dto.getTenPhuongAn() != null ? dto.getTenPhuongAn() : "<không tên>";
+        actionCol.setCellFactory(col -> new TableCell<>()
+        {
+            private final Button viewBtn =
+                    new Button("🔍 Xem");
 
-		Label tenLabel = new Label("Tên: " + ten);
+            private final Button renameBtn =
+                    new Button("✏ Đổi tên");
 
-		Button viewBtn = new Button("Xem chi tiết");
-		Button renameBtn = new Button("Đổi tên");
-		Button deleteBtn = new Button("Xóa");
+            private final Button deleteBtn =
+                    new Button("🗑 Xóa");
 
-		viewBtn.setOnAction(e -> viewChiTiet(dto));
-		renameBtn.setOnAction(e -> doiTen(dto));
-		deleteBtn.setOnAction(e -> xoa(dto));
+            private final Button exportBtn =
+                    new Button("📤 Xuất");
 
-		Button exportBtn = new Button("Xuất");
-		exportBtn.setOnAction(
-				e -> new ExportThoiKhoaBieuPaneHandler(screenManager, centerContainer)
-						.showExportPane(dto));
+            private final HBox box =
+                    new HBox(8, viewBtn, renameBtn,
+                            deleteBtn, exportBtn);
 
-		HBox actions = new HBox(10, viewBtn, renameBtn, deleteBtn, exportBtn);
+            {
+                box.setAlignment(Pos.CENTER);
 
-		VBox card = new VBox(5, tenLabel, actions);
-		card.setStyle("-fx-padding:10; -fx-border-color:#ccc;");
+                viewBtn.setOnAction(e -> {
+                    ThoiKhoaBieuDto dto =
+                            getTableView().getItems().get(getIndex());
+                    viewChiTiet(dto);
+                });
 
-		return card;
-	}
+                renameBtn.setOnAction(e -> {
+                    ThoiKhoaBieuDto dto =
+                            getTableView().getItems().get(getIndex());
+                    doiTen(dto);
+                });
 
-	private void viewChiTiet(ThoiKhoaBieuDto dto)
-	{
-		if(!isAuthenticated()) return;
+                deleteBtn.setOnAction(e -> {
+                    ThoiKhoaBieuDto dto =
+                            getTableView().getItems().get(getIndex());
+                    xoa(dto);
+                });
 
-		centerContainer.getChildren().clear();
+                exportBtn.setOnAction(e -> {
+                    ThoiKhoaBieuDto dto =
+                            getTableView().getItems().get(getIndex());
 
-		try {
-			Long userId = screenManager.getCurrentUser().getId();
-			ManageThoiKhoaBieuUseCase useCase = screenManager.getQuanLyThoiKhoaBieuUseCase();
+                    new ExportThoiKhoaBieuPaneHandler(
+                            screenManager, centerContainer)
+                            .showExportPane(dto);
+                });
+            }
 
-			// Call đúng contract service layer
-			ThoiKhoaBieuDto detail = useCase.findDetail(userId, dto.getId());
+            @Override
+            protected void updateItem(Void item, boolean empty)
+            {
+                super.updateItem(item, empty);
+                if(empty) setGraphic(null);
+                else setGraphic(box);
+            }
+        });
 
-			Label title = new Label(
-					"Chi tiết: " + (detail.getTenPhuongAn() != null ? detail.getTenPhuongAn() : "<không tên>"));
-			title.getStyleClass().add("home-title");
+        table.getColumns().addAll(tenCol, soLopCol, actionCol);
 
-			VBox listBox = new VBox(8);
+        try {
+            Long userId =
+                    screenManager.getCurrentUser().getId();
 
-			if(detail.getDanhSachLopHocPhan() == null ||
-					detail.getDanhSachLopHocPhan().isEmpty()) {
-				listBox.getChildren().add(new Label("Không có lớp học phần."));
-			}
-			else {
-				for(LopHocPhanDto lh : detail.getDanhSachLopHocPhan()) {
-					String rowText = lh.getMaLop();
+            List<ThoiKhoaBieuDto> list =
+                    useCase.findAllByUser(userId);
 
-					if(lh.getGiangVien() != null)
-						rowText += " - " + lh.getGiangVien().getTenGiangVien();
+            table.setItems(FXCollections.observableArrayList(list));
 
-					if(lh.getLichHocDanhSach() != null && !lh.getLichHocDanhSach().isEmpty())
-						rowText += " - " + lh.getLichHocDanhSach().size() + " buổi";
+            VBox wrapper = new VBox(12, title, table);
+            wrapper.setFillWidth(true);
+            VBox.setVgrow(table, Priority.ALWAYS);
 
-					listBox.getChildren().add(new Label(rowText));
-				}
-			}
+            centerContainer.getChildren().add(wrapper);
+        }
+        catch(Exception e) {
+            UiUtils.showAlert("Lỗi hệ thống",
+                    e.getMessage(),
+                    Alert.AlertType.ERROR);
+        }
+    }
 
-			Button backBtn = new Button("Quay lại");
-			backBtn.setOnAction(e -> showThoiKhoaBieu());
+    private void viewChiTiet(ThoiKhoaBieuDto dto)
+    {
+        if(!isAuthenticated()) return;
 
-			Button exportBtn = new Button("Xuất thời khóa biểu");
-			exportBtn.setOnAction(
-					e -> new ExportThoiKhoaBieuPaneHandler(screenManager, centerContainer)
-							.showExportPane(detail));
+        centerContainer.getChildren().clear();
 
-			HBox actionBox = new HBox(10, exportBtn, backBtn);
+        try {
+            Long userId =
+                    screenManager.getCurrentUser().getId();
 
-			centerContainer.getChildren().addAll(title, listBox, actionBox);
+            ManageThoiKhoaBieuUseCase useCase =
+                    screenManager.getQuanLyThoiKhoaBieuUseCase();
 
-		}
-		catch(Exception ex) {
-			UiUtils.showAlert("Lỗi", ex.getMessage(), Alert.AlertType.ERROR);
-		}
-	}
+            ThoiKhoaBieuDto detail =
+                    useCase.findDetail(userId, dto.getId());
 
-	private void doiTen(ThoiKhoaBieuDto dto)
-	{
-		if(!isAuthenticated()) return;
+            Label title = new Label(
+                    "Chi tiết: " +
+                            (detail.getTenPhuongAn() != null
+                                    ? detail.getTenPhuongAn()
+                                    : "<không tên>")
+            );
 
-		centerContainer.getChildren().clear();
+            title.getStyleClass().add("home-title");
 
-		Label title = new Label("Đổi tên thời khóa biểu");
-		title.getStyleClass().add("home-title");
+            TableView<LopHocPhanDto> table =
+                    new TableView<>();
 
-		TextField tenField = new TextField(
-				dto.getTenPhuongAn() != null ? dto.getTenPhuongAn() : "");
+            table.setColumnResizePolicy(
+                    TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
 
-		Button saveBtn = new Button("Lưu");
-		saveBtn.setOnAction(e -> {
+            TableColumn<LopHocPhanDto, String> maLopCol =
+                    new TableColumn<>("Mã lớp");
 
-			try {
-				Long userId = screenManager.getCurrentUser().getId();
-				ManageThoiKhoaBieuUseCase useCase = screenManager.getQuanLyThoiKhoaBieuUseCase();
+            maLopCol.setCellValueFactory(c ->
+                    new SimpleStringProperty(
+                            c.getValue().getMaLop() != null
+                                    ? c.getValue().getMaLop()
+                                    : ""
+                    ));
 
-				useCase.rename(userId, dto.getId(), tenField.getText());
+            TableColumn<LopHocPhanDto, String> gvCol =
+                    new TableColumn<>("Giảng viên");
 
-				UiUtils.showAlert("Thành công", "Đã cập nhật tên.", Alert.AlertType.INFORMATION);
+            gvCol.setCellValueFactory(c ->
+                    new SimpleStringProperty(
+                            c.getValue().getGiangVien() != null
+                                    ? c.getValue().getGiangVien()
+                                            .getTenGiangVien()
+                                    : ""
+                    ));
 
-				showThoiKhoaBieu();
-			}
-			catch(Exception ex) {
-				UiUtils.showAlert("Lỗi", ex.getMessage(), Alert.AlertType.ERROR);
-			}
-		});
+            TableColumn<LopHocPhanDto, String> lichCol =
+                    new TableColumn<>("Lịch học");
 
-		Button cancelBtn = new Button("Hủy");
-		cancelBtn.setOnAction(e -> showThoiKhoaBieu());
+            lichCol.setCellValueFactory(c -> {
 
-		centerContainer.getChildren().addAll(
-				title,
-				new Label("Tên mới"),
-				tenField,
-				new HBox(10, saveBtn, cancelBtn));
-	}
+                if(c.getValue().getLichHocDanhSach() == null
+                        || c.getValue()
+                        .getLichHocDanhSach().isEmpty())
+                    return new SimpleStringProperty("");
 
-	private void xoa(ThoiKhoaBieuDto dto)
-	{
-		if(!isAuthenticated()) return;
+                String value =
+                        c.getValue()
+                         .getLichHocDanhSach()
+                         .stream()
+                         .map(l ->
+                                 "Thứ " + l.getThu()
+                                         + " (" +
+                                         l.getTietBatDau()
+                                         + "-"
+                                         + l.getTietKetThuc()
+                                         + ")")
+                         .collect(Collectors.joining("; "));
 
-		Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-		confirm.setTitle("Xác nhận");
-		confirm.setHeaderText(null);
-		confirm.setContentText("Bạn có chắc muốn xóa?");
+                return new SimpleStringProperty(value);
+            });
 
-		Optional<ButtonType> result = confirm.showAndWait();
+            table.getColumns().addAll(maLopCol, gvCol, lichCol);
 
-		if(result.isPresent() && result.get() == ButtonType.OK) {
-			try {
-				Long userId = screenManager.getCurrentUser().getId();
+            table.setItems(
+                    FXCollections.observableArrayList(
+                            detail.getDanhSachLopHocPhan()
+                    )
+            );
 
-				screenManager.getQuanLyThoiKhoaBieuUseCase().delete(userId, dto.getId());
+            Button backBtn = new Button("Quay lại");
+            backBtn.setOnAction(e -> showThoiKhoaBieu());
 
-				UiUtils.showAlert("Thành công", "Đã xóa.", Alert.AlertType.INFORMATION);
+            VBox wrapper = new VBox(12, title, table, backBtn);
+            wrapper.setFillWidth(true);
+            VBox.setVgrow(table, Priority.ALWAYS);
 
-				showThoiKhoaBieu();
+            centerContainer.getChildren().add(wrapper);
+        }
+        catch(Exception ex) {
+            UiUtils.showAlert("Lỗi",
+                    ex.getMessage(),
+                    Alert.AlertType.ERROR);
+        }
+    }
 
-			}
-			catch(Exception ex) {
-				UiUtils.showAlert("Lỗi", ex.getMessage(), Alert.AlertType.ERROR);
-			}
-		}
-	}
+    private void doiTen(ThoiKhoaBieuDto dto)
+    {
+        if(!isAuthenticated()) return;
 
-	private boolean isAuthenticated()
-	{
-		if(screenManager == null || !screenManager.isAuthenticated()) {
-			UiUtils.showAlert("Chưa đăng nhập", "Bạn cần đăng nhập.", Alert.AlertType.WARNING);
-			return false;
-		}
-		return true;
-	}
+        centerContainer.getChildren().clear();
+
+        Label title =
+                new Label("Đổi tên thời khóa biểu");
+
+        title.getStyleClass().add("home-title");
+
+        TextField tenField =
+                new TextField(dto.getTenPhuongAn());
+
+        tenField.setPromptText("Nhập tên mới");
+
+        Button saveBtn = new Button("Lưu");
+        saveBtn.setOnAction(e -> {
+            try {
+                Long userId =
+                        screenManager.getCurrentUser().getId();
+
+                screenManager
+                        .getQuanLyThoiKhoaBieuUseCase()
+                        .rename(userId,
+                                dto.getId(),
+                                tenField.getText());
+
+                UiUtils.showAlert("Thành công",
+                        "Đã cập nhật tên.",
+                        Alert.AlertType.INFORMATION);
+
+                showThoiKhoaBieu();
+            }
+            catch(Exception ex) {
+                UiUtils.showAlert("Lỗi",
+                        ex.getMessage(),
+                        Alert.AlertType.ERROR);
+            }
+        });
+
+        Button cancelBtn = new Button("Hủy");
+        cancelBtn.setOnAction(e -> showThoiKhoaBieu());
+
+        HBox actions = new HBox(8, saveBtn, cancelBtn);
+
+        centerContainer.getChildren().addAll(
+                title,
+                new Label("Tên mới"),
+                tenField,
+                actions
+        );
+    }
+
+    private void xoa(ThoiKhoaBieuDto dto)
+    {
+        if(!isAuthenticated()) return;
+
+        Alert confirm =
+                new Alert(Alert.AlertType.CONFIRMATION);
+
+        confirm.setTitle("Xác nhận");
+        confirm.setHeaderText(null);
+        confirm.setContentText("Bạn có chắc muốn xóa?");
+
+        Optional<ButtonType> result =
+                confirm.showAndWait();
+
+        if(result.isPresent()
+                && result.get() == ButtonType.OK)
+        {
+            try {
+                Long userId =
+                        screenManager.getCurrentUser().getId();
+
+                screenManager
+                        .getQuanLyThoiKhoaBieuUseCase()
+                        .delete(userId, dto.getId());
+
+                UiUtils.showAlert("Thành công",
+                        "Đã xóa.",
+                        Alert.AlertType.INFORMATION);
+
+                showThoiKhoaBieu();
+            }
+            catch(Exception ex) {
+                UiUtils.showAlert("Lỗi",
+                        ex.getMessage(),
+                        Alert.AlertType.ERROR);
+            }
+        }
+    }
+
+    private boolean isAuthenticated()
+    {
+        if(screenManager == null
+                || !screenManager.isAuthenticated())
+        {
+            UiUtils.showAlert("Chưa đăng nhập",
+                    "Bạn cần đăng nhập.",
+                    Alert.AlertType.WARNING);
+            return false;
+        }
+        return true;
+    }
 }

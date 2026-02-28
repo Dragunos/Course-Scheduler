@@ -11,7 +11,7 @@ public class GiangVien
 	private GiangVien(Long id, String ten)
 	{
 		if(ten == null || ten.isBlank())
-			throw new IllegalArgumentException("Ten giang vien khong hop le");
+			throw new IllegalArgumentException("Tên Giảng Viên không hợp lệ");
 
 		this.id = id;
 		this.tenGiangVien = ten;
@@ -24,7 +24,7 @@ public class GiangVien
 
 	public static GiangVien reconstruct(Long id, String ten)
 	{
-		if(id == null) throw new IllegalStateException("Persisted GiangVien must have id");
+		if(id == null) throw new IllegalStateException("Thông tin về Giảng Viên (ID) bị thiếu");
 		return new GiangVien(id, ten);
 	}
 

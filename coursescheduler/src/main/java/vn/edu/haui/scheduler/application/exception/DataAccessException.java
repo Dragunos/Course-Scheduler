@@ -9,6 +9,6 @@ public class DataAccessException extends TechnicalException
 
 	public DataAccessException(Throwable cause)
 	{
-		super("DATA_ACCESS_ERROR", "Database operation failed.", cause);
+		super("DATA_ACCESS_ERROR", "Thao tác lên CSDL thất bại", cause);
 	}
 }

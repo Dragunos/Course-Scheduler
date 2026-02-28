@@ -24,6 +24,12 @@ public class LopHocPhanMapper
 
 		dto.setHinhThucDay(domain.getHinhThucDay());
 		dto.setDiaDiem(domain.getDiaDiem());
+		
+		dto.setTenHocPhan(
+			    domain.getHocPhan() != null
+			        ? domain.getHocPhan().getTenHocPhan()
+			        : null
+			);
 
 		return dto;
 	}
@@ -37,7 +43,7 @@ public class LopHocPhanMapper
 		if(dto == null) return null;
 
 		if(dto.getId() == null) {
-			return LopHocPhan.create(
+			return LopHocPhan.create( 
 					dto.getMaLop(),
 					hocPhan,
 					giangVien,

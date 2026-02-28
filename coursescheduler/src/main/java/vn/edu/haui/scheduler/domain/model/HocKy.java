@@ -13,10 +13,10 @@ public class HocKy
 	private HocKy(Long id, String tenHocKy, String namHoc)
 	{
 		if(tenHocKy == null || tenHocKy.isBlank())
-			throw new IllegalArgumentException("Ten hoc ky khong hop le");
+			throw new IllegalArgumentException("Tên Học Kỳ không hợp lệ");
 
 		if(namHoc == null || namHoc.isBlank())
-			throw new IllegalArgumentException("Nam hoc khong hop le");
+			throw new IllegalArgumentException("Năm học không hợp lệ");
 
 		this.id = id;
 		this.tenHocKy = tenHocKy;
@@ -30,7 +30,7 @@ public class HocKy
 
 	public static HocKy reconstruct(Long id, String ten, String nam)
 	{
-		if(id == null) throw new IllegalStateException("Persisted HocKy must have id");
+		if(id == null) throw new IllegalStateException("Thông tin về Học Kỳ (ID) bị thiếu");
 		return new HocKy(id, ten, nam);
 	}
 

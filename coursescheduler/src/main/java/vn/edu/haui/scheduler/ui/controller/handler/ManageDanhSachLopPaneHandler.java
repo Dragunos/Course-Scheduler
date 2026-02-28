@@ -16,7 +16,9 @@ import vn.edu.haui.scheduler.application.port.in.ManageDanhSachLopUseCase;
 import vn.edu.haui.scheduler.ui.fx.ScreenManager;
 import vn.edu.haui.scheduler.ui.util.UiUtils;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -66,13 +68,13 @@ public class ManageDanhSachLopPaneHandler
 		actionCol.setMinWidth(180);
 		actionCol.setCellFactory(col -> new TableCell<>()
 		{
-			private final Button viewBtn = new Button("🔍");
+			private final Button viewBtn = new Button("🔍 Xem Chi Tiết");
 
-			private final Button editBtn = new Button("✏");
+			private final Button editBtn = new Button("✏ Đổi Tên");
 
-			private final Button deleteBtn = new Button("🗑");
+			private final Button deleteBtn = new Button("🗑 Xóa Danh Sách");
 
-			private final Button exportBtn = new Button("📤");
+			private final Button exportBtn = new Button("📤 Xuất Danh Sách");
 
 			private final HBox hbox = new HBox(8, viewBtn, editBtn, deleteBtn, exportBtn);
 
@@ -240,9 +242,26 @@ public class ManageDanhSachLopPaneHandler
 			table.getColumns().add(diaDiemCol);
 			table.getColumns().add(gvCol);
 
+			List<DanhSachLopChiTietDto> original = detail.getChiTiet();
+
+			Map<String, DanhSachLopChiTietDto> grouped = new LinkedHashMap<>();
+
+			for (DanhSachLopChiTietDto item : original) {
+			    String maLop = item.getMaLop();
+
+			    if (!grouped.containsKey(maLop)) {
+			        grouped.put(maLop, item);
+			    } else {
+			        DanhSachLopChiTietDto existing = grouped.get(maLop);
+
+			        if (item.getLichHocList() != null) {
+			            existing.getLichHocList().addAll(item.getLichHocList());
+			        }
+			    }
+			}
+
 			table.setItems(
-					FXCollections.observableArrayList(
-							detail.getChiTiet()));
+			    FXCollections.observableArrayList(grouped.values()));
 
 			VBox wrapper = new VBox(12, title, table);
 			wrapper.setFillWidth(true);
@@ -292,7 +311,7 @@ public class ManageDanhSachLopPaneHandler
 						hocKyId = Long.valueOf(hkText.trim());
 					}
 					catch(NumberFormatException nfe) {
-						throw new ValidationException("Học kỳ phải là số (id).");
+						throw new ValidationException("Học kỳ (ID) Không hợp lệ");
 					}
 				}
 
@@ -380,13 +399,13 @@ public class ManageDanhSachLopPaneHandler
 		if(thu == null) return "";
 
 		return switch(thu) {
-			case 1 -> "Thứ Hai";
-			case 2 -> "Thứ Ba";
-			case 3 -> "Thứ Tư";
-			case 4 -> "Thứ Năm";
-			case 5 -> "Thứ Sáu";
-			case 6 -> "Thứ Bảy";
-			case 7 -> "Chủ Nhật";
+			case 2 -> "Thứ Hai";
+			case 3 -> "Thứ Ba";
+			case 4 -> "Thứ Tư";
+			case 5 -> "Thứ Năm";
+			case 6 -> "Thứ Sáu";
+			case 7 -> "Thứ Bảy";
+			case 8 -> "Chủ Nhật";
 			default -> "N/A";
 		};
 	}

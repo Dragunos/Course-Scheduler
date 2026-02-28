@@ -1,6 +1,8 @@
 package vn.edu.haui.scheduler.application.service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import vn.edu.haui.scheduler.application.dto.DanhSachLopDto;
 import vn.edu.haui.scheduler.application.dto.TepTaiLenDto;
@@ -59,13 +61,13 @@ public class ImportDanhSachLopService implements ImportDanhSachLopUseCase
 			TepTaiLenDto tepTaiLenDto)
 	{
 		if(nguoiTaoId == null)
-			throw new ValidationException("NguoiTaoId must not be null");
+			throw new ValidationException("Người Tạo ID không được phép NULL");
 
 		if(tenDanhSach == null || tenDanhSach.isBlank())
-			throw new ValidationException("TenDanhSach must not be blank");
+			throw new ValidationException("Tên Danh Sách không được phép để trống");
 
 		if(tepTaiLenDto == null)
-			throw new ValidationException("TepTaiLen must not be null");
+			throw new ValidationException("Chưa có Tệp");
 
 		NguoiDung nguoiTao = nguoiDungRepository
 				.findById(nguoiTaoId)
@@ -92,56 +94,67 @@ public class ImportDanhSachLopService implements ImportDanhSachLopUseCase
 
 		ExcelDanhSachLopImporter.ImportFileResult result = importer.read(tepTaiLen);
 
-		List<ImportedLopHocPhanRaw> rawList = result.rows;
-
 		DanhSachLop danhSach = DanhSachLop.create(
 				tenDanhSach.trim(),
 				nguoiTao,
 				false,
 				hocKy);
 
-		for(ImportedLopHocPhanRaw raw : rawList) {
+		List<ImportedLopHocPhanRaw> rawList = result.rows;
 
-			HocPhan hocPhan = hocPhanRepository
-					.findByMaHocPhan(raw.maHocPhan())
-					.orElseGet(() -> {
-						HocPhan newHp = HocPhan.create(
-								raw.maHocPhan(),
-								raw.tenHocPhan(),
-								raw.soTinChi());
-						return hocPhanRepository.save(newHp);
-					});
+		Map<String, List<ImportedLopHocPhanRaw>> grouped =
+		        rawList.stream()
+		               .collect(Collectors.groupingBy(ImportedLopHocPhanRaw::maLop));
 
-			GiangVien giangVien = null;
-			if(raw.tenGiangVien() != null && !raw.tenGiangVien().isBlank()) {
-				giangVien = giangVienRepository
-						.findByTen(raw.tenGiangVien())
-						.orElseGet(() -> {
-							GiangVien gv = GiangVien.create(raw.tenGiangVien());
-							return giangVienRepository.save(gv);
-						});
-			}
+		for (Map.Entry<String, List<ImportedLopHocPhanRaw>> entry : grouped.entrySet()) {
 
-			LopHocPhan lop = LopHocPhan.create(
-					raw.maLop(),
-					hocPhan,
-					giangVien,
-					raw.hinhThucDay(),
-					raw.diaDiem());
+		    List<ImportedLopHocPhanRaw> rows = entry.getValue();
+		    ImportedLopHocPhanRaw first = rows.get(0);
 
-			raw.lichHocList().forEach(lh -> {
-				LichHoc lichHoc = LichHoc.create(
-						null,
-						lh.thu(),
-						lh.tietBatDau(),
-						lh.tietKetThuc());
+		    // ===== Học phần =====
+		    HocPhan hocPhan = hocPhanRepository
+		            .findByMaHocPhan(first.maHocPhan())
+		            .orElseGet(() -> {
+		                HocPhan newHp = HocPhan.create(
+		                        first.maHocPhan(),
+		                        first.tenHocPhan(),
+		                        first.soTinChi());
+		                return hocPhanRepository.save(newHp);
+		            });
 
-				lop.themLichHoc(lichHoc);
-			});
+		    // ===== Giảng viên =====
+		    GiangVien giangVien = null;
+		    if(first.tenGiangVien() != null && !first.tenGiangVien().isBlank()) {
+		        giangVien = giangVienRepository
+		                .findByTen(first.tenGiangVien())
+		                .orElseGet(() -> {
+		                    GiangVien gv = GiangVien.create(first.tenGiangVien());
+		                    return giangVienRepository.save(gv);
+		                });
+		    }
 
-			LopHocPhan savedLop = lopHocPhanRepository.save(lop);
+		    // ===== Tạo lớp =====
+		    LopHocPhan lop = LopHocPhan.create(
+		            first.maLop(),
+		            hocPhan,
+		            giangVien,
+		            first.hinhThucDay(),
+		            first.diaDiem());
 
-			danhSach.themLop(savedLop, false);
+		    // ===== Gộp tất cả lịch học của cùng mã lớp =====
+		    for (ImportedLopHocPhanRaw raw : rows) {
+		        raw.lichHocList().forEach(lh -> {
+		            LichHoc lichHoc = LichHoc.create(
+		                    null,
+		                    lh.thu(),
+		                    lh.tietBatDau(),
+		                    lh.tietKetThuc());
+		            lop.themLichHoc(lichHoc);
+		        });
+		    }
+
+		    LopHocPhan savedLop = lopHocPhanRepository.save(lop);
+		    danhSach.themLop(savedLop, false);
 		}
 
 		DanhSachLop saved = danhSachLopRepository.save(danhSach);

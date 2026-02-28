@@ -7,7 +7,7 @@ public final class Optimizer
 	public List<OptimizationResult> optimize(OptimizationInput input)
 	{
 		if(input.requiredCourseIds().isEmpty()) {
-			throw new IllegalArgumentException("No required courses.");
+			throw new IllegalArgumentException("Không có thông tin về Học Phần");
 		}
 
 		BacktrackingEngine engine = new BacktrackingEngine(input);

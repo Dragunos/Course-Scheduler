@@ -1,7 +1,12 @@
 package vn.edu.haui.scheduler.ui.controller.handler;
 
+import javafx.application.Platform;
+import javafx.beans.binding.BooleanBinding;
+import javafx.concurrent.Task;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import vn.edu.haui.scheduler.application.dto.NguoiDungDto;
@@ -18,6 +23,7 @@ import java.nio.file.Files;
 
 public class ImportDanhSachLopPaneHandler
 {
+
 	private final ScreenManager screenManager;
 
 	private final VBox centerContainer;
@@ -30,30 +36,80 @@ public class ImportDanhSachLopPaneHandler
 
 	public void showImportPane()
 	{
+
 		if(!isAuthenticated()) {
 			showLoginWarning();
 			return;
 		}
 
 		centerContainer.getChildren().clear();
+		centerContainer.setSpacing(20);
+		centerContainer.setPadding(new Insets(30));
 
 		Label title = new Label("Nhập danh sách lớp học phần");
 		title.getStyleClass().add("home-title");
 
-		TextField tenField = new TextField();
-		tenField.setPromptText("Tên danh sách");
+		// ===== FORM GRID =====
+		GridPane formGrid = new GridPane();
+		formGrid.setHgap(15);
+		formGrid.setVgap(15);
+		formGrid.setPadding(new Insets(20));
+		formGrid.setMaxWidth(600);
 
+		ColumnConstraints col1 = new ColumnConstraints();
+		col1.setPercentWidth(30);
+
+		ColumnConstraints col2 = new ColumnConstraints();
+		col2.setPercentWidth(70);
+		col2.setHgrow(Priority.ALWAYS);
+
+		formGrid.getColumnConstraints().addAll(col1, col2);
+
+		// ===== Fields =====
+		Label tenLabel = new Label("Tên danh sách:");
+		TextField tenField = new TextField();
+		tenField.setPromptText("Nhập tên danh sách");
+
+		Label fileLabel = new Label("Tệp Excel:");
 		TextField fileField = new TextField();
 		fileField.setEditable(false);
 
-		Button chooseBtn = new Button("Chọn tệp");
+		Button chooseBtn = new Button("📂 Chọn tệp");
 		chooseBtn.setOnAction(e -> chooseFile(fileField));
 
-		Button importBtn = new Button("Nhập");
-		importBtn.setOnAction(e -> handleImport(tenField, fileField));
+		HBox fileBox = new HBox(10, fileField, chooseBtn);
+		HBox.setHgrow(fileField, Priority.ALWAYS);
 
-		centerContainer.getChildren()
-				.addAll(title, tenField, fileField, chooseBtn, importBtn);
+		// ===== Progress =====
+		ProgressIndicator progressIndicator = new ProgressIndicator();
+		progressIndicator.setVisible(false);
+		progressIndicator.setMaxSize(40, 40);
+
+		// ===== Import Button =====
+		Button importBtn = new Button("⬆ Nhập dữ liệu");
+
+		// ===== Realtime Validation =====
+		BooleanBinding invalidInput = tenField.textProperty().isEmpty()
+				.or(fileField.textProperty().isEmpty());
+
+		importBtn.disableProperty().bind(invalidInput);
+
+		// ===== Layout positioning =====
+		formGrid.add(tenLabel, 0, 0);
+		formGrid.add(tenField, 1, 0);
+		formGrid.add(fileLabel, 0, 1);
+		formGrid.add(fileBox, 1, 1);
+
+		HBox actionBox = new HBox(15, importBtn, progressIndicator);
+		actionBox.setAlignment(Pos.CENTER_LEFT);
+
+		VBox wrapper = new VBox(20, title, formGrid, actionBox);
+		wrapper.setAlignment(Pos.TOP_CENTER);
+
+		centerContainer.getChildren().add(wrapper);
+
+		// ===== Import Action with Background Task =====
+		importBtn.setOnAction(e -> runImportTask(tenField, fileField, importBtn, chooseBtn, progressIndicator));
 	}
 
 	private boolean isAuthenticated()
@@ -75,10 +131,7 @@ public class ImportDanhSachLopPaneHandler
 
 		FileChooser chooser = new FileChooser();
 		chooser.getExtensionFilters().add(
-				new FileChooser.ExtensionFilter(
-						"Excel Files",
-						"*.xlsx",
-						"*.xls"));
+				new FileChooser.ExtensionFilter("Excel Files", "*.xlsx", "*.xls"));
 
 		File file = chooser.showOpenDialog(window);
 
@@ -87,6 +140,46 @@ public class ImportDanhSachLopPaneHandler
 		}
 	}
 
+	// ===== Background Import =====
+	private void runImportTask(TextField tenField,
+			TextField fileField,
+			Button importBtn,
+			Button chooseBtn,
+			ProgressIndicator progressIndicator)
+	{
+
+		Task<Void> task = new Task<>()
+		{
+			@Override
+			protected Void call() throws Exception
+			{
+				handleImport(tenField, fileField);
+				return null;
+			}
+		};
+
+		task.setOnRunning(e -> {
+			importBtn.setDisable(true);
+			chooseBtn.setDisable(true);
+			progressIndicator.setVisible(true);
+		});
+
+		task.setOnSucceeded(e -> {
+			progressIndicator.setVisible(false);
+			importBtn.setDisable(false);
+			chooseBtn.setDisable(false);
+		});
+
+		task.setOnFailed(e -> {
+			progressIndicator.setVisible(false);
+			importBtn.setDisable(false);
+			chooseBtn.setDisable(false);
+		});
+
+		new Thread(task).start();
+	}
+
+	// ===== Business Logic giữ nguyên =====
 	private void handleImport(TextField tenField, TextField fileField)
 	{
 		try {
@@ -107,36 +200,29 @@ public class ImportDanhSachLopPaneHandler
 					null,
 					tep);
 
-			UiUtils.showAlert(
+			Platform.runLater(() -> UiUtils.showAlert(
 					"Thành công",
 					"Nhập hoàn tất.",
-					Alert.AlertType.INFORMATION);
+					Alert.AlertType.INFORMATION));
 
 		}
 		catch(BusinessException e) {
-			UiUtils.showAlert(
-					"Lỗi dữ liệu",
-					e.getMessage(),
-					Alert.AlertType.ERROR);
+			showError("Lỗi dữ liệu", e.getMessage());
 		}
 		catch(ImportDanhSachLopException e) {
-			UiUtils.showAlert(
-					"Lỗi hệ thống",
-					"Không thể nhập dữ liệu.",
-					Alert.AlertType.ERROR);
+			showError("Lỗi hệ thống", "Không thể nhập dữ liệu.");
 		}
 		catch(IOException e) {
-			UiUtils.showAlert(
-					"Lỗi đọc tệp",
-					"Không thể đọc tệp.",
-					Alert.AlertType.ERROR);
+			showError("Lỗi đọc tệp", "Không thể đọc tệp.");
 		}
 		catch(IllegalArgumentException e) {
-			UiUtils.showAlert(
-					"Lỗi nhập liệu",
-					e.getMessage(),
-					Alert.AlertType.ERROR);
+			showError("Lỗi nhập liệu", e.getMessage());
 		}
+	}
+
+	private void showError(String title, String message)
+	{
+		Platform.runLater(() -> UiUtils.showAlert(title, message, Alert.AlertType.ERROR));
 	}
 
 	private void validateInput(TextField tenField, TextField fileField)

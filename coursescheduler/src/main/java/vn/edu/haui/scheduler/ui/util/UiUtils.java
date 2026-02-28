@@ -12,7 +12,7 @@ public class UiUtils
 {
 	private UiUtils()
 	{
-		throw new UnsupportedOperationException("Utility class");
+		throw new UnsupportedOperationException("Util");
 	}
 
 	public static void showAlert(String title, String message, Alert.AlertType type)

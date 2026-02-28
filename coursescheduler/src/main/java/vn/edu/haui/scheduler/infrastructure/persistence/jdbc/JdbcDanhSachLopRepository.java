@@ -15,7 +15,9 @@ import vn.edu.haui.scheduler.infrastructure.persistence.jdbc.mapper.NguoiDungJdb
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -128,45 +130,90 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 	{
 		String sql = """
 				SELECT
+				    -- DanhSachLop
 				    dsl.id AS dsl_id,
 				    dsl.ten_danh_sach,
 				    dsl.la_cong_khai,
 				    dsl.hoc_ky_id,
 				    dsl.ngay_tao,
 
+				    -- NguoiDung
 				    nd.id AS nd_id,
 				    nd.ten_dang_nhap,
 				    nd.mat_khau_hash,
-				    nd.role_id AS vt_id,
+				    nd.role_id,
 				    nd.ngay_tao AS nd_ngay_tao,
 
 				    vt.id AS vt_id,
 				    vt.ten_vai_tro,
 
+				    -- HocKy
 				    hk.id AS hk_id,
 				    hk.ten_hoc_ky,
-				    hk.nam_hoc
+				    hk.nam_hoc,
+
+				    -- ChiTiet
+				    ct.bat_buoc,
+
+				    -- LopHocPhan
+				    lhp.id AS lhp_id,
+				    lhp.ma_lop AS lhp_ma_lop,
+				    lhp.hinh_thuc_day,
+				    lhp.dia_diem,
+
+				    -- HocPhan
+				    hp.id AS hp_id,
+				    hp.ma_hoc_phan,
+				    hp.ten_hoc_phan,
+				    hp.so_tin_chi,
+
+				    -- GiangVien
+				    gv.id AS gv_id,
+				    gv.ten_giang_vien,
+
+				    -- LichHoc
+				    lh.id AS lich_id,
+				    lh.thu,
+				    lh.tiet_bat_dau,
+				    lh.tiet_ket_thuc
 
 				FROM danh_sach_lop dsl
 				JOIN nguoi_dung nd ON dsl.nguoi_tao_id = nd.id
-				LEFT JOIN hoc_ky hk ON dsl.hoc_ky_id = hk.id
 				LEFT JOIN vai_tro vt ON nd.role_id = vt.id
+				LEFT JOIN hoc_ky hk ON dsl.hoc_ky_id = hk.id
+
+				LEFT JOIN danh_sach_lop_chi_tiet ct
+				       ON ct.danh_sach_lop_id = dsl.id
+
+				LEFT JOIN lop_hoc_phan lhp
+				       ON ct.lop_hoc_phan_id = lhp.id
+
+				LEFT JOIN hoc_phan hp
+				       ON lhp.hoc_phan_id = hp.id
+
+				LEFT JOIN giang_vien gv
+				       ON lhp.giang_vien_id = gv.id
+
+				LEFT JOIN lich_hoc lh
+				       ON lh.lop_hoc_phan_id = lhp.id
+
 				WHERE dsl.id = ?
-								""";
+				""";
 
 		try (Connection conn = DataSourceProvider.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
+
 			ps.setLong(1, id);
 
 			try (ResultSet rs = ps.executeQuery()) {
 				if(!rs.next())
 					return Optional.empty();
 
-				return Optional.of(loadAggregate(conn, rs));
+				return Optional.of(loadAggregateGraph(conn, rs));
 			}
 		}
 		catch(Exception e) {
-			throw new DataAccessException("Error finding DanhSachLop by id", e);
+			throw new DataAccessException("Error loading graph", e);
 		}
 	}
 
@@ -251,6 +298,76 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 				sharedUserIds);
 	}
 
+	private DanhSachLop loadAggregateGraph(Connection conn, ResultSet rs) throws Exception
+	{
+		Long dslId = rs.getLong("dsl_id");
+
+		NguoiDung nguoiTao = NguoiDungJdbcMapper.toDomain(rs);
+
+		HocKy hocKy = null;
+		if(rs.getObject("hk_id") != null) {
+			hocKy = HocKyJdbcMapper.toDomain(rs);
+		}
+
+		// LƯU lại dữ liệu DSL ngay đây
+		DanhSachLop baseDsl = DanhSachLopJdbcMapper.toDomain(
+				rs,
+				nguoiTao,
+				hocKy,
+				new ArrayList<>(),
+				new HashSet<>());
+
+		Map<Long, LopHocPhan> lopMap = new LinkedHashMap<>();
+		Map<Long, DanhSachLopChiTiet> chiTietMap = new LinkedHashMap<>();
+
+		do {
+
+			Long lhpId = rs.getObject("lhp_id") != null
+					? rs.getLong("lhp_id")
+					: null;
+
+			if(lhpId != null) {
+
+				LopHocPhan lop = lopMap.get(lhpId);
+
+				if(lop == null) {
+					lop = LopHocPhanJdbcMapper.toDomain(rs);
+					lopMap.put(lhpId, lop);
+
+					DanhSachLopChiTiet chiTiet = DanhSachLopChiTietJdbcMapper.toDomain(rs, lop);
+
+					chiTietMap.put(lhpId, chiTiet);
+				}
+
+				// Add LichHoc
+				if(rs.getObject("lich_id") != null) {
+
+					LichHoc lich = LichHoc.reconstruct(
+							rs.getLong("lich_id"),
+							lhpId,
+							rs.getInt("thu"),
+							rs.getInt("tiet_bat_dau"),
+							rs.getInt("tiet_ket_thuc"));
+
+					lop.themLichHoc(lich);
+				}
+			}
+
+		} while(rs.next());
+
+		Set<Long> sharedUserIds = loadSharedUserIds(conn, dslId);
+
+		return DanhSachLop.reconstruct(
+				baseDsl.getId(),
+				baseDsl.getTenDanhSach(),
+				baseDsl.getNguoiTao(),
+				baseDsl.isLaCongKhai(),
+				baseDsl.getHocKy(),
+				baseDsl.getNgayTao(),
+				new ArrayList<>(chiTietMap.values()),
+				sharedUserIds);
+	}
+
 	private List<DanhSachLopChiTiet> loadChiTiet(Connection conn, Long danhSachId)
 			throws Exception
 	{
@@ -290,8 +407,15 @@ public class JdbcDanhSachLopRepository implements DanhSachLopRepository
 
 				while(rs.next()) {
 
-					DanhSachLopChiTiet chiTiet = DanhSachLopChiTietJdbcMapper.toDomain(rs,
-							LopHocPhanJdbcMapper.toDomain(rs));
+					Long lopHocPhanId = rs.getLong("lhp_id");
+
+					LopHocPhan lopHocPhan = new JdbcLopHocPhanRepository()
+							.findById(lopHocPhanId)
+							.orElseThrow(() -> new EntityNotFoundException("LopHocPhan", lopHocPhanId));
+
+					DanhSachLopChiTiet chiTiet = DanhSachLopChiTietJdbcMapper.toDomain(
+							rs,
+							lopHocPhan);
 
 					result.add(chiTiet);
 				}

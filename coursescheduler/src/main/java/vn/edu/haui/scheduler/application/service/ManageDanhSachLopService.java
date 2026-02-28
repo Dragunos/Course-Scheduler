@@ -49,7 +49,7 @@ public class ManageDanhSachLopService implements ManageDanhSachLopUseCase
 	public List<DanhSachLopDto> findAllByUser(Long nguoiDungId)
 	{
 		if(nguoiDungId == null)
-			throw new ValidationException("NguoiDungId must not be null");
+			throw new ValidationException("Người Dùng ID không được phép NULL");
 
 		NguoiDung user = nguoiDungRepository
 				.findById(nguoiDungId)
@@ -59,7 +59,6 @@ public class ManageDanhSachLopService implements ManageDanhSachLopUseCase
 
 		List<DanhSachLop> publicLists = danhSachLopRepository.findPublicLists();
 
-		// merge + remove duplicate
 		Set<Long> seenIds = new HashSet<>();
 		List<DanhSachLop> accessible = new ArrayList<>();
 
@@ -83,7 +82,7 @@ public class ManageDanhSachLopService implements ManageDanhSachLopUseCase
 	public DanhSachLopDto findDetail(Long nguoiDungId, Long danhSachLopId)
 	{
 		if(nguoiDungId == null || danhSachLopId == null)
-			throw new ValidationException("Id must not be null");
+			throw new ValidationException("IDs Không được phép NULL");
 
 		NguoiDung user = nguoiDungRepository
 				.findById(nguoiDungId)
@@ -112,10 +111,10 @@ public class ManageDanhSachLopService implements ManageDanhSachLopUseCase
 			List<Long> lopHocPhanIds)
 	{
 		if(nguoiDungId == null || danhSachLopId == null)
-			throw new ValidationException("Id must not be null");
+			throw new ValidationException("IDs Không được phép NULL");
 
 		if(tenDanhSach == null || tenDanhSach.isBlank())
-			throw new ValidationException("TenDanhSach must not be blank");
+			throw new ValidationException("Tên Danh Sách không được để trống");
 
 		NguoiDung user = nguoiDungRepository
 				.findById(nguoiDungId)
@@ -164,7 +163,7 @@ public class ManageDanhSachLopService implements ManageDanhSachLopUseCase
 	public void deleteDanhSach(Long nguoiDungId, Long danhSachLopId)
 	{
 		if(nguoiDungId == null || danhSachLopId == null)
-			throw new ValidationException("Id must not be null");
+			throw new ValidationException("IDs Không được phép NULL");
 
 		NguoiDung user = nguoiDungRepository
 				.findById(nguoiDungId)

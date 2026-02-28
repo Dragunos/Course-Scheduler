@@ -9,12 +9,12 @@ public class FxConfig
 {
 	private FxConfig()
 	{
-		throw new UnsupportedOperationException("Utility class");
+		throw new UnsupportedOperationException("Utils");
 	}
 
 	public static void apply(Stage stage)
 	{
-		stage.setTitle("Course Scheduler");
+		stage.setTitle("Hệ thống Sinh Phương án Thời Khóa Biểu HaUI");
 
 		stage.setMinWidth(900);
 		stage.setMinHeight(600);

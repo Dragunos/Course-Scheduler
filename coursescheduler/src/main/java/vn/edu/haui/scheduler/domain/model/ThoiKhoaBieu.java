@@ -107,8 +107,7 @@ public class ThoiKhoaBieu
 
 	public void chamDiem(double diem)
 	{
-		if(diem < 0)
-			throw new IllegalArgumentException("Diem khong hop le");
+		// if(diem < 0) throw new IllegalArgumentException("Diem khong hop le");
 
 		this.diemDanhGia = diem;
 	}

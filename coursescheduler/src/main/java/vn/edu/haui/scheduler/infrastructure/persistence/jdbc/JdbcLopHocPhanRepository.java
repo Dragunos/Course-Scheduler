@@ -248,8 +248,11 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepository
 			ps.setLong(1, lopHocPhanId);
 
 			try (ResultSet rs = ps.executeQuery()) {
-				while(rs.next())
+
+				while(rs.next()) {
+					System.out.println("DEBUG: found lichHoc row id=" + rs.getLong("id"));
 					result.add(LichHocJdbcMapper.toDomain(rs));
+				}
 			}
 		}
 
@@ -334,6 +337,7 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepository
 			}
 		}
 		catch(Exception e) {
+			e.printStackTrace();
 			throw new DataAccessException("Database write operation failed", e);
 		}
 	}

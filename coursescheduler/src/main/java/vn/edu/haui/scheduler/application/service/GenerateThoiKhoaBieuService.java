@@ -16,6 +16,7 @@ import vn.edu.haui.scheduler.domain.model.NguoiDung;
 import vn.edu.haui.scheduler.domain.model.RangBuocToiUu;
 import vn.edu.haui.scheduler.domain.model.ThoiKhoaBieu;
 import vn.edu.haui.scheduler.domain.model.YeuCau;
+import vn.edu.haui.scheduler.domain.optimizer.ConstraintMapper;
 import vn.edu.haui.scheduler.domain.optimizer.HardConstraint;
 import vn.edu.haui.scheduler.domain.optimizer.OptimizationInput;
 import vn.edu.haui.scheduler.domain.optimizer.OptimizationResult;
@@ -69,7 +70,6 @@ public class GenerateThoiKhoaBieuService implements GenerateThoiKhoaBieuUseCase
 		NguoiDung nguoiDung = nguoiDungRepository.findById(nguoiDungId)
 				.orElseThrow(() -> new EntityNotFoundException("NguoiDung", nguoiDungId));
 
-		// tạo YeuCau mới (aggregate root)
 		YeuCau yeuCau = YeuCau.create(
 				nguoiDung,
 				danhSach,
@@ -91,13 +91,19 @@ public class GenerateThoiKhoaBieuService implements GenerateThoiKhoaBieuUseCase
 				.filter(s -> maHocPhanDangKy.contains(s.getHocPhan().getMaHocPhan()))
 				.map(s -> s.getHocPhan().getId())
 				.collect(Collectors.toSet());
+		
+		System.out.println("requiredCourseIds = " + requiredCourseIds);
 
 		if(requiredCourseIds.isEmpty()) {
-			throw new IllegalArgumentException("No required courses found for given maHocPhanDangKy");
+			throw new IllegalArgumentException("Không có Lớp Học Phần nào thuộc Học phần mong muốn được mở");
 		}
 
-		List<HardConstraint> hardConstraints = List.of();
-		List<SoftConstraint> softConstraints = List.of();
+		List<HardConstraint> hardConstraints = ConstraintMapper.mapHard(rangBuocDtos);
+
+		List<SoftConstraint> softConstraints = ConstraintMapper.mapSoft(rangBuocDtos);
+
+		System.out.println("hardConstraints size = " + hardConstraints.size());
+		System.out.println("softConstraints size = " + softConstraints.size());
 
 		OptimizationInput input = new OptimizationInput(
 				availableSections,
@@ -106,8 +112,12 @@ public class GenerateThoiKhoaBieuService implements GenerateThoiKhoaBieuUseCase
 				softConstraints,
 				topK,
 				Duration.ofMillis(timeLimitMillis));
+		
+		System.out.println("availableSections size = " + availableSections.size());
 
 		List<OptimizationResult> results = optimizer.optimize(input);
+
+		System.out.println(results);
 
 		return results.stream()
 				.map(r -> {
@@ -121,6 +131,9 @@ public class GenerateThoiKhoaBieuService implements GenerateThoiKhoaBieuUseCase
 					}
 
 					tkb.chamDiem(r.score());
+
+					System.out.println("selected size = " + r.selectedSections().size());
+					System.out.println("score = " + r.score());
 
 					return ThoiKhoaBieuMapper.toDto(tkb);
 				})
@@ -162,7 +175,7 @@ public class GenerateThoiKhoaBieuService implements GenerateThoiKhoaBieuUseCase
 				.collect(Collectors.toSet());
 
 		if(requiredCourseIds.isEmpty()) {
-			throw new IllegalArgumentException("No required courses found in existing schedule");
+			throw new IllegalArgumentException("Không có lớp học nào được tìm thấy");
 		}
 
 		List<HardConstraint> hardConstraints = List.of();
@@ -176,6 +189,8 @@ public class GenerateThoiKhoaBieuService implements GenerateThoiKhoaBieuUseCase
 				topK,
 				Duration.ofMillis(timeLimitMillis));
 
+		System.out.println("availableSections size = " + availableSections.size());
+		
 		List<OptimizationResult> results = optimizer.optimize(input);
 
 		return results.stream()

@@ -41,21 +41,21 @@ public class AuthService implements AuthUseCase
 	{
 
 		if(tenDangNhapRaw == null) {
-			throw new ValidationException("Username must not be null");
+			throw new ValidationException("Username không được phép NULL");
 		}
 
 		String tenDangNhap = tenDangNhapRaw.trim().toLowerCase();
 
 		if(tenDangNhap.isEmpty()) {
-			throw new ValidationException("Username must not be blank");
+			throw new ValidationException("Username không được để trống");
 		}
 
 		if(!USERNAME_PATTERN.matcher(tenDangNhap).matches()) {
-			throw new ValidationException("Username format is invalid");
+			throw new ValidationException("Định dạng Username không hợp lệ");
 		}
 
 		if(matKhau == null || matKhau.length() < 6) {
-			throw new ValidationException("Password must be at least 6 characters");
+			throw new ValidationException("Mật khẩu phải có ít nhất 6 ký tự");
 		}
 
 		VaiTro vaiTro = vaiTroRepository
@@ -79,17 +79,17 @@ public class AuthService implements AuthUseCase
 	public NguoiDungDto login(String tenDangNhapRaw, String matKhau)
 	{
 		if(tenDangNhapRaw == null) {
-			throw new ValidationException("Username must not be null");
+			throw new ValidationException("Username không được phép NULL");
 		}
 
 		String tenDangNhap = tenDangNhapRaw.trim().toLowerCase();
 
 		if(tenDangNhap.isEmpty()) {
-			throw new ValidationException("Username must not be blank");
+			throw new ValidationException("Username không được để trống");
 		}
 
 		if(matKhau == null || matKhau.isBlank()) {
-			throw new ValidationException("Password must not be blank");
+			throw new ValidationException("Mật khẩu không được để trống");
 		}
 
 		NguoiDung user = nguoiDungRepository

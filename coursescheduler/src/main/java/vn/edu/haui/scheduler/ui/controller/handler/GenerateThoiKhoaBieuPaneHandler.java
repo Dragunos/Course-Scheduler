@@ -50,7 +50,7 @@ public class GenerateThoiKhoaBieuPaneHandler
 
 		Label danhSachLabel = new Label("Danh sách lớp (ID hoặc chọn):");
 		TextField danhSachIdField = new TextField();
-		danhSachIdField.setPromptText("Nhập danh_sach_lop_id nếu không load được danh sách");
+		danhSachIdField.setPromptText("Nhập ID của Danh Sách Lớp nếu không load được danh sách");
 
 		ComboBox<DanhSachLopDto> danhSachCombo = new ComboBox<>();
 		danhSachCombo.setPrefWidth(420);
@@ -85,7 +85,8 @@ public class GenerateThoiKhoaBieuPaneHandler
 					UiUtils.showAlert("Info", "Không tìm thấy danh sách lớp cho user", Alert.AlertType.INFORMATION);
 					return;
 				}
-				System.out.println("Danh sách load được: " + lists.size());
+				System.out.println("(danhSachCombo.setItems) Danh sách load được: " + lists.size());
+				
 				danhSachCombo.setItems(FXCollections.observableArrayList(lists));
 			}
 			catch(Exception ex) {
@@ -195,7 +196,7 @@ public class GenerateThoiKhoaBieuPaneHandler
 				if(avoidOnline.isSelected()) {
 					RangBuocToiUuDto r = new RangBuocToiUuDto();
 					try {
-						r.getClass().getMethod("setLaCung", Integer.class).invoke(r, 0);
+						r.setLaCung(false);
 					}
 					catch(Exception ignore) {
 					}
@@ -229,7 +230,7 @@ public class GenerateThoiKhoaBieuPaneHandler
 				if(want0003.isSelected()) {
 					RangBuocToiUuDto r = new RangBuocToiUuDto();
 					try {
-						r.getClass().getMethod("setLaCung", Integer.class).invoke(r, 0);
+						r.setLaCung(false);
 					}
 					catch(Exception ignore) {
 					}
@@ -258,7 +259,7 @@ public class GenerateThoiKhoaBieuPaneHandler
 				if(want0005.isSelected()) {
 					RangBuocToiUuDto r = new RangBuocToiUuDto();
 					try {
-						r.getClass().getMethod("setLaCung", Integer.class).invoke(r, 0);
+						r.setLaCung(false);
 					}
 					catch(Exception ignore) {
 					}
@@ -287,7 +288,7 @@ public class GenerateThoiKhoaBieuPaneHandler
 				if(avoidTiet12to15.isSelected()) {
 					RangBuocToiUuDto r = new RangBuocToiUuDto();
 					try {
-						r.getClass().getMethod("setLaCung", Integer.class).invoke(r, 0);
+						r.setLaCung(false);
 					}
 					catch(Exception ignore) {
 					}
@@ -321,7 +322,7 @@ public class GenerateThoiKhoaBieuPaneHandler
 				if(avoidThu3.isSelected()) {
 					RangBuocToiUuDto r = new RangBuocToiUuDto();
 					try {
-						r.getClass().getMethod("setLaCung", Integer.class).invoke(r, 0);
+						r.setLaCung(false); 
 					}
 					catch(Exception ignore) {
 					}
@@ -346,7 +347,7 @@ public class GenerateThoiKhoaBieuPaneHandler
 					catch(Exception ignore) {
 					}
 					try {
-						r.getClass().getMethod("setTrongSo", Double.class).invoke(r, 3.0);
+						r.getClass().getMethod("setTrongSo", Double.class).invoke(r, 4.0);
 					}
 					catch(Exception ignore) {
 					}
@@ -415,7 +416,23 @@ public class GenerateThoiKhoaBieuPaneHandler
 					StringBuilder sb = new StringBuilder();
 					sb.append("Phương án: ").append(safeInvokeString(item, "getTenPhuongAn")).append("\n");
 					sb.append("Điểm: ").append(safeInvokeString(item, "getDiemDanhGia")).append("\n");
-					sb.append("Danh sách lớp: ").append(safeInvokeString(item, "getCacLop"));
+					// sb.append("Danh sách lớp: ").append(safeInvokeString(item, "getDanhSachLopHocPhan"));
+					
+					List<LopHocPhanDto> ds =
+						    (List<LopHocPhanDto>) safeInvoke(item, "getDanhSachLopHocPhan");
+
+						if (ds != null && !ds.isEmpty()) {
+						    String formatted = ds.stream()
+						        .map(l ->
+						            l.getTenHocPhan() +
+						            " (" + l.getMaLop() + ")"
+						        )
+						        .reduce((a, b) -> a + "; " + b)
+						        .orElse("");
+
+						    sb.append("Danh sách lớp: ").append(formatted);
+						}
+					
 					setText(sb.toString());
 				}
 			}
@@ -507,7 +524,6 @@ public class GenerateThoiKhoaBieuPaneHandler
 		}
 		catch(Exception ignored) {
 		}
-		// try common getter getId
 		try {
 			Method m = obj.getClass().getMethod("getId");
 			Object v = m.invoke(obj);

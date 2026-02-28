@@ -32,7 +32,7 @@ public class DanhSachLop
 			Set<Long> sharedUserIds)
 	{
 		if(tenDanhSach == null || tenDanhSach.isBlank())
-			throw new IllegalArgumentException("Ten danh sach khong hop le");
+			throw new IllegalArgumentException("Tên Danh Sách không hợp lệ");
 
 		this.id = id;
 		this.tenDanhSach = tenDanhSach.trim();
@@ -76,7 +76,7 @@ public class DanhSachLop
 			Set<Long> sharedUserIds)
 	{
 		if(id == null)
-			throw new IllegalStateException("Persisted DanhSachLop must have id");
+			throw new IllegalStateException("Danh Sách Lớp mục tiêu không xác định (ID không tồn tại)");
 
 		return new DanhSachLop(
 				id,
@@ -98,7 +98,7 @@ public class DanhSachLop
 
 		for(DanhSachLopChiTiet c : chiTietList) {
 			if(c.getLopHocPhan().getId().equals(lopId))
-				throw new IllegalStateException("Lop da ton tai");
+				throw new IllegalStateException("Lớp đã tồn tại");
 		}
 
 		chiTietList.add(DanhSachLopChiTiet.create(lop, batBuoc));
@@ -123,7 +123,7 @@ public class DanhSachLop
 	public void doiTen(String tenMoi)
 	{
 		if(tenMoi == null || tenMoi.isBlank())
-			throw new IllegalArgumentException("Ten danh sach khong hop le");
+			throw new IllegalArgumentException("Tên Danh Sách không hợp lệ");
 
 		this.tenDanhSach = tenMoi.trim();
 	}
@@ -167,7 +167,7 @@ public class DanhSachLop
 	public void congKhai()
 	{
 		if(this.laCongKhai)
-			throw new IllegalStateException("Danh sach da cong khai");
+			throw new IllegalStateException("Danh Sách đã được công khai");
 
 		this.laCongKhai = true;
 	}
@@ -175,7 +175,7 @@ public class DanhSachLop
 	public void anDanhSach()
 	{
 		if(!this.laCongKhai)
-			throw new IllegalStateException("Danh sach da o trang thai private");
+			throw new IllegalStateException("Trạng thái Công Khai đã thay đổi");
 
 		this.laCongKhai = false;
 	}

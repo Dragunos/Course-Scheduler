@@ -40,16 +40,16 @@ public class ExportThoiKhoaBieuService implements ExportThoiKhoaBieuUseCase
 			String outputPath)
 	{
 		if(nguoiDungId == null)
-			throw new ValidationException("NguoiDungId must not be null");
+			throw new ValidationException("Người Dùng ID không được phép NULL");
 
 		if(thoiKhoaBieuId == null)
-			throw new ValidationException("ThoiKhoaBieuId must not be null");
+			throw new ValidationException("Thời Khóa Biểu ID không được phép NULL");
 
 		if(format == null || format.isBlank())
-			throw new ValidationException("Format must not be blank");
+			throw new ValidationException("Định dạng không được để trống");
 
 		if(outputPath == null || outputPath.isBlank())
-			throw new ValidationException("OutputPath must not be blank");
+			throw new ValidationException("Đầu ra không được để trống");
 
 		ThoiKhoaBieu tkb = thoiKhoaBieuRepository
 				.findById(thoiKhoaBieuId)
@@ -124,11 +124,11 @@ public class ExportThoiKhoaBieuService implements ExportThoiKhoaBieuUseCase
 				case "CSV" -> fileExporter.exportCsv(path, headers, rows);
 				case "PDF" -> fileExporter.exportPdf(path, "Thời khóa biểu", headers, rows);
 				case "ICS" -> icsExporter.export(path, "Thời khóa biểu", rows);
-				default -> throw new ValidationException("Unsupported export format");
+				default -> throw new ValidationException("Định dạng không được hỗ trợ");
 			}
 		}
 		catch(IOException ex) {
-			throw new ExportThoiKhoaBieuException("Failed to export timetable", ex);
+			throw new ExportThoiKhoaBieuException("Lỗi xuất Thời Khóa Biểu", ex);
 		}
 	}
 

@@ -19,6 +19,18 @@ public class LopHocPhanDto
 	private GiangVienDto giangVien;
 
 	private List<LichHocDto> lichHocDanhSach;
+	
+	private String tenHocPhan;
+
+	public String getTenHocPhan()
+	{
+		return tenHocPhan;
+	}
+
+	public void setTenHocPhan(String tenHocPhan)
+	{
+		this.tenHocPhan = tenHocPhan;
+	}
 
 	public LopHocPhanDto()
 	{

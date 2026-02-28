@@ -4,7 +4,7 @@ public class UnauthorizedAccessException extends BusinessException
 {
     public UnauthorizedAccessException()
     {
-        super("UNAUTHORIZED", "You are not allowed to perform this action.");
+        super("UNAUTHORIZED", "Không có đủ quyền hạn để thực hiện hành động này");
     }
 
     public UnauthorizedAccessException(String message)

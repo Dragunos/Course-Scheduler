@@ -26,7 +26,7 @@ public class ManageThoiKhoaBieuService implements ManageThoiKhoaBieuUseCase
 	public List<ThoiKhoaBieuDto> findAllByUser(Long nguoiDungId)
 	{
 		if(nguoiDungId == null)
-			throw new ValidationException("NguoiDungId must not be null");
+			throw new ValidationException("Người Dùng ID Không được phép NULL");
 
 		return thoiKhoaBieuRepository
 				.findByNguoiDungId(nguoiDungId)
@@ -41,10 +41,10 @@ public class ManageThoiKhoaBieuService implements ManageThoiKhoaBieuUseCase
 			Long thoiKhoaBieuId)
 	{
 		if(nguoiDungId == null)
-			throw new ValidationException("NguoiDungId must not be null");
+			throw new ValidationException("Người Dùng ID Không được phép NULL");
 
 		if(thoiKhoaBieuId == null)
-			throw new ValidationException("ThoiKhoaBieuId must not be null");
+			throw new ValidationException("Thời Khóa Biểu ID Không được phép NULL");
 
 		ThoiKhoaBieu tkb = thoiKhoaBieuRepository
 				.findById(thoiKhoaBieuId)
@@ -62,13 +62,13 @@ public class ManageThoiKhoaBieuService implements ManageThoiKhoaBieuUseCase
 			String newName)
 	{
 		if(nguoiDungId == null)
-			throw new ValidationException("NguoiDungId must not be null");
+			throw new ValidationException("Người Dùng ID Không được phép NULL");
 
 		if(thoiKhoaBieuId == null)
-			throw new ValidationException("ThoiKhoaBieuId must not be null");
+			throw new ValidationException("Thời Khóa Biểu ID Không được phép NULL");
 
 		if(newName == null || newName.isBlank())
-			throw new ValidationException("New name must not be blank");
+			throw new ValidationException("Tên không được phép để trống");
 
 		String normalized = newName.trim();
 
@@ -91,10 +91,10 @@ public class ManageThoiKhoaBieuService implements ManageThoiKhoaBieuUseCase
 			Long thoiKhoaBieuId)
 	{
 		if(nguoiDungId == null)
-			throw new ValidationException("NguoiDungId must not be null");
+			throw new ValidationException("Người Dùng ID Không được phép NULL");
 
 		if(thoiKhoaBieuId == null)
-			throw new ValidationException("ThoiKhoaBieuId must not be null");
+			throw new ValidationException("Thời Khóa Biểu ID Không được phép NULL");
 
 		ThoiKhoaBieu tkb = thoiKhoaBieuRepository
 				.findById(thoiKhoaBieuId)
@@ -111,6 +111,6 @@ public class ManageThoiKhoaBieuService implements ManageThoiKhoaBieuUseCase
 
 		if(!tkb.getNguoiDung().getId().equals(nguoiDungId))
 			throw new UnauthorizedAccessException(
-					"User is not allowed to manage this ThoiKhoaBieu");
+					"Người Dùng không có đủ quyền hạn để quản lý TKB này");
 	}
 }
