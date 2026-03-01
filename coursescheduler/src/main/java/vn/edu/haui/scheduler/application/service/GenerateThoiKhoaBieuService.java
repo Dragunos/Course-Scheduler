@@ -24,7 +24,9 @@ import vn.edu.haui.scheduler.domain.optimizer.Optimizer;
 import vn.edu.haui.scheduler.domain.optimizer.SoftConstraint;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -213,30 +215,64 @@ public class GenerateThoiKhoaBieuService implements GenerateThoiKhoaBieuUseCase
 
 	@Override
 	public void save(
-			Long nguoiDungId,
-			Long danhSachLopId,
-			List<ThoiKhoaBieuDto> selectedResults,
-			boolean overwrite)
+	        Long nguoiDungId,
+	        Long danhSachLopId,
+	        List<ThoiKhoaBieuDto> selectedResults,
+	        boolean overwrite)
 	{
+	    if (selectedResults == null || selectedResults.isEmpty()) return;
 
-		for(ThoiKhoaBieuDto dto : selectedResults) {
+	    for (ThoiKhoaBieuDto dto : selectedResults) {
 
-			NguoiDung nguoiDung = nguoiDungRepository.findById(dto.getNguoiDungId())
-					.orElseThrow(() -> new EntityNotFoundException("NguoiDung", dto.getNguoiDungId()));
+	        NguoiDung nguoiDung = nguoiDungRepository.findById(dto.getNguoiDungId())
+	                .orElseThrow(() -> new EntityNotFoundException("NguoiDung", dto.getNguoiDungId()));
 
-			DanhSachLop danhSach = danhSachLopRepository.findById(dto.getDanhSachLopId())
-					.orElseThrow(() -> new EntityNotFoundException("DanhSachLop", dto.getDanhSachLopId()));
+	        // Use danhSachLopId param if provided, otherwise fallback to dto.getDanhSachLopId()
+	        Long usedDanhSachId = danhSachLopId != null ? danhSachLopId : dto.getDanhSachLopId();
 
-			List<LopHocPhan> cacLop = List.of();
+	        DanhSachLop danhSach = danhSachLopRepository.findById(usedDanhSachId)
+	                .orElseThrow(() -> new EntityNotFoundException("DanhSachLop", usedDanhSachId));
 
-			ThoiKhoaBieu domain = ThoiKhoaBieuMapper.toDomain(dto, nguoiDung, danhSach, cacLop);
+	        // Build a map of available sections for quick lookup
+	        Map<Long, LopHocPhan> availableMap = danhSach.getLopHocPhanList()
+	                .stream()
+	                .collect(Collectors.toMap(LopHocPhan::getId, s -> s));
 
-			if(overwrite) {
-				thoiKhoaBieuRepository.update(domain);
-			}
-			else {
-				thoiKhoaBieuRepository.save(domain);
-			}
-		}
+	        // Prepare cacLop from DTO's id list
+	        List<LopHocPhan> cacLop = new ArrayList<>();
+
+	        List<Long> lopIdList = dto.getLopHocPhanIdList();
+	        if (lopIdList != null && !lopIdList.isEmpty()) {
+	            for (Long lopId : lopIdList) {
+	                LopHocPhan found = availableMap.get(lopId);
+	                if (found == null) {
+	                    // If you prefer to tolerate missing sections, change this to a warning + continue.
+	                    throw new EntityNotFoundException("LopHocPhan", lopId);
+	                }
+	                cacLop.add(found);
+	            }
+	        } else {
+	            // Fallback: try to build from danhSachLopHocPhan DTOs if id list not present
+	            if (dto.getDanhSachLopHocPhan() != null && !dto.getDanhSachLopHocPhan().isEmpty()) {
+	                for (var lDto : dto.getDanhSachLopHocPhan()) {
+	                    Long lopId = lDto.getId();
+	                    LopHocPhan found = availableMap.get(lopId);
+	                    if (found == null) {
+	                        throw new EntityNotFoundException("LopHocPhan", lopId);
+	                    }
+	                    cacLop.add(found);
+	                }
+	            }
+	        }
+
+	        // Convert DTO -> domain with real LopHocPhan list
+	        ThoiKhoaBieu domain = ThoiKhoaBieuMapper.toDomain(dto, nguoiDung, danhSach, cacLop);
+
+	        if (overwrite) {
+	            thoiKhoaBieuRepository.update(domain);
+	        } else {
+	            thoiKhoaBieuRepository.save(domain);
+	        }
+	    }
 	}
 }

@@ -228,26 +228,41 @@ public class JdbcThoiKhoaBieuRepository implements ThoiKhoaBieuRepository
 
 	private Set<LopHocPhan> loadChiTiet(Connection conn, Long tkbId) throws Exception
 	{
-		String sql = """
-				SELECT lhp.*
-				FROM thoi_khoa_bieu_chi_tiet ct
-				JOIN lop_hoc_phan lhp ON ct.lop_hoc_phan_id = lhp.id
-				WHERE ct.thoi_khoa_bieu_id = ?
-				""";
+	    String sql = """
+	        SELECT
+	            lhp.id              AS lhp_id,
+	            lhp.ma_lop          AS lhp_ma_lop,
+	            lhp.hinh_thuc_day,
+	            lhp.dia_diem,
 
-		Set<LopHocPhan> result = new HashSet<>();
+	            hp.id               AS hp_id,
+	            hp.ma_hoc_phan,
+	            hp.ten_hoc_phan,
+	            hp.so_tin_chi,
 
-		try (PreparedStatement ps = conn.prepareStatement(sql)) {
-			ps.setLong(1, tkbId);
+	            gv.id               AS gv_id,
+	            gv.ten_giang_vien
 
-			try (ResultSet rs = ps.executeQuery()) {
-				while(rs.next()) {
-					result.add(LopHocPhanJdbcMapper.toDomain(rs));
-				}
-			}
-		}
+	        FROM thoi_khoa_bieu_chi_tiet ct
+	        JOIN lop_hoc_phan lhp ON ct.lop_hoc_phan_id = lhp.id
+	        JOIN hoc_phan hp ON lhp.hoc_phan_id = hp.id
+	        LEFT JOIN giang_vien gv ON lhp.giang_vien_id = gv.id
+	        WHERE ct.thoi_khoa_bieu_id = ?
+	        """;
 
-		return result;
+	    Set<LopHocPhan> result = new HashSet<>();
+
+	    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+	        ps.setLong(1, tkbId);
+
+	        try (ResultSet rs = ps.executeQuery()) {
+	            while (rs.next()) {
+	                result.add(LopHocPhanJdbcMapper.toDomain(rs));
+	            }
+	        }
+	    }
+
+	    return result;
 	}
 
 	private void insertChiTiet(Connection conn, Long tkbId, Set<LopHocPhan> cacLop)
