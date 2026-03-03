@@ -88,9 +88,6 @@ public class DanhSachLopMapper
 		else {
 			dto.setLichHocList(List.of());
 		}
-		
-		System.out.println("LichHoc size = " + lop.getLichHocList().size());
-
 		return dto;
 	}
 }

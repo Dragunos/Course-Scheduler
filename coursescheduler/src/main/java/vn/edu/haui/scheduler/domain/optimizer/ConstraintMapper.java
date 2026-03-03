@@ -4,13 +4,6 @@ import vn.edu.haui.scheduler.application.dto.RangBuocToiUuDto;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * ConstraintMapper
- *
- * Chuyển RangBuocToiUuDto -> HardConstraint / SoftConstraint Dùng cho Optimizer.
- *
- * Domain thuần: không phụ thuộc UI, DB, DTO khác.
- */
 public final class ConstraintMapper
 {
 

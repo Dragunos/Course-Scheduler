@@ -34,7 +34,6 @@ public class ExportDanhSachLopPaneHandler {
         Label title = new Label("Xuất danh sách: " + dto.getTenDanhSach());
         title.getStyleClass().add("home-title");
 
-        // Format selection
         RadioButton csvRb = new RadioButton("CSV");
         RadioButton excelRb = new RadioButton("Excel");
         ToggleGroup tg = new ToggleGroup();
@@ -54,7 +53,6 @@ public class ExportDanhSachLopPaneHandler {
         Button chooseBtn = new Button("Chọn nơi lưu");
         chooseBtn.setTooltip(new Tooltip("Chọn đường dẫn và tên tệp để lưu xuất"));
 
-        // Preview filename label (tách để người dùng thấy file sẽ có tên gì)
         Label previewLabel = new Label();
         previewLabel.getStyleClass().add("muted-label");
 
@@ -101,7 +99,6 @@ public class ExportDanhSachLopPaneHandler {
 
                 ExportDanhSachLopUseCase useCase = screenManager.getXuatDanhSachLopUseCase();
 
-                // Không thay đổi logic nghiệp vụ — chỉ gọi use case như trước
                 useCase.exportDanhSach(
                         user.getId(),
                         dto.getId(),
@@ -143,7 +140,6 @@ public class ExportDanhSachLopPaneHandler {
         centerContainer.getChildren().add(form);
     }
 
-    // Very small sanitization for initial filename
     private String sanitizeFileName(String input) {
         return input.replaceAll("[\\/:*?\"<>|]", "-").trim();
     }

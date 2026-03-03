@@ -10,7 +10,6 @@ public final class TimeConflictChecker
 
 	public boolean hasConflict(List<LopHocPhan> sections)
 	{
-
 		for(int i = 0; i < sections.size(); i++) {
 			for(int j = i + 1; j < sections.size(); j++) {
 				if(conflict(sections.get(i), sections.get(j))) {

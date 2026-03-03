@@ -238,7 +238,6 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepository
 
 	private List<LichHoc> loadLichHoc(Connection conn, Long lopHocPhanId) throws Exception
 	{
-		System.out.println("DEBUG: loadLichHoc for lopHocPhanId=" + lopHocPhanId);
 		String sql = "SELECT * FROM lich_hoc WHERE lop_hoc_phan_id = ?";
 
 		List<LichHoc> result = new ArrayList<>();
@@ -250,7 +249,6 @@ public class JdbcLopHocPhanRepository implements LopHocPhanRepository
 			try (ResultSet rs = ps.executeQuery()) {
 
 				while(rs.next()) {
-					System.out.println("DEBUG: found lichHoc row id=" + rs.getLong("id"));
 					result.add(LichHocJdbcMapper.toDomain(rs));
 				}
 			}
