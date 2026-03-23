@@ -20,169 +20,179 @@ import vn.edu.haui.scheduler.ui.util.UiUtils;
 import java.io.File;
 import java.util.Optional;
 
-public class ExportThoiKhoaBieuPaneHandler {
+public class ExportThoiKhoaBieuPaneHandler
+{
 
-    private final ScreenManager screenManager;
-    private final VBox centerContainer;
+	private final ScreenManager screenManager;
 
-    public ExportThoiKhoaBieuPaneHandler(ScreenManager screenManager, VBox centerContainer) {
-        this.screenManager = screenManager;
-        this.centerContainer = centerContainer;
-    }
+	private final VBox centerContainer;
 
-    public void showExportPane(ThoiKhoaBieuDto dto) {
-        centerContainer.getChildren().clear();
+	public ExportThoiKhoaBieuPaneHandler(ScreenManager screenManager, VBox centerContainer)
+	{
+		this.screenManager = screenManager;
+		this.centerContainer = centerContainer;
+	}
 
-        Label title = new Label("Xuất thời khóa biểu: " +
-                (dto.getTenPhuongAn() != null ? dto.getTenPhuongAn() : "<không tên>"));
-        title.getStyleClass().add("home-title");
+	public void showExportPane(ThoiKhoaBieuDto dto)
+	{
+		centerContainer.getChildren().clear();
 
-        RadioButton csvRb = new RadioButton("CSV");
-        RadioButton pdfRb = new RadioButton("PDF");
-        RadioButton icsRb = new RadioButton("ICS");
+		Label title = new Label("Xuất thời khóa biểu: " +
+				(dto.getTenPhuongAn() != null ? dto.getTenPhuongAn() : "<không tên>"));
+		title.getStyleClass().add("home-title");
 
-        ToggleGroup tg = new ToggleGroup();
-        csvRb.setToggleGroup(tg);
-        pdfRb.setToggleGroup(tg);
-        icsRb.setToggleGroup(tg);
-        pdfRb.setSelected(true);
+		RadioButton csvRb = new RadioButton("CSV");
+		RadioButton pdfRb = new RadioButton("PDF");
+		RadioButton icsRb = new RadioButton("ICS");
 
-        HBox formatBox = new HBox(8, new Label("Định dạng:"), csvRb, pdfRb, icsRb);
-        formatBox.setAlignment(Pos.CENTER_LEFT);
+		ToggleGroup tg = new ToggleGroup();
+		csvRb.setToggleGroup(tg);
+		pdfRb.setToggleGroup(tg);
+		icsRb.setToggleGroup(tg);
+		pdfRb.setSelected(true);
 
-        TextField pathField = new TextField();
-        pathField.setEditable(false);
-        pathField.setPromptText("Chọn nơi lưu... (mặc định: thư mục người dùng)");
-        HBox.setHgrow(pathField, Priority.ALWAYS);
+		HBox formatBox = new HBox(8, new Label("Định dạng:"), csvRb, pdfRb, icsRb);
+		formatBox.setAlignment(Pos.CENTER_LEFT);
 
-        Button chooseBtn = new Button("Chọn nơi lưu");
-        chooseBtn.setTooltip(new Tooltip("Chọn đường dẫn và tên tệp để lưu xuất"));
+		TextField pathField = new TextField();
+		pathField.setEditable(false);
+		pathField.setPromptText("Chọn nơi lưu... (mặc định: thư mục người dùng)");
+		HBox.setHgrow(pathField, Priority.ALWAYS);
 
-        Label previewLabel = new Label();
-        previewLabel.getStyleClass().add("muted-label");
+		Button chooseBtn = new Button("Chọn nơi lưu");
+		chooseBtn.setTooltip(new Tooltip("Chọn đường dẫn và tên tệp để lưu xuất"));
 
-        chooseBtn.setOnAction(e -> {
-            Window w = centerContainer.getScene().getWindow();
-            FileChooser chooser = new FileChooser();
-            chooser.setTitle("Lưu thời khóa biểu: " + (dto.getTenPhuongAn() == null ? "tkb" : dto.getTenPhuongAn()));
-            chooser.setInitialDirectory(new File(System.getProperty("user.home")));
+		Label previewLabel = new Label();
+		previewLabel.getStyleClass().add("muted-label");
 
-            String defaultName = sanitizeFileName(Optional.ofNullable(dto.getTenPhuongAn()).orElse("thoikhoabieu"));
+		chooseBtn.setOnAction(e -> {
+			Window w = centerContainer.getScene().getWindow();
+			FileChooser chooser = new FileChooser();
+			chooser.setTitle("Lưu thời khóa biểu: " + (dto.getTenPhuongAn() == null ? "tkb" : dto.getTenPhuongAn()));
+			chooser.setInitialDirectory(new File(System.getProperty("user.home")));
 
-            if (csvRb.isSelected()) {
-                chooser.getExtensionFilters().setAll(new FileChooser.ExtensionFilter("CSV files", "*.csv"));
-                chooser.setInitialFileName(defaultName + ".csv");
-            } else if (pdfRb.isSelected()) {
-                chooser.getExtensionFilters().setAll(new FileChooser.ExtensionFilter("PDF files", "*.pdf"));
-                chooser.setInitialFileName(defaultName + ".pdf");
-            } else {
-                chooser.getExtensionFilters().setAll(new FileChooser.ExtensionFilter("ICS files", "*.ics"));
-                chooser.setInitialFileName(defaultName + ".ics");
-            }
+			String defaultName = sanitizeFileName(Optional.ofNullable(dto.getTenPhuongAn()).orElse("thoikhoabieu"));
 
-            File file = chooser.showSaveDialog(w);
-            if (file != null) {
-                pathField.setText(file.getAbsolutePath());
-                previewLabel.setText("Tệp: " + file.getName());
-            }
-        });
+			if(csvRb.isSelected()) {
+				chooser.getExtensionFilters().setAll(new FileChooser.ExtensionFilter("CSV files", "*.csv"));
+				chooser.setInitialFileName(defaultName + ".csv");
+			}
+			else if(pdfRb.isSelected()) {
+				chooser.getExtensionFilters().setAll(new FileChooser.ExtensionFilter("PDF files", "*.pdf"));
+				chooser.setInitialFileName(defaultName + ".pdf");
+			}
+			else {
+				chooser.getExtensionFilters().setAll(new FileChooser.ExtensionFilter("ICS files", "*.ics"));
+				chooser.setInitialFileName(defaultName + ".ics");
+			}
 
-        Button saveBtn = new Button("Lưu");
-        saveBtn.setDefaultButton(true);
-        Button cancelBtn = new Button("Hủy");
-        cancelBtn.setCancelButton(true);
+			File file = chooser.showSaveDialog(w);
+			if(file != null) {
+				pathField.setText(file.getAbsolutePath());
+				previewLabel.setText("Tệp: " + file.getName());
+			}
+		});
 
-        // Disable save until a path is chosen
-        saveBtn.disableProperty().bind(Bindings.createBooleanBinding(
-                () -> pathField.getText() == null || pathField.getText().isBlank(),
-                pathField.textProperty()));
+		Button saveBtn = new Button("Lưu");
+		saveBtn.setDefaultButton(true);
+		Button cancelBtn = new Button("Hủy");
+		cancelBtn.setCancelButton(true);
 
-        saveBtn.setOnAction(e -> {
-            try {
-                if (screenManager.getCurrentUser() == null) {
-                    UiUtils.showAlert(
-                            "Chưa đăng nhập",
-                            "Bạn cần đăng nhập.",
-                            Alert.AlertType.WARNING);
-                    return;
-                }
+		// Disable save until a path is chosen
+		saveBtn.disableProperty().bind(Bindings.createBooleanBinding(
+				() -> pathField.getText() == null || pathField.getText().isBlank(),
+				pathField.textProperty()));
 
-                String outputPath = pathField.getText();
-                if (outputPath == null || outputPath.isBlank()) {
-                    UiUtils.showAlert(
-                            "Thiếu đường dẫn",
-                            "Vui lòng chọn nơi lưu file.",
-                            Alert.AlertType.WARNING);
-                    return;
-                }
+		saveBtn.setOnAction(e -> {
+			try {
+				if(screenManager.getCurrentUser() == null) {
+					UiUtils.showAlert(
+							"Chưa đăng nhập",
+							"Bạn cần đăng nhập.",
+							Alert.AlertType.WARNING);
+					return;
+				}
 
-                NguoiDungDto user = screenManager.getCurrentUser();
+				String outputPath = pathField.getText();
+				if(outputPath == null || outputPath.isBlank()) {
+					UiUtils.showAlert(
+							"Thiếu đường dẫn",
+							"Vui lòng chọn nơi lưu file.",
+							Alert.AlertType.WARNING);
+					return;
+				}
 
-                String format;
-                if (csvRb.isSelected()) format = "CSV";
-                else if (pdfRb.isSelected()) format = "PDF";
-                else format = "ICS";
+				NguoiDungDto user = screenManager.getCurrentUser();
 
-                ExportThoiKhoaBieuUseCase useCase = screenManager.getXuatThoiKhoaBieuUseCase();
+				String format;
+				if(csvRb.isSelected()) format = "CSV";
+				else if(pdfRb.isSelected()) format = "PDF";
+				else format = "ICS";
 
-                if (useCase == null) {
-                    UiUtils.showAlert(
-                            "Lỗi cấu hình",
-                            "Tính năng xuất thời khóa biểu chưa được cấu hình.",
-                            Alert.AlertType.ERROR);
-                    return;
-                }
+				//ExportThoiKhoaBieuUseCase useCase = screenManager.getXuatThoiKhoaBieuUseCase();
+				ExportThoiKhoaBieuUseCase useCase = null;
 
-                // Giữ nguyên thứ tự tham số và logic nghiệp vụ
-                useCase.export(
-                        user.getId(),
-                        dto.getId(),
-                        format,
-                        outputPath);
+				if(useCase == null) {
+					UiUtils.showAlert(
+							"Lỗi cấu hình",
+							"Tính năng xuất thời khóa biểu chưa được cấu hình.",
+							Alert.AlertType.ERROR);
+					return;
+				}
 
-                UiUtils.showAlert(
-                        "Thành công",
-                        "Xuất thời khóa biểu thành công.",
-                        Alert.AlertType.INFORMATION);
+				useCase.export(
+						user.getId(),
+						dto.getId(),
+						format,
+						outputPath);
 
-                new ManageThoiKhoaBieuPaneHandler(
-                        screenManager,
-                        centerContainer).showThoiKhoaBieu();
+				UiUtils.showAlert(
+						"Thành công",
+						"Xuất thời khóa biểu thành công.",
+						Alert.AlertType.INFORMATION);
 
-            } catch (ValidationException ve) {
-                UiUtils.showAlert(
-                        "Không hợp lệ",
-                        ve.getMessage(),
-                        Alert.AlertType.WARNING);
-            } catch (DataAccessException pe) {
-                UiUtils.showAlert(
-                        "Lỗi hệ thống",
-                        pe.getMessage(),
-                        Alert.AlertType.ERROR);
-            } catch (Exception ex) {
-                UiUtils.showAlert(
-                        "Lỗi",
-                        ex.getMessage(),
-                        Alert.AlertType.ERROR);
-            }
-        });
+				new ManageThoiKhoaBieuPaneHandler(
+						screenManager,
+						centerContainer).showThoiKhoaBieu();
 
-        cancelBtn.setOnAction(e -> new ManageThoiKhoaBieuPaneHandler(
-                screenManager,
-                centerContainer).showThoiKhoaBieu());
+			}
+			catch(ValidationException ve) {
+				UiUtils.showAlert(
+						"Không hợp lệ",
+						ve.getMessage(),
+						Alert.AlertType.WARNING);
+			}
+			catch(DataAccessException pe) {
+				UiUtils.showAlert(
+						"Lỗi hệ thống",
+						pe.getMessage(),
+						Alert.AlertType.ERROR);
+			}
+			catch(Exception ex) {
+				UiUtils.showAlert(
+						"Lỗi",
+						ex.getMessage(),
+						Alert.AlertType.ERROR);
+			}
+		});
 
-        HBox buttons = new HBox(10, saveBtn, cancelBtn);
-        buttons.setAlignment(Pos.CENTER_RIGHT);
+		cancelBtn.setOnAction(e -> new ManageThoiKhoaBieuPaneHandler(
+				screenManager,
+				centerContainer).showThoiKhoaBieu());
 
-        VBox form = new VBox(10);
-        form.setPadding(new Insets(12));
-        form.getChildren().addAll(title, formatBox, pathField, chooseBtn, previewLabel, buttons);
-        form.setFillWidth(true);
+		HBox buttons = new HBox(10, saveBtn, cancelBtn);
+		buttons.setAlignment(Pos.CENTER_RIGHT);
 
-        centerContainer.getChildren().add(form);
-    }
+		VBox form = new VBox(10);
+		form.setPadding(new Insets(12));
+		form.getChildren().addAll(title, formatBox, pathField, chooseBtn, previewLabel, buttons);
+		form.setFillWidth(true);
 
-    private String sanitizeFileName(String input) {
-        return input.replaceAll("[\\/:*?\"<>|]", "-").trim();
-    }
+		centerContainer.getChildren().add(form);
+	}
+
+	private String sanitizeFileName(String input)
+	{
+		return input.replaceAll("[\\/:*?\"<>|]", "-").trim();
+	}
 }

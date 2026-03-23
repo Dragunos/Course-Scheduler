@@ -34,7 +34,7 @@ public class ManageThoiKhoaBieuPaneHandler
 
         ManageThoiKhoaBieuUseCase useCase =
                 screenManager.getQuanLyThoiKhoaBieuUseCase();
-
+        
         if(useCase == null) {
             UiUtils.showAlert("Lỗi cấu hình",
                     "Tính năng quản lý thời khóa biểu chưa được cấu hình.",
