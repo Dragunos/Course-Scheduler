@@ -92,7 +92,6 @@ Mục tiêu là làm nổi bật:
 ### Công cụ phát triển
 - Eclipse IDE for Java Developers 2023-12
 - Scene Builder
-- Git / GitHub
 
 ---
 
