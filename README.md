@@ -24,7 +24,7 @@ Dự án được xây dựng với mục tiêu thực hành và thể hiện:
 - [Kiến trúc hệ thống](#️-kiến-trúc-hệ-thống)
 - [Tính năng nổi bật](#-tính-năng-nổi-bật)
 - [Cấu trúc thư mục](#-cấu-trúc-thư-mục)
-- [Domain Model (Aggregate Boundaries)](#-domain-model)
+- [Domain Model (Aggregate Boundaries)](#-domain-model-aggregate-boundaries)
 - [Luồng nghiệp vụ chính](#-luồng-nghiệp-vụ-chính)
 - [Module Use Cases](#-module-use-cases)
 - [Cơ sở dữ liệu](#️-cơ-sở-dữ-liệu)
