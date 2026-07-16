@@ -1,4 +1,4 @@
-﻿# 📅 Course Scheduler
+# 📅 Course Scheduler
 
 > Ứng dụng desktop JavaFX hỗ trợ sinh, so sánh và quản lý phương án đăng ký học phần theo ràng buộc và ưu tiên cá nhân, được xây dựng theo Clean / Hexagonal Architecture
 
