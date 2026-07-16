@@ -6,14 +6,14 @@
 
 ## 📌 Giới thiệu dự án
 
-**Course Scheduler** giải quyết bài toán đăng ký học phần bậc đại học — một quy trình thường đòi hỏi sinh viên tự chọn các lớp thỏa đồng thời nhiều điều kiện: không trùng lịch, phù hợp giảng viên mong muốn, khung giờ hợp lý và ưu tiên cá nhân. Cách làm thủ công dễ dẫn đến xung đột thời khóa biểu, tốn thời gian thử-sai và khó tối ưu.
+**Course Scheduler** giải quyết bài toán đăng ký học phần đại học - một quy trình thường đòi hỏi sinh viên tự chọn các lớp thỏa đồng thời nhiều điều kiện: không trùng lịch, phù hợp giảng viên mong muốn, khung giờ hợp lý và ưu tiên cá nhân. Cách làm thủ công dễ dẫn đến xung đột thời khóa biểu, tốn thời gian thử-sai và khó tối ưu.
 
 Ứng dụng cung cấp một giải pháp tự động hóa hoàn chỉnh trên máy tính cá nhân (offline), lưu trữ dữ liệu cục bộ bằng SQLite, không phụ thuộc vào bất kỳ dịch vụ ngoài nào.
 
 Dự án được xây dựng với mục tiêu thực hành và thể hiện:
 - **Clean / Hexagonal Architecture** trong ứng dụng desktop thực tế.
 - Thuật toán **Backtracking có ràng buộc** (hard constraint + soft constraint + time-limit) cho bài toán sinh tổ hợp.
-- Tổ chức code theo chiều sâu: domain invariant, port/adapter pattern, mapper layer, exception hierarchy.
+- Tổ chức code theo chiều sâu: Domain invariant, Port/adapter pattern, Mapper layer, Exception hierarchy.
 - Khả năng **xuất đa định dạng** (CSV, Excel, PDF, iCalendar) qua Composite pattern.
 
 ---
@@ -24,7 +24,7 @@ Dự án được xây dựng với mục tiêu thực hành và thể hiện:
 - [Kiến trúc hệ thống](#️-kiến-trúc-hệ-thống)
 - [Tính năng nổi bật](#-tính-năng-nổi-bật)
 - [Cấu trúc thư mục](#-cấu-trúc-thư-mục)
-- [Domain Model](#-domain-model)
+- [Domain Model (Aggregate Boundaries)](#-domain-model)
 - [Luồng nghiệp vụ chính](#-luồng-nghiệp-vụ-chính)
 - [Module Use Cases](#-module-use-cases)
 - [Cơ sở dữ liệu](#️-cơ-sở-dữ-liệu)
@@ -48,7 +48,7 @@ Dự án được xây dựng với mục tiêu thực hành và thể hiện:
 
 | Công nghệ | Phiên bản | Mục đích |
 |---|---|---|
-| **SQLite** | — | Database quan hệ nhúng, lưu trữ cục bộ |
+| **SQLite** | 3.43.2 | Database quan hệ nhúng, lưu trữ cục bộ |
 | **SQLite JDBC** | 3.46.1.3 | Kết nối JDBC tới SQLite |
 | **HikariCP** | 5.1.0 | Connection pool (max 10, min-idle 1) |
 
@@ -127,10 +127,10 @@ User Action (JavaFX UI)
 ```
 
 **Điểm nổi bật về kiến trúc:**
-- `MainApp.java` là **composition root** duy nhất — khởi tạo toàn bộ dependency tree thủ công (manual DI), không dùng DI framework.
-- Domain model hoàn toàn **framework-free**: không annotation, không JPA, không Spring.
+- `MainApp.java` là **composition root** duy nhất - khởi tạo toàn bộ dependency tree thủ công (manual DI), không dùng DI framework.
+- Domain model hoàn toàn **framework-free**: Không annotation, không JPA, không Spring.
 - Các entity domain sử dụng factory method `create()` / `reconstruct()` để kiểm soát invariant ngay tại thời điểm khởi tạo.
-- `ScreenManager` đóng vai trò router UI — nắm giữ tham chiếu đến tất cả Use Case và `NguoiDungDto` của session hiện tại.
+- `ScreenManager` đóng vai trò router UI - nắm giữ tham chiếu đến tất cả Use Case và `NguoiDungDto` của session hiện tại.
 
 ---
 
@@ -144,7 +144,7 @@ User Action (JavaFX UI)
 ### 📋 Quản lý Danh sách Lớp
 - Tạo, xem, sửa, xóa danh sách lớp học phần (theo học kỳ).
 - Hỗ trợ **công khai / riêng tư** và **chia sẻ** danh sách cho người dùng khác.
-- Import danh sách lớp từ file **Excel** (`.xls`, `.xlsx`) — tự động chuẩn hóa hình thức dạy (online/trực tiếp) từ dữ liệu thô.
+- Import danh sách lớp từ file **Excel** (`.xls`, `.xlsx`) - tự động chuẩn hóa hình thức dạy (online/trực tiếp) từ dữ liệu thô.
 - Export danh sách lớp ra **CSV**, **Excel** hoặc **PDF**.
 
 ### 🤖 Sinh Thời Khóa Biểu tự động
@@ -155,14 +155,14 @@ User Action (JavaFX UI)
 
 ### ⚙️ Hệ thống Ràng buộc
 - **Hard Constraint** (bắt buộc thỏa mãn, prune nhánh nếu vi phạm):
-  - `FIX_SECTION` — bắt buộc chọn lớp cụ thể
-  - `AVOID_SECTION` — loại bỏ lớp cụ thể
-  - `AVOID_DAY` — tránh ngày trong tuần
-  - `AVOID_TIME` — tránh khung tiết cụ thể
-  - `AVOID_MODE` — tránh hình thức dạy (online/trực tiếp)
+  - `FIX_SECTION` - bắt buộc chọn lớp cụ thể
+  - `AVOID_SECTION` - loại bỏ lớp cụ thể
+  - `AVOID_DAY` - tránh ngày trong tuần
+  - `AVOID_TIME` - tránh khung tiết cụ thể
+  - `AVOID_MODE` - tránh hình thức dạy (online/trực tiếp)
 - **Soft Constraint** (tính điểm để xếp hạng phương án):
-  - `PREFER_SECTION` — ưu tiên lớp cụ thể
-  - `AVOID_MODE`, `AVOID_DAY`, `AVOID_TIME` — trừ điểm theo tần suất vi phạm × trọng số
+  - `PREFER_SECTION` - ưu tiên lớp cụ thể
+  - `AVOID_MODE`, `AVOID_DAY`, `AVOID_TIME` - trừ điểm theo tần suất vi phạm × trọng số
 
 ### 📅 Quản lý Thời Khóa Biểu đã lưu
 - Xem, đổi tên, xóa các phương án thời khóa biểu đã lưu.
@@ -296,7 +296,7 @@ coursescheduler/
 
 ---
 
-## 🧩 Domain Model
+## 🧩 Domain Model (Aggregate Boundaries)
 
 ```
 NguoiDung (id, tenDangNhap, matKhauHash, VaiTro, ngayTao)
@@ -442,7 +442,7 @@ Toàn bộ schema được khởi tạo thủ công qua JDBC — không dùng OR
 
 - **Java 21+** (JDK, không phải JRE)
 - **Maven 3.6+**
-- Không cần cài đặt database — SQLite nhúng sẵn qua JDBC driver
+- Không cần cài đặt database - SQLite nhúng sẵn qua JDBC driver
 
 ### 1. Clone repository
 
@@ -466,7 +466,7 @@ mvn clean package
 ```
 
 > File JAR được tạo tại `target/coursescheduler-1.0-SNAPSHOT.jar`.
-> **Lưu ý:** JavaFX không được đóng gói trong fat-JAR mặc định — cần dùng `javafx-maven-plugin` hoặc `jpackage` để phân phối.
+> **Lưu ý:** JavaFX không được đóng gói trong fat-JAR mặc định - cần dùng `javafx-maven-plugin` hoặc `jpackage` để phân phối.
 
 ### 4. Chạy Tests
 
@@ -496,28 +496,28 @@ Không có tài khoản seed sẵn. Người dùng tự đăng ký qua giao di�
 ## ⚙️ Thiết kế & Quyết định kỹ thuật
 
 ### 1. Clean / Hexagonal Architecture với Manual DI
-`MainApp.java` đóng vai trò **composition root** — toàn bộ dependency được khởi tạo và wire thủ công. Lựa chọn này giữ domain hoàn toàn framework-free và làm rõ dependency graph mà không cần annotation hay IoC container.
+`MainApp.java` đóng vai trò **composition root** - toàn bộ dependency được khởi tạo và wire thủ công. Lựa chọn này giữ domain hoàn toàn framework-free và làm rõ dependency graph mà không cần annotation hay IoC container.
 
 ### 2. Domain Invariant tại thời điểm khởi tạo
-Mỗi entity có hai factory method: `create()` (tạo mới) và `reconstruct()` (tái tạo từ DB). Constructor là private, `validateInvariant()` chạy trước khi gán field — đảm bảo không bao giờ tồn tại entity ở trạng thái không hợp lệ trong bộ nhớ.
+Mỗi entity có hai factory method: `create()` (tạo mới) và `reconstruct()` (tái tạo từ DB). Constructor là private, `validateInvariant()` chạy trước khi gán field - đảm bảo không bao giờ tồn tại entity ở trạng thái không hợp lệ trong bộ nhớ.
 
 ### 3. Backtracking với Time-Limit và Top-K Priority Queue
-`BacktrackingEngine` sử dụng `PriorityQueue` để duy trì top-K kết quả trong khi backtrack. Deadline được tính từ `System.nanoTime()` — khi hết giờ, flag `stopped = true` cắt nhánh còn lại. Trade-off có chủ đích: ưu tiên responsiveness hơn completeness khi không gian tìm kiếm lớn.
+`BacktrackingEngine` sử dụng `PriorityQueue` để duy trì top-K kết quả trong khi backtrack. Deadline được tính từ `System.nanoTime()` - khi hết giờ, flag `stopped = true` cắt nhánh còn lại. Trade-off có chủ đích: Ưu tiên responsiveness hơn completeness khi không gian tìm kiếm lớn.
 
 ### 4. Constraint System tách biệt khỏi Domain Model
-`HardConstraint` và `SoftConstraint` là functional interface. `ConstraintMapper` chuyển đổi `RangBuocToiUuDto` thành lambda expressions cụ thể tại runtime — optimizer không phụ thuộc vào cấu trúc DTO và dễ mở rộng loại ràng buộc mới.
+`HardConstraint` và `SoftConstraint` là functional interface. `ConstraintMapper` chuyển đổi `RangBuocToiUuDto` thành lambda expressions cụ thể tại runtime - optimizer không phụ thuộc vào cấu trúc DTO và dễ mở rộng loại ràng buộc mới.
 
 ### 5. Composite Pattern cho Export
 `CompositeFileExporter` triển khai `FileExporter` và delegate đến `CsvExporter`, `ExcelExporter`, `PdfExporter`. `IcsExporter` được xử lý riêng vì API ical4j khác biệt so với ba exporter còn lại.
 
 ### 6. Chuẩn hóa hình thức dạy trong Domain
-`LopHocPhan` tự chuẩn hóa `hinhThucDay` trong constructor: loại dấu tiếng Việt (Unicode NFKD), uppercase, nhận diện từ khóa "ONLINE" trong cả trường hình thức lẫn địa điểm. Trade-off: logic domain phụ thuộc quy ước dữ liệu nhập vào — đổi lại là consistency tuyệt đối sau khi entity được tạo.
+`LopHocPhan` tự chuẩn hóa `hinhThucDay` trong constructor: Loại dấu tiếng Việt (Unicode NFKD), uppercase, nhận diện từ khóa "ONLINE" trong cả trường hình thức lẫn địa điểm. Trade-off: Logic domain phụ thuộc quy ước dữ liệu nhập vào - đổi lại là consistency tuyệt đối sau khi entity được tạo.
 
 ### 7. SQLite với HikariCP
 SQLite phù hợp với ứng dụng desktop single-user. HikariCP tái sử dụng connection và tránh overhead mở/đóng liên tục. `DataSourceProvider` là singleton, được shutdown sạch trong `MainApp.stop()`.
 
 ### 8. ScreenManager là UI Router kiêm Session Store
-`ScreenManager` giữ tham chiếu đến tất cả Use Case và `NguoiDungDto` của session hiện tại — là điểm kết nối duy nhất giữa tầng UI và tầng Application. Controller nhận `ScreenManager` qua method `init()` thay vì field injection.
+`ScreenManager` giữ tham chiếu đến tất cả Use Case và `NguoiDungDto` của session hiện tại - là điểm kết nối duy nhất giữa tầng UI và tầng Application. Controller nhận `ScreenManager` qua method `init()` thay vì field injection.
 
 ---
 
@@ -542,13 +542,3 @@ SQLite phù hợp với ứng dụng desktop single-user. HikariCP tái sử d�
 | Schema migration tool (Flyway/Liquibase) | 📋 Chưa áp dụng |
 
 ---
-
-## 📝 Technical Notes
-
-> **Manual DI:** Toàn bộ dependency được wire trong `MainApp.start()`. Nếu mở rộng thêm nhiều service, nên tách thành `AppContext` hoặc dùng lightweight DI như Google Guice.
-
-> **Schema quản lý thủ công:** Không có migration tool — thay đổi schema cần xử lý thủ công trên file `.db` của người dùng.
-
-> **FXML phẳng:** UI tổ chức trong 2 file FXML (`auth.fxml`, `home.fxml`). Các `PaneHandler` đóng vai trò sub-controller cho từng pane con trong `home.fxml`.
-
-> **Debug logging:** Một số `System.out.println` còn tồn tại trong `GenerateThoiKhoaBieuService` (debug optimizer). Nên thay thế bằng SLF4J/Log4j2 trước khi release.
